@@ -6,6 +6,8 @@ Works with any MCP client (VS Code Copilot, Claude Desktop, Cursor) via **stdio 
 
 Built with [FastMCP](https://github.com/punkpeye/fastmcp). Disk-cached, rate-limited, retries with backoff.
 
+I did collapse all older commits into a single commit hence the large initial commit. This was to consolidate as well as get rid of many old files that were no longer relevant to the project when I made it public.
+
 ## Data Sources
 
 | API | What it covers | Auth |
