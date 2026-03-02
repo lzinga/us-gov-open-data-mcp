@@ -40,9 +40,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
-          git commit -m "release: v${{ github.event.inputs.version }}"
-          git tag "v${{ github.event.inputs.version }}"
-          git push origin HEAD --tags
+          git diff --cached --quiet || git commit -m "release: v${{ github.event.inputs.version }}"
+          git tag -f "v${{ github.event.inputs.version }}"
+          git push origin HEAD --tags --force
 
   publish-github:
     runs-on: ubuntu-latest
