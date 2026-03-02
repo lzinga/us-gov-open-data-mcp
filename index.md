@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: US Government Open Data MCP
 ---
 
 # US Government Open Data MCP
