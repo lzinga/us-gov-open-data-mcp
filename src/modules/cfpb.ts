@@ -42,6 +42,7 @@ export const tools: Tool<any, any>[] = [
       "Search the CFPB consumer complaint database (13M+ records).\n" +
       "Find complaints by company, product, state, issue, date, or keyword.\n" +
       "Returns individual complaints with company responses.\n" +
+      "Company names auto-retry with fuzzy search if exact match fails (e.g. 'Wells Fargo' will find 'WELLS FARGO & COMPANY').\n" +
       "Products: 'Mortgage', 'Debt collection', 'Credit card or prepaid card', 'Checking or savings account', " +
       "'Student loan', 'Vehicle loan or lease', 'Credit reporting, credit repair services, or other personal consumer reports'.",
     annotations: { title: "CFPB: Search Complaints", readOnlyHint: true },

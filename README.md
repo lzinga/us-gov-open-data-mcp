@@ -1,6 +1,6 @@
 # US Government Open Data MCP
 
-An MCP server + TypeScript SDK for **38 U.S. government and international data APIs** — 202 tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, and legislative data.
+An MCP server + TypeScript SDK for **38 U.S. government and international data APIs** — 206 tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, and legislative data.
 
 Works with any MCP client (VS Code Copilot, Claude Desktop, Cursor) via **stdio or HTTP Stream**. Supports **selective module loading** and standalone **SDK imports** for use without MCP.
 
@@ -29,7 +29,7 @@ I did collapse all older commits into a single commit hence the large initial co
 | **USDA NASS** | Crop production, livestock, farm prices, Census of Agriculture | `USDA_NASS_API_KEY` |
 | **World Bank** | International indicators: GDP, population, health spending for 200+ countries | None |
 | **CDC Health Data** | Leading causes of death, life expectancy, mortality rates, county/city health indicators (PLACES), drug overdose, obesity, disability, birth indicators, weekly death surveillance, COVID-19 — 13 tools across 12 datasets | None |
-| **NAEP (Nation's Report Card)** | Reading, math, science test scores by state, grade, race, gender, poverty — the gold standard for U.S. education measurement | None |
+| **NAEP (Nation's Report Card)** | 10 subjects (reading, math, science, writing, civics, history, geography, economics, TEL, music) with subscale breakdowns, achievement levels, significance testing, 30 urban district scores, crosstab demographics | None |
 | **College Scorecard** | College costs, graduation rates, post-graduation earnings, student debt, admission rates for every U.S. college | `DATA_GOV_API_KEY` |
 | **NREL (Clean Energy)** | EV charging stations, alt fuel infrastructure, electricity rates, solar resource data | `DATA_GOV_API_KEY` |
 | **FDA (OpenFDA)** | Drug adverse events (20M+ reports), drug recalls, FDA-approved drugs (Drugs@FDA), drug labels, food recalls, food adverse events (CAERS), medical device events, device recalls — 8 tools | None |

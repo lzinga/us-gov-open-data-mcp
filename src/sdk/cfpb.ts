@@ -117,6 +117,9 @@ export const AGG_FIELDS: Record<string, string> = {
 
 /**
  * Search consumer complaints with filters.
+ * Note: The `company` parameter requires the exact official name (e.g. "WELLS FARGO & COMPANY").
+ * If an exact company match returns 0 results, automatically retries using `search_term` for
+ * a fuzzy match across all fields.
  *
  * Example:
  *   const data = await searchComplaints({ product: "Mortgage", state: "CA", size: 25 });
@@ -159,7 +162,22 @@ export async function searchComplaints(opts: {
   if (opts.field) params.field = opts.field;
   if (opts.no_aggs) params.no_aggs = "true";
 
-  return client.get<ComplaintSearchResult>("/", params);
+  const result = await client.get<ComplaintSearchResult>("/", params);
+
+  // If company filter returned 0 results, retry with search_term for fuzzy matching
+  const total = typeof result.hits?.total === "object" ? result.hits.total.value : result.hits?.total ?? 0;
+  if (total === 0 && opts.company && !opts.search_term) {
+    const retryParams = { ...params };
+    delete retryParams.company;
+    retryParams.search_term = opts.company;
+    const retryResult = await client.get<ComplaintSearchResult>("/", retryParams);
+    const retryTotal = typeof retryResult.hits?.total === "object" ? retryResult.hits.total.value : retryResult.hits?.total ?? 0;
+    if (retryTotal > 0) {
+      return retryResult;
+    }
+  }
+
+  return result;
 }
 
 /**

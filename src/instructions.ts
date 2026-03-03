@@ -259,11 +259,14 @@ ENERGY / CLIMATE:
   Compare: World Bank (EN.ATM.CO2E.PC) → U.S. emissions vs other nations
 
 EDUCATION / LITERACY:
-  Primary: NAEP (naep_scores) → reading, math, science scores by state and grade
+  Primary: NAEP (naep_scores) → reading, math, science, writing, civics, history, geography, economics, TEL, music scores by state and grade
+  Primary: NAEP (naep_scores with subscale param) → drill into subscales: math geometry (MRPS3), reading literary (RRPS1), science physical (SRPS1), etc.
   Primary: NAEP (naep_achievement_levels) → % Below Basic, Proficient, Advanced — the key literacy metric
   Enrich: NAEP (naep_compare_years) → track COVID learning loss and recovery (2019 vs 2022 vs 2024)
-  Enrich: NAEP (naep_compare_groups) → racial/poverty achievement gaps by SDRACE and SLUNCH3
-  Enrich: NAEP (naep_compare_states) → which states score highest/lowest
+  Enrich: NAEP (naep_compare_groups) → racial/poverty/gender achievement gaps with significance testing
+  Enrich: NAEP (naep_compare_groups with crosstab 'SDRACE+GENDER') → intersectional gaps (e.g. Black Male vs White Female)
+  Enrich: NAEP (naep_compare_states) → which states score highest/lowest with significance
+  Enrich: NAEP (naep_scores with district codes) → urban district data: XN=NYC, XC=Chicago, XL=LA, XB=Boston, XH=Houston, XR=Detroit, etc.
   Enrich: Census (population, poverty) → demographic context for achievement gaps
   Enrich: CDC (cdc_places_health FOODINSECU) → food insecurity correlates with low test scores
   Enrich: World Bank (SE.XPD.TOTL.GD.ZS) → U.S. education spending vs peers
