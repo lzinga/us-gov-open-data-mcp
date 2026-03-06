@@ -2,18 +2,17 @@
  * regulations module metadata.
  */
 
+import type { ModuleMeta } from "../../shared/types.js";
 
-// ─── Metadata (server.ts reads these) ────────────────────────────────
-
-export const name = "regulations";
-export const displayName = "Regulations.gov";
-export const category = "Legislative";
-export const description = "Federal rulemaking: proposed rules, final rules, public comments, and regulatory dockets from all federal agencies";
-export const auth = { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" };
-export const workflow = "regulations_search_documents to find rules → regulations_document_detail for full info → regulations_search_comments for public feedback";
-export const tips = "Document types: 'Proposed Rule', 'Rule', 'Supporting & Related Material', 'Other'. Sort by '-postedDate' for newest first. Agency IDs: EPA, FDA, DOL, HHS, DOT, etc.";
-
-export const reference = {
+export default {
+  name: "regulations",
+  displayName: "Regulations.gov",
+  category: "Legislative",
+  description: "Federal rulemaking: proposed rules, final rules, public comments, and regulatory dockets from all federal agencies",
+  auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
+  workflow: "regulations_search_documents to find rules → regulations_document_detail for full info → regulations_search_comments for public feedback",
+  tips: "Document types: 'Proposed Rule', 'Rule', 'Supporting & Related Material', 'Other'. Sort by '-postedDate' for newest first. Agency IDs: EPA, FDA, DOL, HHS, DOT, etc.",
+  reference: {
   documentTypes: {
     "Proposed Rule": "Notice of proposed rulemaking (NPRM)",
     "Rule": "Final rule",
@@ -28,7 +27,5 @@ export const reference = {
     "API Docs": "https://open.gsa.gov/api/regulationsgov/",
     "Regulations.gov": "https://www.regulations.gov/",
   },
-};
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

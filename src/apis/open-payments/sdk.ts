@@ -5,7 +5,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchPayments, getTopCompanies } from "us-gov-open-data/sdk/open-payments";
+ *   import { searchPayments, getTopCompanies } from "us-gov-open-data-mcp/sdk/open-payments";
  *
  *   const payments = await searchPayments({ company: "Pfizer", limit: 10 });
  *   const top = await getTopCompanies({ year: "2024" });

@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getSeriesData, searchPopularSeries } from "us-gov-open-data/sdk/bls";
+ *   import { getSeriesData, searchPopularSeries } from "us-gov-open-data-mcp/sdk/bls";
  *
  * Optional BLS_API_KEY env var — get one at https://www.bls.gov/developers/home.htm
  * Without key: 25 req/day, 10yr max range, no calculations.

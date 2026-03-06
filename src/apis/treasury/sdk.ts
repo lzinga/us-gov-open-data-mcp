@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { queryFiscalData, searchEndpoints, ENDPOINTS } from "us-gov-open-data/sdk/treasury";
+ *   import { queryFiscalData, searchEndpoints, ENDPOINTS } from "us-gov-open-data-mcp/sdk/treasury";
  *
  * No API key required — completely open.
  * Base URL: https://api.fiscaldata.treasury.gov/services/api/fiscal_service

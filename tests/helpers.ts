@@ -45,7 +45,8 @@ export function getModule(moduleName: string): Record<string, unknown> {
   const key = `../src/apis/${moduleName}/index.ts`;
   const mod = moduleImports[key];
   if (!mod) throw new Error(`Module "${moduleName}" not found in glob imports`);
-  return mod;
+  // Modules use export default — unwrap the default export
+  return (mod.default ?? mod) as Record<string, unknown>;
 }
 
 // ─── Type helpers ────────────────────────────────────────────────────

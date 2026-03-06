@@ -43,7 +43,7 @@ export const tools: Tool<any, any>[] = [
     name: "uspto_search_patents",
     description:
       "Search U.S. patents by keyword, assignee (company), inventor name, date range, patent type, or CPC technology class. Returns patent number, title, date, assignee, inventors, and abstract.",
-    annotations: { title: "Search Patents", readOnlyHint: true },
+    annotations: { title: "USPTO: Search Patents", readOnlyHint: true },
     parameters: z.object({
       query: z.string().optional().describe("Search text — matches against title and abstract"),
       assignee: z.string().optional().describe("Assignee organization name (e.g. 'Google', 'IBM', 'MIT')"),
@@ -83,7 +83,7 @@ export const tools: Tool<any, any>[] = [
     name: "uspto_patent_details",
     description:
       "Get details for a specific U.S. patent by patent number. Returns title, date, abstract, assignee, inventors, claims count, and CPC classification.",
-    annotations: { title: "Patent Details", readOnlyHint: true },
+    annotations: { title: "USPTO: Patent Details", readOnlyHint: true },
     parameters: z.object({
       patent_number: z.string().describe("Patent number (e.g. '11234567' — no commas)"),
     }),
@@ -99,7 +99,7 @@ export const tools: Tool<any, any>[] = [
     name: "uspto_search_inventors",
     description:
       "Search for patent inventors by name, state, or country. Shows inventor details and patent counts.",
-    annotations: { title: "Search Inventors", readOnlyHint: true },
+    annotations: { title: "USPTO: Search Inventors", readOnlyHint: true },
     parameters: z.object({
       name: z.string().optional().describe("Inventor name to search (first or last)"),
       first_name: z.string().optional().describe("Inventor first name"),
@@ -141,7 +141,7 @@ export const tools: Tool<any, any>[] = [
     name: "uspto_search_assignees",
     description:
       "Search for patent assignees (companies, universities, government agencies) by name, state, or country. Shows organization details and patent counts.",
-    annotations: { title: "Search Assignees", readOnlyHint: true },
+    annotations: { title: "USPTO: Search Assignees", readOnlyHint: true },
     parameters: z.object({
       organization: z.string().optional().describe("Organization name (e.g. 'Apple', 'Stanford University')"),
       state: z.string().optional().describe("U.S. state abbreviation (e.g. CA, TX)"),

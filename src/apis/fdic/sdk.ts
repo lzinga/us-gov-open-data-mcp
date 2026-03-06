@@ -4,7 +4,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchInstitutions, getBankFailures, getFinancials } from "us-gov-open-data/sdk/fdic";
+ *   import { searchInstitutions, getBankFailures, getFinancials } from "us-gov-open-data-mcp/sdk/fdic";
  *
  *   const banks = await searchInstitutions({ filters: "STNAME:\"California\"", limit: 10 });
  *   const failures = await getBankFailures({ limit: 25 });

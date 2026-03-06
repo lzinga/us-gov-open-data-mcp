@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getDisasterDeclarations, getHousingAssistance } from "us-gov-open-data/sdk/fema";
+ *   import { getDisasterDeclarations, getHousingAssistance } from "us-gov-open-data-mcp/sdk/fema";
  *
  * No API key required.
  * Docs: https://www.fema.gov/about/openfema/api
@@ -305,6 +305,6 @@ export async function queryDataset(opts: {
 }
 
 /** Clear the FEMA SDK cache. */
-export function clearCache() {
+export function clearCache(): void {
   api.clearCache();
 }

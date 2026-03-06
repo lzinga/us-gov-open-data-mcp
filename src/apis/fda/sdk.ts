@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchDrugEvents, searchFoodRecalls, countDrugEvents } from "us-gov-open-data/sdk/fda";
+ *   import { searchDrugEvents, searchFoodRecalls, countDrugEvents } from "us-gov-open-data-mcp/sdk/fda";
  *
  *   const events = await searchDrugEvents({ search: "patient.drug.openfda.brand_name:aspirin", limit: 5 });
  *   console.log(events.meta.results.total, events.results);

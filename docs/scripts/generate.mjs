@@ -22,7 +22,8 @@ const modules = [];
 
 for (const dir of apiDirs) {
   try {
-    const mod = await import(`file://${join(APIS_DIR, dir, "index.js").replace(/\\/g, "/")}`);
+    const raw = await import(`file://${join(APIS_DIR, dir, "index.js").replace(/\\/g, "/")}`);
+    const mod = raw.default ?? raw;
     modules.push({
       dir,
       name: mod.name ?? dir,

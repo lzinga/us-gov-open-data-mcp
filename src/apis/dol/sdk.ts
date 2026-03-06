@@ -6,7 +6,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getOshaInspections, getOshaViolations, getWhdEnforcement } from "us-gov-open-data/sdk/dol";
+ *   import { getOshaInspections, getOshaViolations, getWhdEnforcement } from "us-gov-open-data-mcp/sdk/dol";
  *
  *   const inspections = await getOshaInspections({ state: "TX", limit: 25 });
  *   console.log(inspections);

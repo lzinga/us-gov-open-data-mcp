@@ -3,14 +3,16 @@
  */
 
 import { AIR_TABLES, UV_INDEX_SCALE } from "./sdk.js";
-export const name = "epa";
-export const displayName = "EPA (Environmental Protection Agency)";
-export const category = "Environment";
-export const description = "Air quality data, facility environmental compliance/violations, UV index forecasts";
-export const workflow = "epa_air_quality for pollution data → epa_facilities for compliance violations → epa_uv for UV forecasts";
-export const tips = "Air quality tables: AIR_QUALITY_MEASURES (county-level AQI), MONITORING_SITE (station locations). UV index: 0-2 Low, 3-5 Moderate, 6-7 High, 8-10 Very High, 11+ Extreme.";
+import type { ModuleMeta } from "../../shared/types.js";
 
-export const reference = {
+export default {
+  name: "epa",
+  displayName: "EPA (Environmental Protection Agency)",
+  category: "Environment",
+  description: "Air quality data, facility environmental compliance/violations, UV index forecasts",
+  workflow: "epa_air_quality for pollution data → epa_facilities for compliance violations → epa_uv for UV forecasts",
+  tips: "Air quality tables: AIR_QUALITY_MEASURES (county-level AQI), MONITORING_SITE (station locations). UV index: 0-2 Low, 3-5 Moderate, 6-7 High, 8-10 Very High, 11+ Extreme.",
+  reference: {
   airTables: AIR_TABLES,
   uvScale: UV_INDEX_SCALE,
   docs: {
@@ -18,5 +20,5 @@ export const reference = {
     "ECHO": "https://echo.epa.gov/",
     "Air Quality System": "https://www.epa.gov/aqs",
   },
-};
-
+},
+} satisfies ModuleMeta;

@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchDocuments, searchComments, searchDockets } from "us-gov-open-data/sdk/regulations";
+ *   import { searchDocuments, searchComments, searchDockets } from "us-gov-open-data-mcp/sdk/regulations";
  *
  *   const docs = await searchDocuments({ searchTerm: "water", agencyId: "EPA", pageSize: 10 });
  *   console.log(docs.data);

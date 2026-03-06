@@ -28,6 +28,7 @@ import { FastMCP, type Tool, type InputPrompt } from "fastmcp";
 import { z } from "zod";
 import { CROSS_REFERENCE_GUIDE } from "./server/instructions.js";
 import { analysisPrompts } from "./server/prompts.js";
+import type { ApiModule } from "./shared/types.js";
 
 const logger = {
   ...console,
@@ -47,22 +48,7 @@ const logger = {
   },
 };
 
-// ─── Module interface (loose — all fields except name/displayName/tools are optional) ─
-
-interface Module {
-  name: string;
-  displayName: string;
-  description: string;
-  auth?: { envVar: string; signup: string };
-  workflow?: string;
-  tips?: string;
-  reference?: Record<string, unknown>;
-  tools: Tool<any, any>[];
-  prompts?: InputPrompt<any, any>[];
-  clearCache?: () => void;
-}
-
-const MODULES: Module[] = [];
+const MODULES: ApiModule[] = [];
 
 // Auto-discover API modules from apis/ subdirectories
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -75,7 +61,7 @@ const apiDirs = readdirSync(apisDir, { withFileTypes: true })
 for (const dir of apiDirs) {
   try {
     const mod = await import(`./apis/${dir}/index.js`);
-    MODULES.push(mod as Module);
+    MODULES.push(mod.default as ApiModule);
   } catch (err) {
     console.error(`Failed to load module "${dir}":`, (err as Error).message);
   }
@@ -213,9 +199,15 @@ server.addResource({
 if (transport === "httpStream") {
   server.start({
     transportType: "httpStream",
-    httpStream: { port },
+    httpStream: {
+      port,
+      // Bind to localhost only — prevents network exposure.
+      // Set MCP_HOST=0.0.0.0 to allow external access (e.g. behind a reverse proxy).
+      host: process.env.MCP_HOST ?? "127.0.0.1",
+    },
   });
-  console.error(`MCP server listening on http://localhost:${port}/mcp (HTTP Stream)`);
+  const host = process.env.MCP_HOST ?? "127.0.0.1";
+  console.error(`MCP server listening on http://${host}:${port}/mcp (HTTP Stream)`);
   console.error(`${activeModules.length} modules, ${activeModules.reduce((n, m) => n + m.tools.length, 0)} tools`);
 } else {
   server.start({ transportType: "stdio" });

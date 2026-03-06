@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchAwards, spendingByAgency } from "us-gov-open-data/sdk/usaspending";
+ *   import { searchAwards, spendingByAgency } from "us-gov-open-data-mcp/sdk/usaspending";
  *
  *   const awards = await searchAwards({ keyword: "solar energy", awardType: "contracts" });
  *   console.log(awards.total, awards.awards);

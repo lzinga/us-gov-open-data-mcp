@@ -1,8 +1,22 @@
+<div align="center">
+
 # US Government Open Data MCP
 
-An MCP server + TypeScript SDK for **39 U.S. government and international data APIs** — 219 tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, and legislative data.
+**MCP Server + TypeScript SDK for 39 U.S. Government APIs**
 
-**21 APIs require no key.** The rest use free keys that take under a minute to get.
+[![npm version](https://img.shields.io/npm/v/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+219 tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, and legislative data.
+
+**21 APIs require no key** · The rest use free keys that take under a minute to get
+
+[Getting Started](https://lzinga.github.io/us-gov-open-data-mcp/guide/getting-started) · [API Reference](https://lzinga.github.io/us-gov-open-data-mcp/api/) · [Documentation](https://lzinga.github.io/us-gov-open-data-mcp/)
+
+</div>
+
+---
 
 ## Quick Start
 

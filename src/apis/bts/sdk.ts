@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getTransportStats, getBorderCrossings } from "us-gov-open-data/sdk/bts";
+ *   import { getTransportStats, getBorderCrossings } from "us-gov-open-data-mcp/sdk/bts";
  *
  *   const stats = await getTransportStats({ limit: 12 });
  *   const border = await getBorderCrossings({ state: "Texas", measure: "Trucks" });

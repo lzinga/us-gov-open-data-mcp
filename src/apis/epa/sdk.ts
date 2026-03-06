@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getAirQuality, searchFacilities, getUVIndex } from "us-gov-open-data/sdk/epa";
+ *   import { getAirQuality, searchFacilities, getUVIndex } from "us-gov-open-data-mcp/sdk/epa";
  *
  *   const aq = await getAirQuality({ state: "CA" });
  *   console.log(aq);

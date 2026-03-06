@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchCandidates, getCandidateFinancials } from "us-gov-open-data/sdk/fec";
+ *   import { searchCandidates, getCandidateFinancials } from "us-gov-open-data-mcp/sdk/fec";
  *
  * Requires DATA_GOV_API_KEY env var. Get one at https://api.data.gov/signup/
  * Docs: https://api.open.fec.gov/developers/
@@ -118,7 +118,35 @@ export interface FecDisbursement {
   memo_text: string | null;
   [key: string]: unknown;
 }
+// ─── Reference Data ──────────────────────────────────────────────────────
 
+/** FEC candidate status codes. */
+export const CANDIDATE_STATUS = {
+  C: "Current candidate",
+  F: "Future candidate",
+  N: "Not yet a candidate",
+  P: "Prior candidate",
+} as const;
+
+/** FEC committee type codes. */
+export const COMMITTEE_TYPES = {
+  P: "Presidential",
+  H: "House",
+  S: "Senate",
+  N: "PAC - Nonqualified",
+  Q: "PAC - Qualified",
+  X: "Party - Nonqualified",
+  Y: "Party - Qualified",
+  I: "Independent Expenditor",
+  O: "Super PAC",
+} as const;
+
+/** FEC office name codes. */
+export const OFFICE_NAMES = {
+  H: "House",
+  S: "Senate",
+  P: "President",
+} as const;
 // ─── Public API ──────────────────────────────────────────────────────
 
 /** Search for federal election candidates by name, state, party, office, or election year. */

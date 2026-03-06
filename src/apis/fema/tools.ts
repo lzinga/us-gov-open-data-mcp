@@ -23,7 +23,7 @@ export const tools: Tool<any, any>[] = [
     name: "fema_disaster_declarations",
     description:
       "Search FEMA disaster declarations (since 1953). Filter by state, year, incident type, or declaration type. Returns disaster name, type, affected area, programs declared.",
-    annotations: { title: "FEMA Disaster Declarations", readOnlyHint: true },
+    annotations: { title: "FEMA: Disaster Declarations", readOnlyHint: true },
     parameters: z.object({
       state: z.string().max(2).optional().describe("Two-letter state code (e.g. TX, FL, CA)"),
       year: z.number().optional().describe("Filter by year of declaration"),
@@ -49,7 +49,7 @@ export const tools: Tool<any, any>[] = [
     name: "fema_housing_assistance",
     description:
       "Get FEMA Individual Housing Program (IHP) assistance data for homeowners. Shows approved assistance amounts, inspections, and damage by county/zip for a disaster.",
-    annotations: { title: "FEMA Housing Assistance", readOnlyHint: true },
+    annotations: { title: "FEMA: Housing Assistance", readOnlyHint: true },
     parameters: z.object({
       disaster_number: z.number().optional().describe("FEMA disaster number (from disaster declarations)"),
       state: z.string().max(2).optional().describe("Two-letter state code"),
@@ -73,7 +73,7 @@ export const tools: Tool<any, any>[] = [
     name: "fema_public_assistance",
     description:
       "Get FEMA Public Assistance (PA) grant awards. Shows project-level grants to state/local/tribal governments and nonprofits for debris removal, emergency work, and permanent repair.",
-    annotations: { title: "FEMA Public Assistance", readOnlyHint: true },
+    annotations: { title: "FEMA: Public Assistance", readOnlyHint: true },
     parameters: z.object({
       disaster_number: z.number().optional().describe("FEMA disaster number"),
       state: z.string().max(2).optional().describe("Two-letter state code"),
@@ -94,7 +94,7 @@ export const tools: Tool<any, any>[] = [
   {
     name: "fema_regions",
     description: "Get FEMA region boundaries and associated states. 10 FEMA regions cover all U.S. states and territories.",
-    annotations: { title: "FEMA Regions", readOnlyHint: true },
+    annotations: { title: "FEMA: Regions", readOnlyHint: true },
     parameters: z.object({}),
     execute: async () => {
       const data = await getFemaRegions();
@@ -106,7 +106,7 @@ export const tools: Tool<any, any>[] = [
     name: "fema_query",
     description:
       "General-purpose query against any OpenFEMA v2 dataset. Use this for NFIP flood insurance claims/policies, hazard mitigation grants, mission assignments, IHP registrations, etc. Supports OData $filter syntax.",
-    annotations: { title: "FEMA Query", readOnlyHint: true },
+    annotations: { title: "FEMA: Query", readOnlyHint: true },
     parameters: z.object({
       dataset: z
         .string()

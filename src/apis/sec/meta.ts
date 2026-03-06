@@ -3,16 +3,16 @@
  */
 
 import { xbrlConcepts } from "./sdk.js";
-// ─── Metadata (server.ts reads these) ────────────────────────────────
+import type { ModuleMeta } from "../../shared/types.js";
 
-export const name = "sec";
-export const displayName = "SEC EDGAR";
-export const category = "Financial";
-export const description = "Company filings, financial data (XBRL), and full-text search across SEC EDGAR";
-export const workflow = "sec_filing_search to find companies/CIKs → sec_company_search for details → sec_company_financials for XBRL data";
-export const tips = "No API key required. Rate limit: 10 req/sec. CIK numbers must be looked up first — use sec_filing_search to find them by company name.";
-
-export const reference = {
+export default {
+  name: "sec",
+  displayName: "SEC EDGAR",
+  category: "Financial",
+  description: "Company filings, financial data (XBRL), and full-text search across SEC EDGAR",
+  workflow: "sec_filing_search to find companies/CIKs → sec_company_search for details → sec_company_financials for XBRL data",
+  tips: "No API key required. Rate limit: 10 req/sec. CIK numbers must be looked up first — use sec_filing_search to find them by company name.",
+  reference: {
   xbrlConcepts: xbrlConcepts as Record<string, string>,
   commonCiks: {
     "0000320193": "Apple",
@@ -30,7 +30,5 @@ export const reference = {
     "Full-Text Search": "https://efts.sec.gov/LATEST/",
     "Fair Access Policy": "https://www.sec.gov/privacy.htm#security",
   },
-};
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

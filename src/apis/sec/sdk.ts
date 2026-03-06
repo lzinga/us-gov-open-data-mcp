@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getCompanyByCik, getCompanyFacts, searchEdgar } from "us-gov-open-data/sdk/sec";
+ *   import { getCompanyByCik, getCompanyFacts, searchEdgar } from "us-gov-open-data-mcp/sdk/sec";
  *
  * No API key required. Must include User-Agent with contact info.
  * Rate limit: 10 requests/second.

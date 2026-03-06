@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchPublications, getBillText } from "us-gov-open-data/sdk/govinfo";
+ *   import { searchPublications, getBillText } from "us-gov-open-data-mcp/sdk/govinfo";
  *
  *   const results = await searchPublications({ query: "infrastructure" });
  *   const bill = await getBillText({ congress: 117, billType: "hr", billNumber: 5376 });

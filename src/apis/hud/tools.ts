@@ -47,7 +47,7 @@ export const tools: Tool<any, any>[] = [
     name: "hud_fair_market_rents",
     description:
       "Get HUD Fair Market Rents (FMR) for a county, metro area, or entire state. Shows monthly rent by bedroom count (efficiency through 4-bedroom). FMR determines Section 8 voucher amounts.",
-    annotations: { title: "HUD Fair Market Rents", readOnlyHint: true },
+    annotations: { title: "HUD: Fair Market Rents", readOnlyHint: true },
     parameters: z.object({
       state: z.string().max(2).optional().describe("Two-letter state code for state-wide FMR data (e.g. CA, TX)"),
       entity_id: z.string().optional().describe("County FIPS or CBSA code for specific area FMR (get from hud_list_counties)"),
@@ -77,7 +77,7 @@ export const tools: Tool<any, any>[] = [
     name: "hud_income_limits",
     description:
       "Get HUD Income Limits for a county, metro area, or entire state. Shows Very Low, Extremely Low, and Low income thresholds by household size (1-8 persons). Used for affordable housing eligibility.",
-    annotations: { title: "HUD Income Limits", readOnlyHint: true },
+    annotations: { title: "HUD: Income Limits", readOnlyHint: true },
     parameters: z.object({
       state: z.string().max(2).optional().describe("Two-letter state code for state-wide income limits"),
       entity_id: z.string().optional().describe("County FIPS or CBSA code (get from hud_list_counties)"),
@@ -105,7 +105,7 @@ export const tools: Tool<any, any>[] = [
   {
     name: "hud_list_states",
     description: "List all U.S. states with their HUD state codes. Use these codes with other HUD tools.",
-    annotations: { title: "HUD States", readOnlyHint: true },
+    annotations: { title: "HUD: States", readOnlyHint: true },
     parameters: z.object({}),
     execute: async () => {
       const states = await listStates();
@@ -116,7 +116,7 @@ export const tools: Tool<any, any>[] = [
   {
     name: "hud_list_counties",
     description: "List counties in a state with their FIPS codes. Use FIPS codes as entity_id in hud_fair_market_rents and hud_income_limits.",
-    annotations: { title: "HUD Counties", readOnlyHint: true },
+    annotations: { title: "HUD: Counties", readOnlyHint: true },
     parameters: z.object({
       state: z.string().max(2).describe("Two-letter state code (e.g. CA, TX, NY)"),
     }),
@@ -132,7 +132,7 @@ export const tools: Tool<any, any>[] = [
   {
     name: "hud_list_metro_areas",
     description: "List metropolitan/CBSA areas. CBSA codes can be used as entity_id in HUD tools.",
-    annotations: { title: "HUD Metro Areas", readOnlyHint: true },
+    annotations: { title: "HUD: Metro Areas", readOnlyHint: true },
     parameters: z.object({}),
     execute: async () => {
       const areas = await listMetroAreas();

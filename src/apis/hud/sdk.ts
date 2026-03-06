@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getFairMarketRents, getIncomeLimits } from "us-gov-open-data/sdk/hud";
+ *   import { getFairMarketRents, getIncomeLimits } from "us-gov-open-data-mcp/sdk/hud";
  *
  * Requires HUD_USER_TOKEN from https://www.huduser.gov/hudapi/public/register
  * Docs: https://www.huduser.gov/portal/dataset/fmr-api.html
@@ -151,6 +151,6 @@ export async function getStateIncomeLimits(stateCode: string, year?: number): Pr
 }
 
 /** Clear the HUD SDK cache. */
-export function clearCache() {
+export function clearCache(): void {
   api.clearCache();
 }

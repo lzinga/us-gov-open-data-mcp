@@ -11,14 +11,14 @@ import {
   getCommitteeFinancials,
   getTopCandidates,
   getCommitteeDisbursements,
+  CANDIDATE_STATUS,
   type FecCandidate,
   type FecCommittee,
   type FecFinancialTotals,
 } from "./sdk.js";
 import { listResponse, tableResponse, emptyResponse } from "../../shared/response.js";
-import { reference } from "./meta.js";
 
-const STATUS_MAP: Record<string, string> = reference.candidateStatus;
+const STATUS_MAP = CANDIDATE_STATUS as Record<string, string>;
 
 function summarizeCandidate(c: FecCandidate) {
   return {

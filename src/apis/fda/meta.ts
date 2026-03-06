@@ -2,18 +2,17 @@
  * fda module metadata.
  */
 
+import type { ModuleMeta } from "../../shared/types.js";
 
-export const name = "fda";
-export const displayName = "FDA (OpenFDA)";
-export const category = "Health";
-export const description = "Drug adverse events, drug labels, food recalls, medical device reports from the FDA";
-export const workflow = "fda_drug_events to search adverse reactions → fda_drug_counts to aggregate → fda_food_recalls for food safety";
-export const tips =
-  "Search syntax: 'field:value' e.g. 'patient.drug.openfda.brand_name:aspirin'. " +
-  "Use '+AND+' to combine: 'patient.drug.openfda.brand_name:aspirin+AND+serious:1'. " +
-  "Count fields: 'patient.reaction.reactionmeddrapt.exact' (reactions), 'patient.drug.openfda.brand_name.exact' (drug names).";
-
-export const reference = {
+export default {
+  name: "fda",
+  displayName: "FDA (OpenFDA)",
+  category: "Health",
+  description: "Drug adverse events, drug labels, food recalls, medical device reports from the FDA",
+  workflow: "fda_drug_events to search adverse reactions → fda_drug_counts to aggregate → fda_food_recalls for food safety",
+  tips:
+    "Search syntax: 'field:value' e.g. 'patient.drug.openfda.brand_name:aspirin'. Use '+AND+' to combine: 'patient.drug.openfda.brand_name:aspirin+AND+serious:1'. Count fields: 'patient.reaction.reactionmeddrapt.exact' (reactions), 'patient.drug.openfda.brand_name.exact' (drug names).",
+  reference: {
   drugEventFields: {
     "patient.drug.openfda.brand_name": "Drug brand name",
     "patient.drug.openfda.generic_name": "Generic drug name",
@@ -35,5 +34,5 @@ export const reference = {
     "Food Recalls API": "https://open.fda.gov/apis/food/enforcement/",
     "Device Events API": "https://open.fda.gov/apis/device/event/",
   },
-};
-
+},
+} satisfies ModuleMeta;

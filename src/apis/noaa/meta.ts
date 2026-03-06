@@ -2,18 +2,17 @@
  * noaa module metadata.
  */
 
+import type { ModuleMeta } from "../../shared/types.js";
 
-// ─── Metadata ────────────────────────────────────────────────────────
-
-export const name = "noaa";
-export const displayName = "NOAA Climate Data Online";
-export const category = "Environment";
-export const description = "Weather observations, temperature, precipitation, climate normals from NOAA stations across the U.S.";
-export const auth = { envVar: "NOAA_API_KEY", signup: "https://www.ncei.noaa.gov/cdo-web/token" };
-export const workflow = "noaa_stations to find a station → noaa_climate_data to get observations";
-export const tips = "Datasets: GHCND (daily), GSOM (monthly summary), GSOY (annual summary). Location IDs: FIPS:36 (NY), FIPS:06 (CA)";
-
-export const reference = {
+export default {
+  name: "noaa",
+  displayName: "NOAA Climate Data Online",
+  category: "Environment",
+  description: "Weather observations, temperature, precipitation, climate normals from NOAA stations across the U.S.",
+  auth: { envVar: "NOAA_API_KEY", signup: "https://www.ncei.noaa.gov/cdo-web/token" },
+  workflow: "noaa_stations to find a station → noaa_climate_data to get observations",
+  tips: "Datasets: GHCND (daily), GSOM (monthly summary), GSOY (annual summary). Location IDs: FIPS:36 (NY), FIPS:06 (CA)",
+  reference: {
   datasets: {
     GHCND: "Global Historical Climatology Network - Daily (temp, precipitation, snow)",
     GSOM: "Global Summary of the Month",
@@ -36,7 +35,5 @@ export const reference = {
     "Get Key": "https://www.ncei.noaa.gov/cdo-web/token",
     "Dataset List": "https://www.ncei.noaa.gov/cdo-web/datasets",
   },
-};
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

@@ -2,17 +2,16 @@
  * treasury module metadata.
  */
 
+import type { ModuleMeta } from "../../shared/types.js";
 
-// ─── Metadata (server.ts reads these) ────────────────────────────────
-
-export const name = "treasury";
-export const displayName = "U.S. Treasury Fiscal Data";
-export const category = "Economic";
-export const description = "National debt, revenue, spending, interest rates, exchange rates, savings bonds, auctions, trust funds — 53 datasets, 181 endpoints";
-export const workflow = "search_datasets → get_endpoint_fields → query_fiscal_data";
-export const tips = "No API key required. Use search_datasets to find endpoints by keyword. Use get_endpoint_fields to discover field names before querying. Sort by -record_date for latest data. Use page_size=1 for most recent record. Filter syntax: field:operator:value.";
-
-export const reference = {
+export default {
+  name: "treasury",
+  displayName: "U.S. Treasury Fiscal Data",
+  category: "Economic",
+  description: "National debt, revenue, spending, interest rates, exchange rates, savings bonds, auctions, trust funds — 53 datasets, 181 endpoints",
+  workflow: "search_datasets → get_endpoint_fields → query_fiscal_data",
+  tips: "No API key required. Use search_datasets to find endpoints by keyword. Use get_endpoint_fields to discover field names before querying. Sort by -record_date for latest data. Use page_size=1 for most recent record. Filter syntax: field:operator:value.",
+  reference: {
   popularEndpoints: {
     "/v2/accounting/od/debt_to_penny": "Total public debt outstanding (daily)",
     "/v2/accounting/od/avg_interest_rates": "Average interest rates on Treasury securities",
@@ -35,7 +34,5 @@ export const reference = {
     "API Documentation": "https://fiscaldata.treasury.gov/api-documentation/",
     "Endpoint List": "https://fiscaldata.treasury.gov/api-documentation/#list-of-endpoints",
   },
-};
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

@@ -52,7 +52,7 @@ export const tools: Tool<any, any>[] = [
     name: "nhtsa_recalls",
     description:
       "Search NHTSA vehicle recalls by make, model, and model year. Returns campaign numbers, affected components, consequences, and remedies.",
-    annotations: { title: "NHTSA Vehicle Recalls", readOnlyHint: true },
+    annotations: { title: "NHTSA: Vehicle Recalls", readOnlyHint: true },
     parameters: z.object({
       make: z.string().describe("Vehicle make (e.g. 'honda', 'toyota', 'ford', 'tesla')"),
       model: z.string().describe("Vehicle model (e.g. 'civic', 'camry', 'f-150', 'model 3')"),
@@ -72,7 +72,7 @@ export const tools: Tool<any, any>[] = [
     name: "nhtsa_complaints",
     description:
       "Search NHTSA consumer complaints about vehicles. Shows crash/fire/injury/death counts, affected components, and complaint summaries.",
-    annotations: { title: "NHTSA Vehicle Complaints", readOnlyHint: true },
+    annotations: { title: "NHTSA: Vehicle Complaints", readOnlyHint: true },
     parameters: z.object({
       make: z.string().describe("Vehicle make (e.g. 'honda', 'toyota', 'ford', 'tesla')"),
       model: z.string().describe("Vehicle model (e.g. 'civic', 'camry', 'f-150', 'model 3')"),
@@ -101,7 +101,7 @@ export const tools: Tool<any, any>[] = [
     name: "nhtsa_decode_vin",
     description:
       "Decode a Vehicle Identification Number (VIN) to get vehicle specifications: make, model, year, engine, body class, drive type, fuel type, manufacturer, plant location.",
-    annotations: { title: "NHTSA VIN Decoder", readOnlyHint: true },
+    annotations: { title: "NHTSA: VIN Decoder", readOnlyHint: true },
     parameters: z.object({
       vin: z.string().min(11).max(17).describe("Vehicle Identification Number (VIN), 11-17 characters"),
     }),
@@ -138,7 +138,7 @@ export const tools: Tool<any, any>[] = [
     name: "nhtsa_models",
     description:
       "Get all models available for a given vehicle make, optionally filtered by model year. Useful for discovering valid model names before searching recalls/complaints.",
-    annotations: { title: "NHTSA Vehicle Models", readOnlyHint: true },
+    annotations: { title: "NHTSA: Vehicle Models", readOnlyHint: true },
     parameters: z.object({
       make: z.string().describe("Vehicle make (e.g. 'honda', 'toyota', 'ford')"),
       model_year: z.number().optional().describe("Optional model year filter"),
@@ -163,7 +163,7 @@ export const tools: Tool<any, any>[] = [
       "Get NHTSA 5-star safety ratings for a vehicle.\n" +
       "Shows overall rating, frontal crash, side crash, rollover risk, and safety technology (ESC, forward collision warning, lane departure warning).\n" +
       "Also shows complaint, recall, and investigation counts for the vehicle.",
-    annotations: { title: "NHTSA Safety Ratings", readOnlyHint: true },
+    annotations: { title: "NHTSA: Safety Ratings", readOnlyHint: true },
     parameters: z.object({
       make: z.string().describe("Vehicle make: 'honda', 'toyota', 'ford', 'tesla'"),
       model: z.string().describe("Vehicle model: 'civic', 'camry', 'f-150', 'model 3'"),

@@ -18,7 +18,7 @@ export const tools: Tool<any, any>[] = [
     name: "cms_search",
     description:
       "Search for CMS provider data datasets by keyword. Returns dataset IDs, titles, and descriptions. Use the ID with cms_query to fetch data.",
-    annotations: { title: "CMS Dataset Search", readOnlyHint: true },
+    annotations: { title: "CMS: Dataset Search", readOnlyHint: true },
     parameters: z.object({
       keyword: z.string().describe("Search keyword (e.g. 'hospital', 'nursing home', 'dialysis', 'hospice', 'readmission', 'infection')"),
     }),
@@ -32,7 +32,7 @@ export const tools: Tool<any, any>[] = [
     name: "cms_hospitals",
     description:
       "Query CMS hospital data: general info, quality ratings, mortality, readmissions, infections, patient surveys, Medicare spending. Filter by state or city.",
-    annotations: { title: "CMS Hospital Data", readOnlyHint: true },
+    annotations: { title: "CMS: Hospital Data", readOnlyHint: true },
     parameters: z.object({
       dataset: z
         .enum([
@@ -67,7 +67,7 @@ export const tools: Tool<any, any>[] = [
     name: "cms_nursing_homes",
     description:
       "Query CMS nursing home data: provider info with five-star ratings, quality measures, health deficiencies/citations. Filter by state.",
-    annotations: { title: "CMS Nursing Home Data", readOnlyHint: true },
+    annotations: { title: "CMS: Nursing Home Data", readOnlyHint: true },
     parameters: z.object({
       dataset: z
         .enum(["nursing_home_info", "nursing_home_health_citations", "nursing_home_quality"])
@@ -92,7 +92,7 @@ export const tools: Tool<any, any>[] = [
     name: "cms_query",
     description:
       "General-purpose query against any CMS provider dataset by dataset identifier. Use cms_search to find available datasets and their IDs. Supports filtering by any field.",
-    annotations: { title: "CMS Query", readOnlyHint: true },
+    annotations: { title: "CMS: Query", readOnlyHint: true },
     parameters: z.object({
       dataset_id: z
         .string()

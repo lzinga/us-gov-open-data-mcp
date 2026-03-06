@@ -1,7 +1,10 @@
 /**
- * uspto API module — barrel re-export.
+ * uspto API module.
  */
 
-export * from "./meta.js";
-export { tools } from "./tools.js";
-export { clearCache } from "./sdk.js";
+import type { ApiModule } from "../../shared/types.js";
+import meta from "./meta.js";
+import { tools } from "./tools.js";
+import { clearCache } from "./sdk.js";
+
+export default { ...meta, tools, clearCache } satisfies ApiModule;

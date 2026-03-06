@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchExecutiveOrders, searchPresidentialDocuments } from "us-gov-open-data/sdk/federal-register";
+ *   import { searchExecutiveOrders, searchPresidentialDocuments } from "us-gov-open-data-mcp/sdk/federal-register";
  *
  * No API key required — completely open.
  * Docs: https://www.federalregister.gov/developers/documentation/api/v1

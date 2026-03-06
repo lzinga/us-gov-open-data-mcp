@@ -6,7 +6,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchPatents, getPatent } from "us-gov-open-data/sdk/uspto";
+ *   import { searchPatents, getPatent } from "us-gov-open-data-mcp/sdk/uspto";
  *
  *   const results = await searchPatents({ query: "machine learning", yearFrom: 2023 });
  *   console.log(results.total, results.patents);

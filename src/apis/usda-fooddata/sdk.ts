@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchFoods, getFood, listFoods } from "us-gov-open-data/sdk/usda-fooddata";
+ *   import { searchFoods, getFood, listFoods } from "us-gov-open-data-mcp/sdk/usda-fooddata";
  *
  *   const results = await searchFoods({ query: "cheddar cheese", pageSize: 5 });
  *   console.log(results.foods);

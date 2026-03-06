@@ -6,7 +6,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getNationalGdp, getGdpByState } from "us-gov-open-data/sdk/bea";
+ *   import { getNationalGdp, getGdpByState } from "us-gov-open-data-mcp/sdk/bea";
  *
  *   const gdp = await getNationalGdp({ year: "2023" });
  *   console.log(gdp.series);
@@ -74,6 +74,41 @@ function extractErrorDetail(detail: unknown): string | null {
   if (typeof detail === "object" && detail !== null) return (detail as Record<string, unknown>).Description as string ?? JSON.stringify(detail);
   return String(detail);
 }
+
+// ─── Reference Data ──────────────────────────────────────────────────
+
+/** NIPA table codes — use as `tableName` in getNationalGdp(). */
+export const nipaTables = {
+  T10101: "Real GDP percent change",
+  T10105: "Nominal GDP",
+  T10106: "Real GDP (chained dollars)",
+  T10111: "GDP percent change contributions",
+  T20100: "Personal income and its disposition",
+  T20600: "Personal income (monthly)",
+  T30100: "Government receipts and expenditures",
+  T30200: "Federal government receipts and expenditures",
+  T30300: "State/local government receipts and expenditures",
+} as const;
+
+/** GDP by industry table IDs — use as `tableId` in getGdpByIndustry(). */
+export const gdpIndustryTables = {
+  1: "Value added by industry",
+  5: "Contributions to percent change in real GDP",
+  6: "Value added as percentage of GDP",
+  25: "Real value added by industry",
+} as const;
+
+/** BEA Regional table codes — use as `tableName` in getGdpByState() and getPersonalIncome(). */
+export const regionalTables = {
+  SAGDP1: "State annual GDP summary",
+  SAGDP9: "Real GDP by state",
+  SQGDP1: "State quarterly GDP summary",
+  SAINC1: "Personal income, population, per capita income",
+  SAINC3: "Per capita personal income",
+  SAINC4: "Personal income by major component",
+  SAINC5N: "Personal income by NAICS industry",
+  SAINC30: "Economic profile",
+} as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchBills, getBillDetails } from "us-gov-open-data/sdk/congress";
+ *   import { searchBills, getBillDetails } from "us-gov-open-data-mcp/sdk/congress";
  *
  * Requires DATA_GOV_API_KEY env var. Get one at https://api.data.gov/signup/
  */

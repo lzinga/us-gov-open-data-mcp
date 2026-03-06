@@ -2,18 +2,17 @@
  * usda-nass module metadata.
  */
 
+import type { ModuleMeta } from "../../shared/types.js";
 
-// ─── Metadata ────────────────────────────────────────────────────────
-
-export const name = "usda-nass";
-export const displayName = "USDA NASS QuickStats";
-export const category = "Agriculture";
-export const description = "Agricultural production, crop prices, farm income, livestock, Census of Agriculture data";
-export const auth = { envVar: "USDA_NASS_API_KEY", signup: "https://quickstats.nass.usda.gov/api" };
-export const workflow = "usda_crop_data or usda_livestock for specific commodities, usda_prices for price trends, usda_ag_query for custom queries";
-export const tips = "Commodities: CORN, SOYBEANS, WHEAT, COTTON, CATTLE, HOGS, MILK. States: IA, IL, TX, CA, NE";
-
-export const reference = {
+export default {
+  name: "usda-nass",
+  displayName: "USDA NASS QuickStats",
+  category: "Agriculture",
+  description: "Agricultural production, crop prices, farm income, livestock, Census of Agriculture data",
+  auth: { envVar: "USDA_NASS_API_KEY", signup: "https://quickstats.nass.usda.gov/api" },
+  workflow: "usda_crop_data or usda_livestock for specific commodities, usda_prices for price trends, usda_ag_query for custom queries",
+  tips: "Commodities: CORN, SOYBEANS, WHEAT, COTTON, CATTLE, HOGS, MILK. States: IA, IL, TX, CA, NE",
+  reference: {
   topCommodities: {
     CORN: "Corn (grain, silage)", SOYBEANS: "Soybeans", WHEAT: "Wheat (winter, spring, durum)",
     COTTON: "Cotton (upland, pima)", RICE: "Rice", SORGHUM: "Sorghum",
@@ -31,7 +30,5 @@ export const reference = {
     "Get Key": "https://quickstats.nass.usda.gov/api#param_define",
     "QuickStats UI": "https://quickstats.nass.usda.gov/",
   },
-};
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

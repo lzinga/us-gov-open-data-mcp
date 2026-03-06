@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchEarthquakes, getWaterData } from "us-gov-open-data/sdk/usgs";
+ *   import { searchEarthquakes, getWaterData } from "us-gov-open-data-mcp/sdk/usgs";
  *
  *   const quakes = await searchEarthquakes({ minmagnitude: 5, starttime: "2024-01-01" });
  *   const water = await getWaterData({ sites: "01646500", parameterCd: "00060" });

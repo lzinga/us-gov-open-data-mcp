@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getRecalls, getComplaints, decodeVin } from "us-gov-open-data/sdk/nhtsa";
+ *   import { getRecalls, getComplaints, decodeVin } from "us-gov-open-data-mcp/sdk/nhtsa";
  *
  * No API key required.
  * Docs: https://www.nhtsa.gov/nhtsa-datasets-and-apis
@@ -248,7 +248,7 @@ export async function getSafetyRatingDetail(vehicleId: number): Promise<SafetyRa
 }
 
 /** Clear both NHTSA caches. */
-export function clearCache() {
+export function clearCache(): void {
   recallsApi.clearCache();
   vpicApi.clearCache();
 }

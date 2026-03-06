@@ -49,8 +49,6 @@ These long-form analyses were generated entirely from live government API data �
 
 ## Disclaimer
 
-This project integrates **30+ government APIs**, many of which have large, complex, or inconsistently documented schemas. AI is used as a tool throughout this project to help parse API documentation, generate type definitions, and scaffold tool implementations — making it possible to cover this much surface area and get people access to government data faster than would otherwise be feasible. While every effort has been made to ensure accuracy, some endpoints may return unexpected results, have incomplete parameter coverage, or behave differently than documented.
+This project was built with the assistance of AI tools. All data is sourced from official U.S. government and international APIs — the server does not generate, modify, or editorialize any data. It returns raw results from federal databases exactly as provided.
 
-This is a community-driven effort — if you find something that's broken or could be improved, **please [open an issue](https://lzinga.github.io/us-gov-open-data-mcp) or submit a PR**. Contributions that fix edge cases, improve schema accuracy, or expand coverage are especially welcome. The goal is to make U.S. government data as accessible and reliable as possible, together.
-
-All data is sourced from official U.S. government and international APIs — the server does not generate, modify, or editorialize any data. It returns raw results from federal databases exactly as provided. Data accuracy depends on the upstream government APIs. Correlation does not imply causation. This tool is for research and informational purposes — not legal, financial, medical, or policy advice. The example analyses demonstrate the server's capabilities and should not be treated as investigative conclusions.
+Data accuracy depends on the upstream government APIs. Correlation does not imply causation. This tool is for research and informational purposes — not legal, financial, medical, or policy advice. The example analyses demonstrate the server's capabilities and should not be treated as investigative conclusions.

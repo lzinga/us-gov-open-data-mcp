@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchTrials, getTrialDetail } from "us-gov-open-data/sdk/clinical-trials";
+ *   import { searchTrials, getTrialDetail } from "us-gov-open-data-mcp/sdk/clinical-trials";
  *
  *   const trials = await searchTrials({ query: "lung cancer", status: "RECRUITING" });
  *   const detail = await getTrialDetail("NCT06000000");

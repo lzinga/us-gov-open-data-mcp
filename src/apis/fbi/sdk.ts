@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { getAgenciesByState, getSummarizedCrime, getArrestData } from "us-gov-open-data/sdk/fbi";
+ *   import { getAgenciesByState, getSummarizedCrime, getArrestData } from "us-gov-open-data-mcp/sdk/fbi";
  *
  * Requires DATA_GOV_API_KEY env var. Get one at https://api.data.gov/signup/
  * Base URL: https://api.usa.gov/crime/fbi/cde
@@ -18,6 +18,7 @@ const api = createClient({
   baseUrl: "https://api.usa.gov/crime/fbi/cde",
   name: "fbi",
   auth: { type: "query", key: "API_KEY", envVar: "DATA_GOV_API_KEY" },
+  rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — crime data updates infrequently
 });
 

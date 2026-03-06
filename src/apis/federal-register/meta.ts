@@ -2,19 +2,17 @@
  * federal-register module metadata.
  */
 
-import { type FRDocument } from "./sdk.js";
-// ─── Metadata (server.ts reads these) ────────────────────────────────
+import type { ModuleMeta } from "../../shared/types.js";
 
-export const name = "federal-register";
-export const displayName = "Federal Register";
-export const category = "Legislative";
-export const description = "Executive orders, presidential documents, rules, agency notices";
-export const workflow = "fr_executive_orders or fr_search_rules → review results";
-export const tips =
-  "Use president slugs: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'. " +
-  "No API key required.";
-
-export const reference = {
+export default {
+  name: "federal-register",
+  displayName: "Federal Register",
+  category: "Legislative",
+  description: "Executive orders, presidential documents, rules, agency notices",
+  workflow: "fr_executive_orders or fr_search_rules → review results",
+  tips:
+    "Use president slugs: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'. No API key required.",
+  reference: {
   presidentSlugs: {
     trump: "donald-trump",
     biden: "joe-biden",
@@ -39,25 +37,5 @@ export const reference = {
     "API Docs": "https://www.federalregister.gov/developers/documentation/api/v1",
     "Developer Hub": "https://www.federalregister.gov/developers",
   },
-};
-
-// ─── Helpers ─────────────────────────────────────────────────────────
-
-function summarizeDoc(d: FRDocument) {
-  return {
-    title: d.title,
-    type: d.type,
-    subtype: d.subtype ?? d.presidential_document_type_id ?? null,
-    documentNumber: d.document_number,
-    executiveOrderNumber: d.executive_order_number ?? null,
-    publicationDate: d.publication_date,
-    signingDate: d.signing_date ?? null,
-    president: d.president?.name ?? null,
-    abstract: d.abstract ?? null,
-    htmlUrl: d.html_url,
-    agencies: d.agencies?.map(a => a.name ?? a.raw_name).filter(Boolean) ?? [],
-  };
-}
-
-// ─── Tools ───────────────────────────────────────────────────────────
-
+},
+} satisfies ModuleMeta;

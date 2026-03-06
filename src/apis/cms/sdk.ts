@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchDatasets, queryDataset } from "us-gov-open-data/sdk/cms";
+ *   import { searchDatasets, queryDataset } from "us-gov-open-data-mcp/sdk/cms";
  *
  * No API key required.
  * Docs: https://data.cms.gov/provider-data/
@@ -291,6 +291,6 @@ export async function queryByKey(
 }
 
 /** Clear the CMS SDK cache. */
-export function clearCache() {
+export function clearCache(): void {
   api.clearCache();
 }

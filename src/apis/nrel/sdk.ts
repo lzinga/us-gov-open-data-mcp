@@ -3,7 +3,7 @@
  *
  * Standalone — no MCP server required. Usage:
  *
- *   import { searchAltFuelStations, getSolarResource, getUtilityRates } from "us-gov-open-data/sdk/nrel";
+ *   import { searchAltFuelStations, getSolarResource, getUtilityRates } from "us-gov-open-data-mcp/sdk/nrel";
  *
  *   const stations = await searchAltFuelStations({ state: "CA", fuel_type: "ELEC", limit: 10 });
  *   console.log(stations.total_results, stations.fuel_stations);
