@@ -72,7 +72,7 @@ MODULES=fred,bls,treasury node dist/server.js
 node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 ```
 
-See all 39 module names in the [Data Sources](/guide/data-sources) page.
+See all 40+ module names in the [Data Sources](/guide/data-sources) page.
 
 ---
 
@@ -108,5 +108,5 @@ See the [SDK Usage Examples](/guide/sdk-usage) for more, or browse the [API Refe
 ## Next Steps
 
 - **[API Keys](/guide/api-keys)** — Which APIs need keys and where to get them
-- **[Data Sources](/guide/data-sources)** — All 39 APIs at a glance
+- **[Data Sources](/guide/data-sources)** — All 40+ APIs at a glance
 - **[Examples](/guide/sdk-usage)** — Code examples, MCP prompts, and analysis showcases

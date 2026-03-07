@@ -14,7 +14,7 @@ src/
     enum-utils.ts           # Zod enum helpers
   apis/
     index.ts                # SDK barrel re-export
-    fred/                   # One folder per API (39 total)
+    fred/                   # One folder per API
       sdk.ts                # Typed API client (standalone, no MCP dep)
       meta.ts               # Name, description, auth, workflow, tips
       tools.ts              # MCP tool definitions
@@ -64,7 +64,7 @@ Exports a `tools` array of FastMCP `Tool` objects. Each tool:
 
 ### 5. `apis/{name}/prompts.ts` — MCP Prompts (Optional)
 
-17 of 39 APIs export prompts — guided multi-step analysis workflows.
+17 of 40+ APIs export prompts — guided multi-step analysis workflows.
 
 ### 6. `server.ts` — Auto-Discovery
 

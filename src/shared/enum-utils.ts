@@ -40,3 +40,14 @@ export function describeEnum(obj: Record<string, string>, limit?: number): strin
   const shown = entries.slice(0, effectiveLimit).map(([k, v]) => `'${k}' (${v})`).join(", ");
   return entries.length > effectiveLimit ? `${shown}, ... (${entries.length} total)` : shown;
 }
+
+/**
+ * List keys from a Record as a comma-separated string for use in .describe().
+ * Simpler than describeEnum - just shows the keys without labels.
+ *
+ * @param obj - Any object with string keys
+ * @returns String like "'current_price', 'labor_category', 'vendor_name'"
+ */
+export function describeKeys(obj: Record<string, unknown>): string {
+  return Object.keys(obj).map((k) => `'${k}'`).join(", ");
+}

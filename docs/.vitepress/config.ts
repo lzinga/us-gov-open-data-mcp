@@ -5,7 +5,7 @@ import { toolsSidebar, dsSidebar } from "../generated-sidebar.json";
 export default defineConfig({
   title: "US Government Open Data MCP",
   description:
-    "MCP server + TypeScript SDK for 39 U.S. government APIs — 219 tools",
+    "MCP server + TypeScript SDK for 40+ U.S. government APIs",
   base: "/us-gov-open-data-mcp/",
 
   head: [

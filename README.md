@@ -2,13 +2,13 @@
 
 # US Government Open Data MCP
 
-**MCP Server + TypeScript SDK for 39 U.S. Government APIs**
+**MCP Server + TypeScript SDK for 40+ U.S. Government APIs**
 
 [![npm version](https://img.shields.io/npm/v/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-219 tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, and legislative data.
+250+ tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, procurement, and legislative data.
 
 **21 APIs require no key** · The rest use free keys that take under a minute to get
 
@@ -66,7 +66,7 @@ Full documentation at **[lzinga.github.io/us-gov-open-data-mcp](https://lzinga.g
 |---|---|
 | [Getting Started](https://lzinga.github.io/us-gov-open-data-mcp/guide/getting-started) | MCP setup, SDK install, client configs |
 | [API Keys](https://lzinga.github.io/us-gov-open-data-mcp/guide/api-keys) | Which APIs need keys, where to get them |
-| [Data Sources](https://lzinga.github.io/us-gov-open-data-mcp/guide/data-sources) | All 39 APIs grouped by category |
+| [Data Sources](https://lzinga.github.io/us-gov-open-data-mcp/guide/data-sources) | All 40+ APIs grouped by category |
 | [API Reference](https://lzinga.github.io/us-gov-open-data-mcp/api/) | Auto-generated from TypeScript — every function and type |
 | [Examples](https://lzinga.github.io/us-gov-open-data-mcp/guide/sdk-usage) | SDK code, MCP prompts, analysis showcases |
 | [Architecture](https://lzinga.github.io/us-gov-open-data-mcp/guide/architecture) | How the system works |

@@ -32,7 +32,7 @@ export interface ModuleMeta {
 export interface ApiModule extends ModuleMeta {
   /** MCP tool definitions. */
   tools: Tool<any, any>[];
-  /** MCP prompts (optional — only 17 of 39 modules have these). */
+  /** MCP prompts (optional). */
   prompts?: InputPrompt<any, any>[];
   /** Clear cached API responses. */
   clearCache?: () => void;

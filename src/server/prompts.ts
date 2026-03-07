@@ -513,8 +513,11 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       "  - sec_company_search — public company financials (R&D spend)\n" +
       "  - lobbying_search — what they lobby for related to this tech\n\n" +
       "FEDERAL R&D FUNDING:\n" +
-      "- usa_spending_by_agency — NSF, DOE, NIH, DARPA spending trends\n" +
+      "- usa_spending_by_agency - NSF, DOE, NIH, DARPA spending trends\n" +
       "- usa_spending_by_award keyword search for the technology\n\n" +
+      "LABOR MARKET:\n" +
+      `- calc_search_rates keyword='${technology}' - GSA ceiling rates for this skill area\n` +
+      "- BLS employment and wage data for related occupations\n\n" +
       "POLICY:\n" +
       "- congress_bill_details for legislation related to the technology\n" +
       "- regulations_search_documents for regulatory activity\n\n" +
@@ -670,11 +673,14 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
     load: async ({ focus }) =>
       `Trace federal spending: ${focus}\n\n` +
       "SPENDING DATA:\n" +
-      `- usa_spending_by_award keyword='${focus}' — contracts, grants, loans matching the query\n` +
-      `- usa_spending_by_agency — spending by agency (if ${focus} is an agency)\n` +
-      `- usa_spending_by_state — geographic distribution of spending\n` +
-      `- usa_spending_by_recipient recipient='${focus}' — if searching for a company\n` +
-      "- usa_spending_over_time — is spending trending up or down?\n\n" +
+      `- usa_spending_by_award keyword='${focus}' - contracts, grants, loans matching the query\n` +
+      `- usa_spending_by_agency - spending by agency (if ${focus} is an agency)\n` +
+      `- usa_spending_by_state - geographic distribution of spending\n` +
+      `- usa_spending_by_recipient recipient='${focus}' - if searching for a company\n` +
+      "- usa_spending_over_time - is spending trending up or down?\n\n" +
+      "LABOR RATES (if services contract):\n" +
+      `- calc_search_rates keyword='${focus}' - GSA ceiling rates for the service area\n` +
+      "- calc_contract_rates - rates for a specific GSA contract number\n\n" +
       "AUTHORIZATION:\n" +
       "- congress_bill_details for the legislation that authorized the spending\n" +
       "- congress_house_votes / congress_senate_votes — how did the vote break down?\n\n" +

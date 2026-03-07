@@ -44,6 +44,7 @@ EARTHQUAKES/WATER → USGS(earthquakes,water_data,water_sites) + FEMA(declaratio
 VEHICLE SAFETY → NHTSA(recalls,complaints,safety_ratings,decode_vin) + NREL(EV chargers) + EPA(emissions)
 TRANSPORTATION → BTS(transport_stats,border_crossings) + EIA(fuel prices) + BLS(cpi transportation) + USAspending(DOT) + NHTSA + NREL + Congress(infrastructure bills)
 PATENTS → USPTO(search_applications,application_details,ptab_proceedings,ptab_decisions) + SEC(company financials) + USAspending(R&D) + WorldBank(R&D spending)
+PROCUREMENT/CONTRACTING → GSA-CALC(search_rates,contract_rates) + USAspending(by_award,by_agency,by_recipient) + Lobbying(contractor lobbying) + SEC(contractor financials) + Congress(procurement bills)
 INTERNATIONAL → WorldBank(wb_compare) + FRED(US baseline) + Treasury(fiscal position). Always use per-capita for size-different nations.
 
 === FOLLOW THE MONEY (investigative workflow) ===
