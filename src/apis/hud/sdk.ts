@@ -18,8 +18,7 @@ const api = createClient({
   name: "hud",
   auth: {
     type: "header",
-    key: "Authorization",
-    envVar: "HUD_USER_TOKEN",
+    envParams: { Authorization: "HUD_USER_TOKEN" },
     prefix: "Bearer ",
   },
   rateLimit: { perSecond: 2, burst: 5 },

@@ -16,7 +16,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.open.fec.gov/v1",
   name: "fec",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 3, burst: 10 }, // 1000 req/hour ≈ ~0.28/s, burst for interactive use
   cacheTtlMs: 30 * 60 * 1000, // 30 min
 });

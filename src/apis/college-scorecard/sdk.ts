@@ -15,7 +15,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.data.gov/ed/collegescorecard/v1",
   name: "college-scorecard",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 5, burst: 15 },
   cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours — data updates annually
   timeoutMs: 30_000,

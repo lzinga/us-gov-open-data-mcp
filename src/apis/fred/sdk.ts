@@ -20,7 +20,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.stlouisfed.org",
   name: "fred",
-  auth: { type: "query", key: "api_key", envVar: "FRED_API_KEY", extraParams: { file_type: "json" } },
+  auth: { type: "query", envParams: { api_key: "FRED_API_KEY" }, extraParams: { file_type: "json" } },
   rateLimit: { perSecond: 2, burst: 5 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — FRED data updates a few times/day at most
 });

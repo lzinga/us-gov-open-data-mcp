@@ -24,8 +24,7 @@ const client = createClient({
   name: "dol",
   auth: {
     type: "query",
-    envVar: "DOL_API_KEY",
-    key: "X-API-KEY",
+    envParams: { "X-API-KEY": "DOL_API_KEY" },
   },
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour

@@ -23,7 +23,7 @@ import { createClient } from "../client.js";
 const api = createClient({
   baseUrl: "https://api.example.gov/v1",
   name: "example",                                    // used for cache filename
-  auth: { type: "query", key: "api_key", envVar: "EXAMPLE_API_KEY" },  // or type: "header", "body"
+  auth: { type: "query", envParams: { api_key: "EXAMPLE_API_KEY" } },  // or type: "header", "body"
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000,                        // 1 hour
   checkError: (data) => {                             // optional: detect 200 OK with error body
@@ -51,11 +51,12 @@ export function clearCache(): void { api.clearCache(); }
 
 | Pattern | Config | Used by |
 |---------|--------|---------|
-| Query param | `{ type: "query", key: "api_key", envVar: "KEY" }` | FRED, BEA, EIA, Census, FEC, Congress |
-| Header | `{ type: "header", key: "token", envVar: "KEY" }` | NOAA |
-| Header with prefix | `{ type: "header", key: "Authorization", envVar: "KEY", prefix: "Bearer " }` | HUD |
-| POST body | `{ type: "body", key: "registrationkey", envVar: "KEY" }` | BLS |
-| None | omit `auth` entirely | Treasury, USAspending, Federal Register, World Bank, CDC, FEMA, NHTSA, CMS, USPTO |
+| Query param | `{ type: "query", envParams: { api_key: "KEY" } }` | FRED, BEA, EIA, Census, FEC, Congress |
+| Header | `{ type: "header", envParams: { token: "KEY" } }` | NOAA |
+| Header with prefix | `{ type: "header", envParams: { Authorization: "KEY" }, prefix: "Bearer " }` | HUD |
+| POST body | `{ type: "body", envParams: { registrationkey: "KEY" } }` | BLS |
+| Multi-credential | `{ type: "query", envParams: { key: "KEY", email: "EMAIL" } }` | AQS (EPA) |
+| None | omit `auth` entirely | Treasury, USAspending, Federal Register, World Bank, CDC, FEMA, NHTSA, CMS |
 
 ### Param types
 

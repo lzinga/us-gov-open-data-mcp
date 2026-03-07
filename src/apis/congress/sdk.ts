@@ -17,8 +17,7 @@ const api = createClient({
   name: "congress",
   auth: {
     type: "query",
-    key: "api_key",
-    envVar: "DATA_GOV_API_KEY",
+    envParams: { api_key: "DATA_GOV_API_KEY" },
     extraParams: { format: "json" },
   },
   rateLimit: { perSecond: 5, burst: 10 },

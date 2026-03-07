@@ -30,7 +30,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.uspto.gov",
   name: "uspto",
-  auth: { type: "header", key: "X-API-KEY", envVar: "USPTO_API_KEY" },
+  auth: { type: "header", envParams: { "X-API-KEY": "USPTO_API_KEY" } },
   // burst=1 (sequential per key), rate 4-15 req/sec depending on endpoint
   rateLimit: { perSecond: 4, burst: 1 },
   cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours - patent data doesn't change frequently

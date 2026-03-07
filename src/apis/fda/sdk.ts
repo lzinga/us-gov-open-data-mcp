@@ -26,7 +26,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.fda.gov",
   name: "fda",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 4, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour
 });

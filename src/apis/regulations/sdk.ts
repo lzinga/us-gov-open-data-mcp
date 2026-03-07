@@ -22,7 +22,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.regulations.gov/v4",
   name: "regulations",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 3, burst: 10 },
   cacheTtlMs: 30 * 60 * 1000, // 30 min
 });

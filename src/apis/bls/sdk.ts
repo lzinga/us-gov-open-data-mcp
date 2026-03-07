@@ -19,8 +19,7 @@ const api = createClient({
   name: "bls",
   auth: {
     type: "body",
-    key: "registrationkey",
-    envVar: "BLS_API_KEY",
+    envParams: { registrationkey: "BLS_API_KEY" },
     extraParams: { calculations: "true", annualaverage: "true" },
   },
   rateLimit: { perSecond: 2, burst: 5 },

@@ -60,7 +60,7 @@ export interface ModuleTool {
 }
 
 export interface ModuleAuth {
-  envVar: string;
+  envVar: string | string[];
   signup: string;
 }
 

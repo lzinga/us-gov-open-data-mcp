@@ -75,7 +75,7 @@ for (const cat of CATEGORY_ORDER) {
   let section = `## ${cat}\n\n`;
 
   for (const m of mods) {
-    const auth = m.auth ? `\`${m.auth.envVar}\`` : "None";
+    const auth = m.auth ? `\`${[].concat(m.auth.envVar).join(", ")}\`` : "None";
     const toolRows = m.tools.map(t => {
       const desc = (t.description ?? "").split("\n")[0];
       return `| \`${t.name}\` | ${desc} |`;
@@ -122,7 +122,7 @@ for (const cat of CATEGORY_ORDER) {
   section += `|-----|-------|-------------|------|\n`;
 
   for (const m of mods) {
-    const auth = m.auth ? `\`${m.auth.envVar}\`` : "None";
+    const auth = m.auth ? `\`${[].concat(m.auth.envVar).join(", ")}\`` : "None";
     const desc = m.description.length > 120 ? m.description.slice(0, 117) + "..." : m.description;
     section += `| **${m.displayName}** | ${m.tools.length} | ${desc} | ${auth} |\n`;
   }
@@ -150,8 +150,8 @@ ${dsSections.join("\n")}
 
 | Key | APIs | Get it |
 |-----|------|--------|
-${[...new Set(keyApis.map(m => m.auth.envVar))].map(envVar => {
-  const apis = keyApis.filter(m => m.auth.envVar === envVar);
+${[...new Set(keyApis.flatMap(m => [].concat(m.auth.envVar)))].map(envVar => {
+  const apis = keyApis.filter(m => [].concat(m.auth.envVar).includes(envVar));
   const signup = apis[0].auth.signup;
   return `| \`${envVar}\` | ${apis.map(m => m.displayName).join(", ")} | [Sign up](${signup}) |`;
 }).join("\n")}
@@ -204,9 +204,10 @@ console.log(`generated-sidebar.json: ${toolsSidebar.length} tool categories, ${d
 const keyGroups = {};
 for (const m of modules) {
   if (!m.auth) continue;
-  const key = m.auth.envVar;
-  if (!keyGroups[key]) keyGroups[key] = { envVar: key, signup: m.auth.signup, apis: [] };
-  keyGroups[key].apis.push(m.displayName);
+  for (const key of [].concat(m.auth.envVar)) {
+    if (!keyGroups[key]) keyGroups[key] = { envVar: key, signup: m.auth.signup, apis: [] };
+    keyGroups[key].apis.push(m.displayName);
+  }
 }
 
 const keyRows = Object.values(keyGroups).map(k =>

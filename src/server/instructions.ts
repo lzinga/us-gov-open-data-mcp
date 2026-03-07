@@ -27,7 +27,7 @@ PHARMA→DOCTOR PAYMENTS → OpenPayments(search,by_company,by_physician,by_spec
 FOOD SAFETY → FDA(food_recalls,food_adverse_events) + USDA FoodData + BLS(cpi food) + USDA NASS(crop_data,prices) + Congress(food safety bills) + Lobbying
 MEDICAL DEVICES → FDA(device_events,device_recalls) + CMS(hospitals) + Lobbying(manufacturer) + USPTO(search_applications) + Congress(device regulation bills)
 
-ENERGY/CLIMATE → EIA(petroleum,electricity,natural_gas) + NREL(fuel_stations,utility_rates,solar) + NOAA(climate_data) + EPA(air_quality) + BLS(cpi energy) + Congress(energy bills,votes) + Lobbying + WorldBank(CO2)
+ENERGY/CLIMATE → EIA(petroleum,electricity,natural_gas) + NREL(fuel_stations,utility_rates,solar) + NOAA(climate_data) + EPA(facilities,enforcement,greenhouse_gas,toxic_releases) + EPA-AQS(air_quality,aqs_daily,aqs_monitors) + BLS(cpi energy) + Congress(energy bills,votes) + Lobbying + WorldBank(CO2)
 AGRICULTURE → USDA NASS(crop_data,prices) + BLS(cpi food) + EIA(petroleum→transport cost) + NOAA(weather→yields) + FDA(food recalls) + USAspending(USDA)
 HOUSING → HUD(fair_market_rents,income_limits) + FRED(MORTGAGE30US,CSUSHPINSA,USSTHPI) + Census(home values,rent) + BEA(personal_income) + BLS(cpi shelter) + USAspending(HUD) + FEMA(housing_assistance)
 
@@ -40,7 +40,7 @@ WORKPLACE SAFETY → DOL(osha_inspections,violations,accidents,whd_enforcement) 
 UNEMPLOYMENT → DOL(ui_claims_national,ui_claims_state) + FRED(UNRATE,PAYEMS) + BLS(employment_by_industry) + BEA(personal_income) + Congress(jobs legislation)
 
 DISASTERS → FEMA(declarations,housing_assistance,public_assistance) + NOAA(weather) + USGS(earthquakes) + USAspending(FEMA) + Census(population→per-capita) + Congress(disaster bills,votes)
-EARTHQUAKES/WATER → USGS(earthquakes,water_data,water_sites) + FEMA(declarations) + NOAA(precipitation) + EPA(facilities) + CDC(health impacts)
+EARTHQUAKES/WATER → USGS(earthquakes,water_data,water_sites) + FEMA(declarations) + NOAA(precipitation) + EPA(facilities,drinking_water,superfund) + CDC(health impacts)
 VEHICLE SAFETY → NHTSA(recalls,complaints,safety_ratings,decode_vin) + NREL(EV chargers) + EPA(emissions)
 TRANSPORTATION → BTS(transport_stats,border_crossings) + EIA(fuel prices) + BLS(cpi transportation) + USAspending(DOT) + NHTSA + NREL + Congress(infrastructure bills)
 PATENTS → USPTO(search_applications,application_details,ptab_proceedings,ptab_decisions) + SEC(company financials) + USAspending(R&D) + WorldBank(R&D spending)

@@ -16,7 +16,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://quickstats.nass.usda.gov",
   name: "usda-nass",
-  auth: { type: "query", key: "key", envVar: "USDA_NASS_API_KEY" },
+  auth: { type: "query", envParams: { key: "USDA_NASS_API_KEY" } },
   rateLimit: { perSecond: 2, burst: 5 },
   cacheTtlMs: 12 * 60 * 60 * 1000, // 12 hours — agricultural data updates infrequently
 });

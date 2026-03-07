@@ -19,7 +19,11 @@ export interface ModuleMeta {
   /** Brief description of what the API provides. */
   description: string;
   /** API key configuration. Omit for keyless APIs. */
-  auth?: { envVar: string; signup: string };
+  auth?: {
+    /** Env var name(s) to check at startup. String for one key, array for multi-credential (e.g. ["AQS_API_KEY", "AQS_EMAIL"]). */
+    envVar: string | string[];
+    signup: string;
+  };
   /** Tool workflow guidance for the MCP client (e.g. "fred_search → fred_series_data"). */
   workflow: string;
   /** Usage tips for the MCP client. */

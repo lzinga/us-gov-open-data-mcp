@@ -108,12 +108,16 @@ if (modulesFilter) {
 // ─── Startup validation ──────────────────────────────────────────────
 
 for (const mod of activeModules) {
-  if (mod.auth && !process.env[mod.auth.envVar]) {
-    // IMPORTANT: for MCP stdio transport, stdout must be reserved for JSON-RPC only.
-    // VS Code treats stderr output as warnings; keep it minimal and only log actionable issues.
-    console.warn(
-      `⚠ ${mod.displayName}: ${mod.auth.envVar} not set — tools will fail. Get key: ${mod.auth.signup}`,
-    );
+  if (mod.auth) {
+    const vars = Array.isArray(mod.auth.envVar) ? mod.auth.envVar : [mod.auth.envVar];
+    const missing = vars.filter(v => !process.env[v]);
+    if (missing.length > 0) {
+      // IMPORTANT: for MCP stdio transport, stdout must be reserved for JSON-RPC only.
+      // VS Code treats stderr output as warnings; keep it minimal and only log actionable issues.
+      console.warn(
+        `\u26A0 ${mod.displayName}: ${missing.join(", ")} not set \u2014 tools will fail. Get key: ${mod.auth.signup}`,
+      );
+    }
   }
 }
 
@@ -124,14 +128,19 @@ const server = new FastMCP({
   version: "2.0.0",
   logger,
   instructions:
-    activeModules.map(m => [
-      `== ${m.displayName.toUpperCase()} ==`,
-      m.description,
-      `Tools: ${m.tools.map(t => t.name).join(", ")}`,
-      m.workflow && `Workflow: ${m.workflow}`,
-      m.tips,
-      m.auth ? `Requires ${m.auth.envVar}.` : "No key required.",
-    ].filter(Boolean).join("\n")).join("\n\n")
+    activeModules.map(m => {
+      const authNote = m.auth
+        ? `Requires ${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}.`
+        : "No key required.";
+      return [
+        `== ${m.displayName.toUpperCase()} ==`,
+        m.description,
+        `Tools: ${m.tools.map(t => t.name).join(", ")}`,
+        m.workflow && `Workflow: ${m.workflow}`,
+        m.tips,
+        authNote,
+      ].filter(Boolean).join("\n");
+    }).join("\n\n")
     + "\n\n" + CROSS_REFERENCE_GUIDE,
 });
 
@@ -178,7 +187,9 @@ server.addResource({
   mimeType: "text/markdown",
   load: async () => ({
     text: activeModules.map(m => {
-      const authLine = m.auth ? `Key: \`${m.auth.envVar}\` ([signup](${m.auth.signup}))` : "No key needed.";
+      const authLine = m.auth
+        ? `Key: \`${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}\` ([signup](${m.auth.signup}))`
+        : "No key needed.";
       const refs = m.reference
         ? Object.entries(m.reference).map(([section, value]) => {
             if (typeof value === "object" && value !== null) {

@@ -22,7 +22,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.nal.usda.gov/fdc/v1",
   name: "usda-fooddata",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 3, burst: 10 }, // 1000 req/hour
   cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours — nutrition data is static
 });

@@ -17,8 +17,7 @@ const api = createClient({
   name: "eia",
   auth: {
     type: "query",
-    key: "api_key",
-    envVar: "EIA_API_KEY",
+    envParams: { api_key: "EIA_API_KEY" },
   },
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — EIA data updates infrequently

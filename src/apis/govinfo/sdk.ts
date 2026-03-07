@@ -19,7 +19,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.govinfo.gov",
   name: "govinfo",
-  auth: { type: "query", key: "api_key", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 3, burst: 8 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — published docs don't change
 });

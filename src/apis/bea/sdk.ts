@@ -39,8 +39,7 @@ const api = createClient({
   name: "bea",
   auth: {
     type: "query",
-    key: "UserID",
-    envVar: "BEA_API_KEY",
+    envParams: { UserID: "BEA_API_KEY" },
     extraParams: { ResultFormat: "JSON" },
   },
   // 100 req/min, 100 MB/min, 30 errors/min. Exceeding any = 1-hour lockout.

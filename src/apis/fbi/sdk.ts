@@ -17,7 +17,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.usa.gov/crime/fbi/cde",
   name: "fbi",
-  auth: { type: "query", key: "API_KEY", envVar: "DATA_GOV_API_KEY" },
+  auth: { type: "query", envParams: { API_KEY: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — crime data updates infrequently
 });

@@ -18,7 +18,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://api.census.gov/data",
   name: "census",
-  auth: { type: "query", key: "key", envVar: "CENSUS_API_KEY" },
+  auth: { type: "query", envParams: { key: "CENSUS_API_KEY" } },
   rateLimit: { perSecond: 3, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — Census data updates annually
 });

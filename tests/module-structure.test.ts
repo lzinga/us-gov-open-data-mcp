@@ -102,8 +102,12 @@ describe("API module exports", () => {
     it("auth has envVar and signup URL if present", () => {
       const auth = getAuth(mod);
       if (auth) {
-        expect(typeof auth.envVar).toBe("string");
-        expect(auth.envVar.length).toBeGreaterThan(0);
+        const vars = [].concat(auth.envVar as any) as string[];
+        expect(vars.length).toBeGreaterThan(0);
+        for (const v of vars) {
+          expect(typeof v).toBe("string");
+          expect(v.length).toBeGreaterThan(0);
+        }
         expect(typeof auth.signup).toBe("string");
         expect(auth.signup).toMatch(/^https?:\/\//);
       }

@@ -23,17 +23,23 @@ export interface ClientConfig {
   baseUrl: string;
   name: string;
 
-  /** Auth configuration — how to attach the API key to requests */
+  /** Auth configuration — how to attach credentials to requests */
   auth?: {
-    /** Where to inject the key */
+    /** Where to inject credentials: query string, request header, or POST body */
     type: "query" | "header" | "body";
-    /** The param/header name (e.g. "api_key", "Authorization", "registrationkey") */
-    key: string;
-    /** Env var to read the key from */
-    envVar: string;
-    /** Extra static params (e.g. { file_type: "json" } for FRED) */
+    /**
+     * Maps param/header names to env var names. Values are read from process.env at request time.
+     * If the env var is unset, that param is silently omitted (graceful degradation).
+     *
+     * Examples:
+     *   Single key:    envParams: { api_key: "FRED_API_KEY" }
+     *   Key + email:   envParams: { key: "AQS_API_KEY", email: "AQS_EMAIL" }
+     *   Bearer token:  envParams: { Authorization: "HUD_USER_TOKEN" }  (with prefix: "Bearer ")
+     */
+    envParams: Record<string, string>;
+    /** Static params included on every authenticated request (e.g. { file_type: "json" } for FRED) */
     extraParams?: Record<string, string>;
-    /** For header auth: prefix like "Bearer " */
+    /** For header auth: prefix prepended to the first envParams value (e.g. "Bearer ") */
     prefix?: string;
   };
 
@@ -416,8 +422,25 @@ export function createClient(config: ClientConfig): ApiClient {
   const limiter = new TokenBucket(rl.burst, rl.perSecond);
   const cache = new DiskCache(cacheTtlMs, name);
 
-  function getApiKey(): string | undefined {
-    return auth ? process.env[auth.envVar] : undefined;
+  /** Resolve all env-backed auth params. Returns empty record if none are set. */
+  function resolveAuthParams(): Record<string, string> {
+    if (!auth) return {};
+    const resolved: Record<string, string> = {};
+    const entries = Object.entries(auth.envParams);
+    for (let i = 0; i < entries.length; i++) {
+      const [paramName, envVar] = entries[i];
+      const val = process.env[envVar];
+      if (!val) continue;
+      // Apply prefix to the first entry only (e.g. "Bearer " for Authorization header)
+      resolved[paramName] = (i === 0 && auth.prefix ? auth.prefix : "") + val;
+    }
+    return resolved;
+  }
+
+  /** True if at least one auth credential is available in env. */
+  function hasAuth(): boolean {
+    if (!auth) return false;
+    return Object.values(auth.envParams).some((ev) => !!process.env[ev]);
   }
 
   function buildUrl(path: string, params?: Params): string {
@@ -425,8 +448,9 @@ export function createClient(config: ClientConfig): ApiClient {
 
     // Auth via query param
     if (auth?.type === "query") {
-      const key = getApiKey();
-      if (key) parts.push(`${auth.key}=${encodeURIComponent(key)}`);
+      for (const [k, v] of Object.entries(resolveAuthParams())) {
+        parts.push(`${k}=${encodeURIComponent(v)}`);
+      }
       if (auth.extraParams) {
         for (const [k, v] of Object.entries(auth.extraParams)) parts.push(`${k}=${encodeURIComponent(v)}`);
       }
@@ -452,8 +476,7 @@ export function createClient(config: ClientConfig): ApiClient {
   function buildHeaders(extra?: Record<string, string>): Record<string, string> {
     const h: Record<string, string> = { ...defaultHeaders, ...extra };
     if (auth?.type === "header") {
-      const key = getApiKey();
-      if (key) h[auth.key] = (auth.prefix ?? "") + key;
+      Object.assign(h, resolveAuthParams());
     }
     return h;
   }
@@ -469,11 +492,12 @@ export function createClient(config: ClientConfig): ApiClient {
     if (!res.ok) {
       const body = await res.text();
 
-      // Friendly error for auth failures when API key is missing
-      if ((res.status === 401 || res.status === 403) && auth && !getApiKey()) {
+      // Friendly error for auth failures when no credentials are configured
+      if ((res.status === 401 || res.status === 403) && auth && !hasAuth()) {
+        const envVars = Object.values(auth.envParams).join(", ");
         throw new Error(
           `${name}: API key required (HTTP ${res.status}). ` +
-          `Set the ${auth.envVar} environment variable in your .env file or MCP config.`,
+          `Set the ${envVars} environment variable(s) in your .env file or MCP config.`,
         );
       }
 
@@ -510,9 +534,9 @@ export function createClient(config: ClientConfig): ApiClient {
       // Auth via body (e.g. BLS)
       const finalBody = { ...body };
       if (auth?.type === "body") {
-        const key = getApiKey();
-        if (key) {
-          finalBody[auth.key] = key;
+        const resolved = resolveAuthParams();
+        if (Object.keys(resolved).length) {
+          Object.assign(finalBody, resolved);
           if (auth.extraParams) Object.assign(finalBody, auth.extraParams);
         }
       }

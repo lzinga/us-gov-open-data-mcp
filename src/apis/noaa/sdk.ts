@@ -15,7 +15,7 @@ import { createClient } from "../../shared/client.js";
 const api = createClient({
   baseUrl: "https://www.ncei.noaa.gov/cdo-web/api/v2",
   name: "noaa",
-  auth: { type: "header", key: "token", envVar: "NOAA_API_KEY" },
+  auth: { type: "header", envParams: { token: "NOAA_API_KEY" } },
   rateLimit: { perSecond: 5, burst: 5 },
   cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours — historical weather doesn't change
 });
