@@ -1,17 +1,26 @@
 /**
- * USPTO PatentsView SDK — typed API client for patent data.
+ * USPTO Open Data Portal (ODP) SDK - typed API client for U.S. patent data.
  *
- * Uses PatentsView API (https://patentsview.org/apis/api-endpoints)
- * maintained by the U.S. Patent & Trademark Office.
+ * Uses the USPTO ODP API ({@link https://api.uspto.gov})
+ * Swagger: {@link https://data.uspto.gov/swagger/swagger.yaml}
+ * Getting started: {@link https://data.uspto.gov/apis/getting-started}
  *
- * Standalone — no MCP server required. Usage:
+ * Standalone, no MCP server required. Usage:
  *
- *   import { searchPatents, getPatent } from "us-gov-open-data-mcp/sdk/uspto";
+ *   import { searchApplications, getApplication } from "us-gov-open-data-mcp/sdk/uspto";
  *
- *   const results = await searchPatents({ query: "machine learning", yearFrom: 2023 });
- *   console.log(results.total, results.patents);
+ *   const results = await searchApplications({ q: "applicationMetaData.applicationTypeLabelName:Utility" });
+ *   console.log(results);
  *
- * No API key required — completely open.
+ * Requires `USPTO_API_KEY` env var. Get one free at {@link https://data.uspto.gov/apis/getting-started}.
+ *
+ * Rate limits:
+ *   - Burst: 1 (sequential only, one request at a time per key)
+ *   - Rate: 4–15 req/sec depending on endpoint
+ *   - Meta data retrieval: 5M calls/week combined
+ *   - Documents API: 1.2M calls/week
+ *   - Weekly reset: Sunday midnight UTC
+ *   - On HTTP 429, wait at least 5 seconds before retrying
  */
 
 import { createClient } from "../../shared/client.js";
@@ -19,421 +28,327 @@ import { createClient } from "../../shared/client.js";
 // ─── Client ──────────────────────────────────────────────────────────
 
 const api = createClient({
-  baseUrl: "https://api.patentsview.org",
+  baseUrl: "https://api.uspto.gov",
   name: "uspto",
-  // No auth — completely open API
-  rateLimit: { perSecond: 5, burst: 15 },
-  cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours — patent data doesn't change frequently
+  auth: { type: "header", key: "X-API-KEY", envVar: "USPTO_API_KEY" },
+  // burst=1 (sequential per key), rate 4-15 req/sec depending on endpoint
+  rateLimit: { perSecond: 4, burst: 1 },
+  cacheTtlMs: 24 * 60 * 60 * 1000, // 24 hours - patent data doesn't change frequently
   timeoutMs: 30_000,
 });
 
+// ─── Constants ───────────────────────────────────────────────────────
+
+/** Patent application type codes used in ODP queries. */
+export const applicationTypeCodes = {
+  UTL: "Utility",
+  DES: "Design",
+  PLT: "Plant",
+  PPA: "Provisional",
+  REI: "Reissue",
+} as const;
+
+/** PTAB trial type codes. */
+export const trialTypeCodes = {
+  IPR: "Inter Partes Review",
+  PGR: "Post Grant Review",
+  CBM: "Covered Business Method",
+  DER: "Derivation",
+} as const;
+
 // ─── Types ───────────────────────────────────────────────────────────
 
-/** Patent. */
-export interface Patent {
-  patentNumber: string;
-  patentTitle: string;
-  patentDate: string;
-  patentAbstract: string | null;
-  patentType: string | null;
-  numClaims: number | null;
-  assigneeOrganization: string | null;
-  inventorNames: string[];
-  cpcGroup: string | null;
+/** Generic ODP API search response wrapper. */
+export interface OdpSearchResult {
+  count: number;
+  requestIdentifier?: string;
+  results: Record<string, unknown>[];
+  facets?: Record<string, { value: string; count: number }[]>;
 }
 
-/** Patent Search Result. */
-export interface PatentSearchResult {
-  total: number;
-  patents: Patent[];
+/** ODP POST search filter: narrows results by field value(s). */
+export interface OdpFilter {
+  /** Qualified field name (e.g. "applicationMetaData.applicationTypeLabelName") */
+  name: string;
+  /** One or more values. Multiple values act as OR within the filter. */
+  value: string[];
 }
 
-/** Inventor. */
-export interface Inventor {
-  inventorId: string;
-  inventorFirstName: string;
-  inventorLastName: string;
-  inventorCity: string | null;
-  inventorState: string | null;
-  inventorCountry: string | null;
-  patentCount: number;
+/** ODP POST search range filter: narrows results by value range. */
+export interface OdpRangeFilter {
+  /** Qualified field name (e.g. "applicationMetaData.grantDate") */
+  field: string;
+  /** Range start (inclusive). Date as yyyy-MM-dd or number as string. */
+  valueFrom: string;
+  /** Range end (inclusive) */
+  valueTo: string;
 }
 
-/** Inventor Search Result. */
-export interface InventorSearchResult {
-  total: number;
-  inventors: Inventor[];
-}
-
-/** Assignee. */
-export interface Assignee {
-  assigneeId: string;
-  assigneeOrganization: string | null;
-  assigneeType: string | null;
-  assigneeCity: string | null;
-  assigneeState: string | null;
-  assigneeCountry: string | null;
-  patentCount: number;
-}
-
-/** Assignee Search Result. */
-export interface AssigneeSearchResult {
-  total: number;
-  assignees: Assignee[];
-}
-
-/** Cpc Subsection. */
-export interface CpcSubsection {
-  cpcSubsectionId: string;
-  cpcSubsectionTitle: string;
-  patentCount: number;
-}
-
-// ─── Query builders ──────────────────────────────────────────────────
-
-/**
- * PatentsView uses a JSON query syntax.
- * Build a query object from user-friendly params.
- */
-function buildPatentQuery(params: {
-  query?: string;
-  title?: string;
-  abstract?: string;
-  assignee?: string;
-  inventor?: string;
-  cpcSection?: string;
-  yearFrom?: number;
-  yearTo?: number;
-  patentNumber?: string;
-  patentType?: string;
-}): Record<string, unknown> {
-  const conditions: Record<string, unknown>[] = [];
-
-  if (params.patentNumber) {
-    conditions.push({ _eq: { patent_number: params.patentNumber } });
-  }
-  if (params.query) {
-    // Search title and abstract
-    conditions.push({
-      _or: [
-        { _text_any: { patent_title: params.query } },
-        { _text_any: { patent_abstract: params.query } },
-      ],
-    });
-  }
-  if (params.title) {
-    conditions.push({ _text_any: { patent_title: params.title } });
-  }
-  if (params.abstract) {
-    conditions.push({ _text_any: { patent_abstract: params.abstract } });
-  }
-  if (params.assignee) {
-    conditions.push({ _text_any: { assignee_organization: params.assignee } });
-  }
-  if (params.inventor) {
-    conditions.push({
-      _or: [
-        { _text_any: { inventor_first_name: params.inventor } },
-        { _text_any: { inventor_last_name: params.inventor } },
-      ],
-    });
-  }
-  if (params.cpcSection) {
-    conditions.push({ _eq: { cpc_section_id: params.cpcSection } });
-  }
-  if (params.patentType) {
-    conditions.push({ _eq: { patent_type: params.patentType } });
-  }
-  if (params.yearFrom) {
-    conditions.push({ _gte: { patent_date: `${params.yearFrom}-01-01` } });
-  }
-  if (params.yearTo) {
-    conditions.push({ _lte: { patent_date: `${params.yearTo}-12-31` } });
-  }
-
-  if (conditions.length === 0) {
-    // Default: recent patents
-    const date = new Date();
-    date.setMonth(date.getMonth() - 1);
-    return { _gte: { patent_date: date.toISOString().split("T")[0] } };
-  }
-
-  return conditions.length === 1 ? conditions[0] : { _and: conditions };
+/** ODP POST search sort spec. */
+export interface OdpSort {
+  /** Qualified field name. Text fields are not valid for sorting. */
+  field: string;
+  /** Sort direction */
+  order: "asc" | "desc";
 }
 
 // ─── API functions ───────────────────────────────────────────────────
 
-/**
- * Search for patents using keyword, assignee, inventor, date range, or CPC class.
- */
-export async function searchPatents(params: {
-  query?: string;
-  title?: string;
-  abstract?: string;
-  assignee?: string;
-  inventor?: string;
-  cpcSection?: string;
-  yearFrom?: number;
-  yearTo?: number;
-  patentNumber?: string;
-  patentType?: string;
-  page?: number;
-  perPage?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}): Promise<PatentSearchResult> {
-  const q = JSON.stringify(buildPatentQuery(params));
-  const f = JSON.stringify([
-    "patent_number",
-    "patent_title",
-    "patent_date",
-    "patent_abstract",
-    "patent_type",
-    "patent_num_claims",
-    "assignee_organization",
-    "inventor_first_name",
-    "inventor_last_name",
-    "cpc_group_id",
-  ]);
-  const o = JSON.stringify({
-    page: params.page || 1,
-    per_page: Math.min(params.perPage || 25, 50),
-  });
-  const s = JSON.stringify([{
-    [params.sortBy || "patent_date"]: params.sortOrder || "desc",
-  }]);
-
-  const res = await api.get<{
-    patents?: Record<string, unknown>[];
-    total_patent_count?: number;
-    count?: number;
-  }>("/patents/query", { q, f, o, s });
-
-  const patents = (res.patents ?? []).map(mapPatent);
-
-  return {
-    total: res.total_patent_count ?? res.count ?? patents.length,
-    patents,
+/** Build a POST search body from common params. All fields are optional per the ODP docs. */
+function buildSearchBody(params: {
+  q?: string;
+  filters?: OdpFilter[];
+  rangeFilters?: OdpRangeFilter[];
+  sort?: OdpSort[];
+  fields?: string[];
+  offset?: number;
+  limit?: number;
+  facets?: string[];
+}): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  if (params.q != null) body.q = params.q;
+  if (params.filters?.length) body.filters = params.filters;
+  if (params.rangeFilters?.length) body.rangeFilters = params.rangeFilters;
+  if (params.sort?.length) body.sort = params.sort;
+  if (params.fields?.length) body.fields = params.fields;
+  if (params.facets?.length) body.facets = params.facets;
+  body.pagination = {
+    offset: params.offset ?? 0,
+    limit: params.limit ?? 25,
   };
+  return body;
 }
 
 /**
- * Get details for a specific patent by number.
+ * Search patent applications using ODP query syntax (POST).
+ *
+ * The `q` param supports opensearch simple query string DSL:
+ *   - Free-form: "Design" searches all fields
+ *   - Field-specific: "applicationMetaData.applicationTypeLabelName:Utility"
+ *   - Boolean: AND, OR, NOT
+ *   - Wildcards: * (zero or more), ? (single char)
+ *   - Ranges: "applicationMetaData.filingDate:[2024-01-01 TO 2024-08-30]"
+ *   - Comparison: "applicationMetaData.applicationStatusCode:>=600"
+ *   - Phrases: '"Patented Case"'
  */
-export async function getPatent(patentNumber: string): Promise<Patent | null> {
-  const result = await searchPatents({ patentNumber, perPage: 1 });
-  return result.patents[0] ?? null;
-}
-
-/**
- * Search for inventors by name or location.
- */
-export async function searchInventors(params: {
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  state?: string;
-  country?: string;
-  page?: number;
-  perPage?: number;
-}): Promise<InventorSearchResult> {
-  const conditions: Record<string, unknown>[] = [];
-
-  if (params.name) {
-    conditions.push({
-      _or: [
-        { _text_any: { inventor_first_name: params.name } },
-        { _text_any: { inventor_last_name: params.name } },
-      ],
-    });
-  }
-  if (params.firstName) {
-    conditions.push({ _text_any: { inventor_first_name: params.firstName } });
-  }
-  if (params.lastName) {
-    conditions.push({ _text_any: { inventor_last_name: params.lastName } });
-  }
-  if (params.state) {
-    conditions.push({ _eq: { inventor_state: params.state } });
-  }
-  if (params.country) {
-    conditions.push({ _eq: { inventor_country: params.country } });
-  }
-
-  const q = JSON.stringify(
-    conditions.length === 0
-      ? { _gte: { patent_date: "2024-01-01" } }
-      : conditions.length === 1
-        ? conditions[0]
-        : { _and: conditions },
+export async function searchApplications(params: {
+  q?: string;
+  filters?: OdpFilter[];
+  rangeFilters?: OdpRangeFilter[];
+  sort?: OdpSort[];
+  fields?: string[];
+  offset?: number;
+  limit?: number;
+  facets?: string[];
+}): Promise<OdpSearchResult> {
+  const res = await api.post<Record<string, unknown>>(
+    "/api/v1/patent/applications/search",
+    buildSearchBody(params),
   );
 
-  const f = JSON.stringify([
-    "inventor_id",
-    "inventor_first_name",
-    "inventor_last_name",
-    "inventor_city",
-    "inventor_state",
-    "inventor_country",
-    "patent_number",
-  ]);
-  const o = JSON.stringify({
-    page: params.page || 1,
-    per_page: Math.min(params.perPage || 25, 50),
-  });
-
-  const res = await api.get<{
-    inventors?: Record<string, unknown>[];
-    total_inventor_count?: number;
-    count?: number;
-  }>("/inventors/query", { q, f, o });
-
-  // Group by inventor to get patent counts
-  const inventorMap = new Map<string, Inventor>();
-  for (const r of res.inventors ?? []) {
-    const id = String(r.inventor_id ?? "");
-    if (!id) continue;
-    if (!inventorMap.has(id)) {
-      inventorMap.set(id, {
-        inventorId: id,
-        inventorFirstName: String(r.inventor_first_name ?? ""),
-        inventorLastName: String(r.inventor_last_name ?? ""),
-        inventorCity: (r.inventor_city as string) || null,
-        inventorState: (r.inventor_state as string) || null,
-        inventorCountry: (r.inventor_country as string) || null,
-        patentCount: 0,
-      });
-    }
-    inventorMap.get(id)!.patentCount += 1;
-  }
-
   return {
-    total: res.total_inventor_count ?? res.count ?? inventorMap.size,
-    inventors: Array.from(inventorMap.values()),
+    count: Number(res.count ?? 0),
+    requestIdentifier: res.requestIdentifier as string | undefined,
+    results: Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [],
+    facets: res.facets as Record<string, { value: string; count: number }[]> | undefined,
   };
 }
 
 /**
- * Search for assignees (companies/organizations) by name or location.
+ * Get full patent application data by application number.
  */
-export async function searchAssignees(params: {
-  organization?: string;
-  state?: string;
-  country?: string;
-  type?: string;
-  page?: number;
-  perPage?: number;
-}): Promise<AssigneeSearchResult> {
-  const conditions: Record<string, unknown>[] = [];
-
-  if (params.organization) {
-    conditions.push({ _text_any: { assignee_organization: params.organization } });
-  }
-  if (params.state) {
-    conditions.push({ _eq: { assignee_state: params.state } });
-  }
-  if (params.country) {
-    conditions.push({ _eq: { assignee_country: params.country } });
-  }
-  if (params.type) {
-    conditions.push({ _eq: { assignee_type: params.type } });
-  }
-
-  const q = JSON.stringify(
-    conditions.length === 0
-      ? { _gte: { patent_date: "2024-01-01" } }
-      : conditions.length === 1
-        ? conditions[0]
-        : { _and: conditions },
+export async function getApplication(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}`,
   );
 
-  const f = JSON.stringify([
-    "assignee_id",
-    "assignee_organization",
-    "assignee_type",
-    "assignee_city",
-    "assignee_state",
-    "assignee_country",
-    "patent_number",
-  ]);
-  const o = JSON.stringify({
-    page: params.page || 1,
-    per_page: Math.min(params.perPage || 25, 50),
-  });
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
 
-  const res = await api.get<{
-    assignees?: Record<string, unknown>[];
-    total_assignee_count?: number;
-    count?: number;
-  }>("/assignees/query", { q, f, o });
+/**
+ * Get continuity (parent/child application chain) data for an application.
+ */
+export async function getApplicationContinuity(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/continuity`,
+  );
 
-  // Group by assignee
-  const assigneeMap = new Map<string, Assignee>();
-  for (const r of res.assignees ?? []) {
-    const id = String(r.assignee_id ?? "");
-    if (!id) continue;
-    if (!assigneeMap.has(id)) {
-      assigneeMap.set(id, {
-        assigneeId: id,
-        assigneeOrganization: (r.assignee_organization as string) || null,
-        assigneeType: (r.assignee_type as string) || null,
-        assigneeCity: (r.assignee_city as string) || null,
-        assigneeState: (r.assignee_state as string) || null,
-        assigneeCountry: (r.assignee_country as string) || null,
-        patentCount: 0,
-      });
-    }
-    assigneeMap.get(id)!.patentCount += 1;
-  }
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * Get assignment (ownership transfer) data for an application.
+ */
+export async function getApplicationAssignment(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/assignment`,
+  );
+
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * Get transaction (prosecution history) data for an application.
+ */
+export async function getApplicationTransactions(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/transactions`,
+  );
+
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * List documents filed in a patent application.
+ */
+export async function getApplicationDocuments(params: {
+  applicationNumber: string;
+  documentCodes?: string;
+  officialDateFrom?: string;
+  officialDateTo?: string;
+}): Promise<Record<string, unknown>> {
+  const queryParams: Record<string, string> = {};
+  if (params.documentCodes) queryParams.documentCodes = params.documentCodes;
+  if (params.officialDateFrom) queryParams.officialDateFrom = params.officialDateFrom;
+  if (params.officialDateTo) queryParams.officialDateTo = params.officialDateTo;
+
+  return api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(params.applicationNumber)}/documents`,
+    queryParams,
+  );
+}
+
+/**
+ * Get patent term adjustment data for an application.
+ */
+export async function getApplicationAdjustment(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/adjustment`,
+  );
+
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * Get foreign priority data for an application.
+ */
+export async function getApplicationForeignPriority(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/foreign-priority`,
+  );
+
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * Get attorney/agent data for an application.
+ */
+export async function getApplicationAttorney(applicationNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/applications/${encodeURIComponent(applicationNumber)}/attorney`,
+  );
+
+  const bag = Array.isArray(res.patentFileWrapperDataBag) ? res.patentFileWrapperDataBag : [];
+  return bag[0] ?? null;
+}
+
+/**
+ * Search PTAB trial proceedings (IPR, PGR, CBM, derivation) via POST.
+ */
+export async function searchPtabProceedings(params: {
+  q?: string;
+  filters?: OdpFilter[];
+  rangeFilters?: OdpRangeFilter[];
+  sort?: OdpSort[];
+  fields?: string[];
+  offset?: number;
+  limit?: number;
+  facets?: string[];
+}): Promise<OdpSearchResult> {
+  const res = await api.post<Record<string, unknown>>(
+    "/api/v1/patent/trials/proceedings/search",
+    buildSearchBody(params),
+  );
 
   return {
-    total: res.total_assignee_count ?? res.count ?? assigneeMap.size,
-    assignees: Array.from(assigneeMap.values()),
+    count: Number(res.count ?? 0),
+    requestIdentifier: res.requestIdentifier as string | undefined,
+    results: Array.isArray(res.patentTrialProceedingDataBag) ? res.patentTrialProceedingDataBag : [],
   };
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────
+/**
+ * Get a specific PTAB trial proceeding by trial number.
+ */
+export async function getPtabProceeding(trialNumber: string): Promise<Record<string, unknown> | null> {
+  const res = await api.get<Record<string, unknown>>(
+    `/api/v1/patent/trials/proceedings/${encodeURIComponent(trialNumber)}`,
+  );
 
-function mapPatent(r: Record<string, unknown>): Patent {
-  // Inventors may be nested array or flat
-  const inventorFirst = r.inventor_first_name;
-  const inventorLast = r.inventor_last_name;
-  let inventorNames: string[] = [];
+  const bag = Array.isArray(res.patentTrialProceedingDataBag) ? res.patentTrialProceedingDataBag : [];
+  return bag[0] ?? null;
+}
 
-  if (Array.isArray(inventorFirst)) {
-    inventorNames = inventorFirst.map((f: string, i: number) => {
-      const last = Array.isArray(inventorLast) ? inventorLast[i] : inventorLast;
-      return `${f} ${last ?? ""}`.trim();
-    });
-  } else if (typeof inventorFirst === "string") {
-    inventorNames = [`${inventorFirst} ${inventorLast ?? ""}`.trim()];
-  }
-
-  // CPC may be array or flat
-  const cpcRaw = r.cpc_group_id;
-  const cpcGroup = Array.isArray(cpcRaw) ? cpcRaw[0] : (cpcRaw as string) || null;
-
-  // Assignee may be array or flat
-  const assigneeRaw = r.assignee_organization;
-  const assigneeOrg = Array.isArray(assigneeRaw) ? assigneeRaw[0] : (assigneeRaw as string) || null;
+/**
+ * Search PTAB trial decisions via POST.
+ */
+export async function searchPtabDecisions(params: {
+  q?: string;
+  filters?: OdpFilter[];
+  rangeFilters?: OdpRangeFilter[];
+  sort?: OdpSort[];
+  fields?: string[];
+  offset?: number;
+  limit?: number;
+  facets?: string[];
+}): Promise<OdpSearchResult> {
+  const res = await api.post<Record<string, unknown>>(
+    "/api/v1/patent/trials/decisions/search",
+    buildSearchBody(params),
+  );
 
   return {
-    patentNumber: String(r.patent_number ?? ""),
-    patentTitle: String(r.patent_title ?? ""),
-    patentDate: String(r.patent_date ?? ""),
-    patentAbstract: r.patent_abstract ? String(r.patent_abstract).substring(0, 500) : null,
-    patentType: (r.patent_type as string) || null,
-    numClaims: r.patent_num_claims != null ? Number(r.patent_num_claims) : null,
-    assigneeOrganization: assigneeOrg,
-    inventorNames,
-    cpcGroup: cpcGroup || null,
+    count: Number(res.count ?? 0),
+    requestIdentifier: res.requestIdentifier as string | undefined,
+    results: Array.isArray(res.patentTrialDecisionDataBag) ? res.patentTrialDecisionDataBag : [],
+  };
+}
+
+/**
+ * Search petition decisions via POST.
+ */
+export async function searchPetitionDecisions(params: {
+  q?: string;
+  filters?: OdpFilter[];
+  rangeFilters?: OdpRangeFilter[];
+  sort?: OdpSort[];
+  fields?: string[];
+  offset?: number;
+  limit?: number;
+  facets?: string[];
+}): Promise<OdpSearchResult> {
+  const res = await api.post<Record<string, unknown>>(
+    "/api/v1/petition/decisions/search",
+    buildSearchBody(params),
+  );
+
+  return {
+    count: Number(res.count ?? 0),
+    requestIdentifier: res.requestIdentifier as string | undefined,
+    results: Array.isArray(res.petitionDecisionBag) ? res.petitionDecisionBag : [],
   };
 }
 
 // ─── Cache management ────────────────────────────────────────────────
 
 /**
- * Clear Cache.
+ * Clear the in-memory + disk cache for USPTO ODP requests.
  */
 export function clearCache(): void {
   api.clearCache();

@@ -505,9 +505,9 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
     load: async ({ technology }) =>
       `Map the innovation landscape for: ${technology}\n\n` +
       "PATENTS:\n" +
-      `- uspto_search_patents query='${technology}' — recent patents\n` +
-      `- uspto_search_assignees query='${technology}' — top patent-holding companies\n` +
-      `- uspto_search_inventors query='${technology}' — prolific inventors\n\n` +
+      `- uspto_search_applications q='${technology}' — recent patent applications\n` +
+      `- For top applicants found above, use uspto_application_details for full data\n` +
+      `- uspto_ptab_proceedings — check for inter partes reviews on key patents\n\n` +
       "KEY COMPANIES:\n" +
       "- For top assignees found above:\n" +
       "  - sec_company_search — public company financials (R&D spend)\n" +

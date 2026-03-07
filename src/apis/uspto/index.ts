@@ -1,5 +1,8 @@
 /**
- * uspto API module.
+ * USPTO Open Data Portal API module.
+ *
+ * ODP API: https://api.uspto.gov
+ * Docs: https://data.uspto.gov/apis/getting-started
  */
 
 import type { ApiModule } from "../../shared/types.js";

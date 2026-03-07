@@ -25,7 +25,7 @@ HEALTH → CDC(causes_of_death,mortality_rates,life_expectancy,weekly_deaths,pla
 DRUG INVESTIGATION → FDA(drug_events,drug_counts,recalls,approved_drugs) + ClinicalTrials(search,stats with search_as_drug=true) + NIH(projects,spending) + OpenPayments(search,research,ownership) + Lobbying(PhRMA+companies) + FEC(pharma PACs→disbursements) + SEC(company financials) + WorldBank(drug pricing)
 PHARMA→DOCTOR PAYMENTS → OpenPayments(search,by_company,by_physician,by_specialty,ownership,research) + FDA(drug_events for same drugs) + ClinicalTrials + Lobbying(company spend) + FEC(company PAC) + SEC(revenue)
 FOOD SAFETY → FDA(food_recalls,food_adverse_events) + USDA FoodData + BLS(cpi food) + USDA NASS(crop_data,prices) + Congress(food safety bills) + Lobbying
-MEDICAL DEVICES → FDA(device_events,device_recalls) + CMS(hospitals) + Lobbying(manufacturer) + USPTO(patents) + Congress(device regulation bills)
+MEDICAL DEVICES → FDA(device_events,device_recalls) + CMS(hospitals) + Lobbying(manufacturer) + USPTO(search_applications) + Congress(device regulation bills)
 
 ENERGY/CLIMATE → EIA(petroleum,electricity,natural_gas) + NREL(fuel_stations,utility_rates,solar) + NOAA(climate_data) + EPA(air_quality) + BLS(cpi energy) + Congress(energy bills,votes) + Lobbying + WorldBank(CO2)
 AGRICULTURE → USDA NASS(crop_data,prices) + BLS(cpi food) + EIA(petroleum→transport cost) + NOAA(weather→yields) + FDA(food recalls) + USAspending(USDA)
@@ -43,7 +43,7 @@ DISASTERS → FEMA(declarations,housing_assistance,public_assistance) + NOAA(wea
 EARTHQUAKES/WATER → USGS(earthquakes,water_data,water_sites) + FEMA(declarations) + NOAA(precipitation) + EPA(facilities) + CDC(health impacts)
 VEHICLE SAFETY → NHTSA(recalls,complaints,safety_ratings,decode_vin) + NREL(EV chargers) + EPA(emissions)
 TRANSPORTATION → BTS(transport_stats,border_crossings) + EIA(fuel prices) + BLS(cpi transportation) + USAspending(DOT) + NHTSA + NREL + Congress(infrastructure bills)
-PATENTS → USPTO(patents,assignees,inventors) + SEC(company financials) + USAspending(R&D) + WorldBank(R&D spending)
+PATENTS → USPTO(search_applications,application_details,ptab_proceedings,ptab_decisions) + SEC(company financials) + USAspending(R&D) + WorldBank(R&D spending)
 INTERNATIONAL → WorldBank(wb_compare) + FRED(US baseline) + Treasury(fiscal position). Always use per-capita for size-different nations.
 
 === FOLLOW THE MONEY (investigative workflow) ===
