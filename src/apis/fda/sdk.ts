@@ -171,11 +171,21 @@ export interface CountResult {
 // ─── Public API ──────────────────────────────────────────────────────
 
 /**
+ * Normalize FDA search syntax: convert `+AND+`, `+OR+`, `+NOT+` to spaces
+ * so the shared client's encodeURIComponent doesn't break them.
+ * The FDA API accepts `%20` (space) in place of `+` for query operators.
+ */
+function normSearch(search?: string): string | undefined {
+  if (!search) return search;
+  return search.replace(/\+AND\+/g, " AND ").replace(/\+OR\+/g, " OR ").replace(/\+NOT\+/g, " NOT ");
+}
+
+/**
  * Search adverse drug events (FAERS).
  *
  * Example:
  *   await searchDrugEvents({ search: "patient.drug.openfda.brand_name:aspirin", limit: 5 });
- *   await searchDrugEvents({ search: "serious:1+AND+patient.patientsex:2", limit: 10 });
+ *   await searchDrugEvents({ search: "serious:1 AND patient.patientsex:2", limit: 10 });
  */
 export async function searchDrugEvents(opts: {
   search?: string;
@@ -183,7 +193,7 @@ export async function searchDrugEvents(opts: {
   skip?: number;
 } = {}): Promise<DrugEventResult> {
   return api.get<DrugEventResult>("/drug/event.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
     skip: opts.skip,
   });
@@ -200,7 +210,7 @@ export async function searchDrugLabels(opts: {
   limit?: number;
 } = {}): Promise<DrugLabelResult> {
   return api.get<DrugLabelResult>("/drug/label.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
   });
 }
@@ -217,7 +227,7 @@ export async function searchFoodRecalls(opts: {
   limit?: number;
 } = {}): Promise<FoodRecallResult> {
   return api.get<FoodRecallResult>("/food/enforcement.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
   });
 }
@@ -233,7 +243,7 @@ export async function searchDeviceEvents(opts: {
   limit?: number;
 } = {}): Promise<DeviceEventResult> {
   return api.get<DeviceEventResult>("/device/event.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
   });
 }
@@ -257,7 +267,7 @@ export async function countDrugEvents(field: string, opts: {
   limit?: number;
 } = {}): Promise<CountResult> {
   return api.get<CountResult>("/drug/event.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     count: field,
     limit: opts.limit,
   });
@@ -355,7 +365,7 @@ export async function searchDrugRecalls(opts: {
   skip?: number;
 } = {}): Promise<DrugRecallResult> {
   return api.get<DrugRecallResult>("/drug/enforcement.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
     skip: opts.skip,
   });
@@ -375,7 +385,7 @@ export async function searchApprovedDrugs(opts: {
   skip?: number;
 } = {}): Promise<ApprovedDrugResult> {
   return api.get<ApprovedDrugResult>("/drug/drugsfda.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
     skip: opts.skip,
   });
@@ -393,7 +403,7 @@ export async function searchFoodAdverseEvents(opts: {
   skip?: number;
 } = {}): Promise<FoodAdverseEventResult> {
   return api.get<FoodAdverseEventResult>("/food/event.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
     skip: opts.skip,
   });
@@ -411,7 +421,7 @@ export async function searchDeviceRecalls(opts: {
   skip?: number;
 } = {}): Promise<DeviceRecallResult> {
   return api.get<DeviceRecallResult>("/device/recall.json", {
-    search: opts.search,
+    search: normSearch(opts.search),
     limit: opts.limit ?? 10,
     skip: opts.skip,
   });

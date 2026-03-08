@@ -22,7 +22,8 @@ const api = createClient({
   baseUrl: "https://openpaymentsdata.cms.gov/api/1",
   name: "open-payments",
   rateLimit: { perSecond: 5, burst: 10 },
-  cacheTtlMs: 60 * 60 * 1000, // 1 hour — data updates periodically
+  cacheTtlMs: 60 * 60 * 1000, // 1 hour -- data updates periodically
+  timeoutMs: 60_000, // CMS dataset is large; default 30s times out on sort queries
 });
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -106,7 +107,7 @@ function findDataset(datasets: DatasetEntry[], pattern: RegExp): string | null {
  * Auto-discovers from the metastore — always gets the latest available data.
  * Returns the distribution ID (needed for /datastore/query/), not the dataset ID.
  */
-async function resolveDatasetId(type: "general" | "research" | "ownership", year?: string): Promise<string> {
+export async function resolveDatasetId(type: "general" | "research" | "ownership", year?: string): Promise<string> {
   const datasets = await getDatasets();
 
   // If specific year requested, look for it
@@ -408,6 +409,59 @@ export async function getProviderProfiles(opts?: {
 /** Clear cached responses. */
 export function clearCache(): void {
   api.clearCache();
+}
+
+// ─── SQL Query (fast sorted/filtered queries) ───────────────────
+
+/**
+ * Run a SQL-like query against a datastore resource.
+ * Faster than POST for simple sorted/filtered queries.
+ * Note: amounts are stored as strings, so ORDER BY sorts lexicographically.
+ * For proper numeric sorting, use searchPaymentsAdvanced (POST with sorts).
+ *
+ * Example:
+ *   await sqlQuery(distId, {
+ *     select: "covered_recipient_last_name,total_amount_of_payment_usdollars",
+ *     where: 'recipient_state = "CA"',
+ *     orderBy: "total_amount_of_payment_usdollars DESC",
+ *     limit: 10,
+ *   });
+ */
+export async function sqlQuery(
+  distributionId: string,
+  opts: { select?: string; where?: string; orderBy?: string; limit?: number; offset?: number },
+): Promise<Record<string, unknown>[]> {
+  const clauses: string[] = [];
+  clauses.push(`[SELECT ${opts.select || "*"} FROM ${distributionId}]`);
+  if (opts.where) clauses.push(`[WHERE ${opts.where}]`);
+  if (opts.orderBy) clauses.push(`[ORDER BY ${opts.orderBy}]`);
+  const limit = opts.limit ?? 20;
+  const offset = opts.offset ?? 0;
+  clauses.push(`[LIMIT ${limit} OFFSET ${offset}]`);
+
+  return api.get<Record<string, unknown>[]>("/datastore/sql", {
+    query: clauses.join(""),
+  });
+}
+
+/**
+ * Search the Open Payments catalog using fulltext search with facets.
+ * Searches across all dataset metadata (titles, descriptions, keywords).
+ */
+export async function searchCatalog(opts: {
+  query?: string;
+  keyword?: string;
+  theme?: string;
+  pageSize?: number;
+  page?: number;
+} = {}): Promise<{ total: number; results: Record<string, unknown> }> {
+  return api.get<{ total: number; results: Record<string, unknown> }>("/search", {
+    fulltext: opts.query || "",
+    keyword: opts.keyword,
+    theme: opts.theme,
+    "page-size": opts.pageSize ?? 20,
+    page: opts.page ?? 1,
+  });
 }
 
 // ─── Advanced Query (POST with sorting/grouping) ─────────────────────
