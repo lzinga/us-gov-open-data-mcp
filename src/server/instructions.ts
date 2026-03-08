@@ -16,14 +16,14 @@ DEBT/DEFICIT → Treasury(debt_to_penny,avg_interest_rates) + FRED(GDP,FYFSGDA18
 SPENDING/BUDGET → USAspending(by_agency,by_award,over_time) + Treasury(MTS mts_table_1) + Census(population→per-capita) + Congress(authorizing law+votes) + Lobbying
 ECONOMY(GDP,jobs,inflation) → FRED(GDP,UNRATE,CPIAUCSL,FEDFUNDS,PAYEMS) + BLS(cpi_breakdown,employment_by_industry) + BEA(gdp_by_industry) + DOL(ui_claims) + WorldBank(peers)
 STATE-LEVEL → Census(pop,income) + BEA(gdp_by_state,personal_income) + USAspending(by_state) + CDC(places_health) + HUD(fair_market_rents) + FEMA + FDIC + DOL(ui_claims_state)
-LEGISLATION → Congress(bill_details,actions,amendments,votes) + FRED(before/after) + USAspending(before/after) + Lobbying + Regulations.gov + DOJ(press_releases)
-ELECTIONS/CAMPAIGN FINANCE → FEC(candidates,financials,disbursements) + Congress(member_bills,votes) + Lobbying(contributions) + FRED(economic conditions)
+LEGISLATION → Congress(bill_full_profile for everything in 1 call, OR bill_details+bill_votes for targeted) + FRED(before/after) + USAspending(before/after) + Lobbying + Regulations.gov + DOJ(press_releases)
+ELECTIONS/CAMPAIGN FINANCE → FEC(candidates,financials,disbursements) + Congress(member_full_profile for complete picture, OR member_bills+votes) + Lobbying(contributions) + FRED(economic conditions)
 EXECUTIVE ACTIONS → FederalRegister(EOs,rules) + Regulations.gov(documents,comments) + Congress(related bills,votes) + Lobbying + FRED(before/after)
 PRESIDENTIAL COMPARISON → For EACH: FRED(GDP,UNRATE,CPI,FEDFUNDS,PAYEMS,SP500) at start vs end + Treasury(debt) + Congress(laws,votes) + FedRegister(EOs) + note external shocks
 
 HEALTH → CDC(causes_of_death,mortality_rates,life_expectancy,weekly_deaths,places_health,drug_overdose) + FDA(drug_events,approved_drugs) + ClinicalTrials + NIH(projects,spending) + CMS(hospitals,nursing_homes) + OpenPayments + BLS(cpi medical) + WorldBank(health spend)
-DRUG INVESTIGATION → FDA(drug_events,drug_counts,recalls,approved_drugs) + ClinicalTrials(search,stats with search_as_drug=true) + NIH(projects,spending) + OpenPayments(search,research,ownership) + Lobbying(PhRMA+companies) + FEC(pharma PACs→disbursements) + SEC(company financials) + WorldBank(drug pricing)
-PHARMA→DOCTOR PAYMENTS → OpenPayments(search,by_company,by_physician,by_specialty,ownership,research) + FDA(drug_events for same drugs) + ClinicalTrials + Lobbying(company spend) + FEC(company PAC) + SEC(revenue)
+DRUG INVESTIGATION → FDA(drug_events,drug_counts,recalls,approved_drugs) + ClinicalTrials(search,stats with search_as_drug=true) + NIH(projects,spending) + OpenPayments(search,top_doctors,research,ownership) + Lobbying(PhRMA+companies) + FEC(pharma PACs→disbursements) + SEC(company financials) + WorldBank(drug pricing)
+PHARMA→DOCTOR PAYMENTS → OpenPayments(search,top_doctors,by_company,by_physician,by_specialty,ownership,research) + FDA(drug_events for same drugs) + ClinicalTrials + Lobbying(company spend) + FEC(company PAC) + SEC(revenue)
 FOOD SAFETY → FDA(food_recalls,food_adverse_events) + USDA FoodData + BLS(cpi food) + USDA NASS(crop_data,prices) + Congress(food safety bills) + Lobbying
 MEDICAL DEVICES → FDA(device_events,device_recalls) + CMS(hospitals) + Lobbying(manufacturer) + USPTO(search_applications) + Congress(device regulation bills)
 
@@ -49,11 +49,11 @@ INTERNATIONAL → WorldBank(wb_compare) + FRED(US baseline) + Treasury(fiscal po
 
 === FOLLOW THE MONEY (investigative workflow) ===
 When asked about conflicts of interest, corruption, PAC influence, "who benefits":
-1. IDENTIFY: FEC(search_candidates) + Congress(member_details) → candidate ID, committee assignments
+1. IDENTIFY: FEC(search_candidates) + Congress(member_full_profile) → candidate ID, committee assignments, sponsored bills
 2. MONEY IN: FEC(candidate_financials→PAC%) + FEC(search_committees type=Q by company name→committee_id) + FEC(committee_disbursements→recipient_name) for EXACT dollar amounts. Try ±1 election cycle. Also: lobbying_search for trade group + individual companies, 3+ years
-3. THE VOTE: Congress(bill_details,senate_votes or house_votes) → party-line breakdown
+3. THE VOTE: Congress(bill_votes for all roll calls on the bill) OR Congress(bill_full_profile for everything) → party-line breakdown
 4. THE OUTCOME: FRED/BLS/FDIC/CFPB/CDC before vs after. USAspending changes. WorldBank comparison.
-5. WHO BENEFITED: SEC(company financials improved?), Lobbying(spending increased after?), FEC(PAC donations continued?)
+5. WHO BENEFITED: SEC(company financials improved?), Lobbying(spending increased after?), FEC(PAC donations continued?), OpenPayments(top_doctors for pharma)
 Present: Money In → Vote → Outcome → Who Benefited. Show both suspicious and innocent interpretations.
 
 === RULES (apply to EVERY response) ===

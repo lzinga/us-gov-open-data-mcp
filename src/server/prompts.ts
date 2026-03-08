@@ -89,8 +89,8 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
     load: async ({ topic }) =>
       `Follow the money for: ${topic}\n\n` +
       "Step 1 — FIND THE LEGISLATION:\n" +
-      "- congress_bill_details to get sponsor, cosponsors, committee\n" +
-      "- congress_senate_votes or congress_house_votes for party-line breakdown\n\n" +
+      "- congress_bill_full_profile to get sponsor, cosponsors, actions, committees, summaries, and related bills in one call\n" +
+      "- congress_bill_votes to find all roll-call votes with party-line breakdowns\n\n" +
       "Step 2 — TRACE THE MONEY IN:\n" +
       "- fec_candidate_financials for sponsor's PAC dependency\n" +
       "- fec_search_committees (committee_type='Q') to find industry PACs\n" +
@@ -122,9 +122,12 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       "- fec_committee_disbursements for each PAC — show recipients from both D and R\n" +
       "- Focus on members of relevant oversight committees\n\n" +
       "POLICY OUTCOMES:\n" +
-      "- congress_bill_details for recent legislation affecting this industry\n" +
-      "- congress_senate_votes or congress_house_votes for key votes\n" +
+      "- congress_bill_full_profile for recent legislation affecting this industry\n" +
+      "- congress_bill_votes for party-line breakdown on key votes\n" +
       "- Relevant FRED/BLS/World Bank data showing measurable impact\n\n" +
+      "DOCTOR PAYMENTS (if pharma/device):\n" +
+      "- open_payments_top_doctors to find highest-paid doctors in the space\n" +
+      "- open_payments_search for specific company payments\n\n" +
       "Show the bipartisan nature of industry influence. Present both the case that " +
       "this represents corruption and the case that it represents legitimate advocacy.",
   },
@@ -140,8 +143,7 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       const name = _name ?? "";
       return `Build a financial and legislative profile of ${name}${state ? ` (${state})` : ""}:\n\n` +
       "IDENTITY:\n" +
-      `- congress_search_members to find their BioGuide ID, party, chamber, committees\n` +
-      `- congress_member_details for full biography and committee assignments\n\n` +
+      `- congress_member_full_profile to get bio, terms, sponsored legislation, and cosponsored legislation in one call\n\n` +
       "CAMPAIGN FINANCE:\n" +
       `- fec_search_candidates for candidate ID\n` +
       `- fec_candidate_financials for ALL cycles — track PAC dependency over time\n` +
@@ -149,10 +151,12 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       "WHO FUNDS THEM:\n" +
       `- fec_search_committees (committee_type='Q') for PACs in industries their committees oversee\n` +
       `- fec_committee_disbursements from those PACs with recipient_name='${name.split(" ").pop()}'\n\n` +
-      "LEGISLATIVE RECORD:\n" +
-      `- congress_member_bills for bills they sponsored\n` +
-      `- congress_senate_votes or congress_house_votes for key votes in their committee areas\n\n` +
+      "KEY VOTES:\n" +
+      `- congress_bill_votes for their most significant legislation — shows party-line breakdowns\n` +
+      `- congress_senate_votes or congress_house_votes for specific roll call numbers\n\n` +
       `- lobbying_contributions for lobbyist donations to them\n\n` +
+      "PHARMA PAYMENTS (if relevant):\n" +
+      "- open_payments_search for payments from pharma/device companies to this member's state\n\n" +
       "Present factually. Show both the 'suspicious' and 'legitimate' interpretations for any patterns.";
     },
   },
@@ -449,7 +453,7 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       "FDA APPROVAL STATUS:\n" +
       `- fda_approved_drugs search='openfda.brand_name:"${drug}"' — approval history, active ingredients, marketing status\n\n` +
       "ADVERSE EVENTS:\n" +
-      `- fda_drug_events search='patient.drug.openfda.brand_name:${drug}' — recent reports\n` +
+      `- fda_drug_events search='patient.drug.openfda.brand_name:${drug} AND serious:1' — serious reports\n` +
       `- fda_drug_counts count_field='patient.reaction.reactionmeddrapt.exact' ` +
       `search='patient.drug.openfda.brand_name:${drug}' — top adverse reactions\n\n` +
       "RECALLS:\n" +
@@ -462,7 +466,9 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
       "- lobbying_search for the manufacturer — lobbying spend\n" +
       "- lobbying_lobbyists for the manufacturer — who lobbies for them\n" +
       "- lobbying_detail for a filing UUID — specific bills lobbied on\n" +
-      "- fec_search_committees for manufacturer PAC\n\n" +
+      "- fec_search_committees for manufacturer PAC\n" +
+      "- open_payments_top_doctors — find doctors receiving the most from this manufacturer\n" +
+      "- open_payments_search company=manufacturer — payment details\n\n" +
       "HEALTH CONTEXT:\n" +
       "- bls_cpi_breakdown medical care — drug cost inflation\n" +
       "- wb_compare (US vs peer nations) SH.XPD.CHEX.PC.CD — health spending per capita\n\n" +
@@ -886,13 +892,12 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
     load: async ({ focus: _focus }) => {
       const focus = _focus ?? "airlines";
       return `Transportation analysis: ${focus}\n\n` +
-      "AIRLINE PERFORMANCE:\n" +
-      `- bts_airline_ontime${focus.length === 2 ? "" : ` carrier or airport matching '${focus}'`} — delays, cancellations\n` +
-      "- bts_flight_delays — worst delay rankings\n\n" +
-      "TRANSIT RIDERSHIP:\n" +
-      `- bts_transit_ridership${focus.length === 2 ? ` state='${focus}'` : ` matching '${focus}'`} — subway, bus, rail ridership trends\n\n` +
+      "TRANSPORTATION STATISTICS:\n" +
+      "- bts_transport_stats — monthly transportation indicators (airline traffic, on-time %, transit ridership, rail freight, fuel prices, safety)\n" +
+      "- Use limit=24 for 2 years of trend data\n\n" +
       "BORDER CROSSINGS:\n" +
-      "- bts_border_crossings — trucks, vehicles, passengers at ports of entry\n\n" +
+      "- bts_border_crossings — trucks, vehicles, passengers at ports of entry\n" +
+      "- Filter by border ('US-Mexico Border' or 'US-Canada Border'), measure ('Trucks', 'Personal Vehicles', 'Pedestrians')\n\n" +
       "INFRASTRUCTURE SPENDING:\n" +
       "- usa_spending_by_agency for DOT (Dept of Transportation)\n" +
       "- congress_search_bills for 'infrastructure', 'highway', 'FAA' — legislation\n" +
