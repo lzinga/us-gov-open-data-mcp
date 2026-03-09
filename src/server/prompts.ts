@@ -956,4 +956,165 @@ export const analysisPrompts: InputPrompt<any, any>[] = [
         "Show HPI trend over 5+ years. Compare mortgage payment at current rate vs 2019 rate.";
     },
   },
+
+  // ─── Environmental Justice ─────────────────────────────────────────
+
+  {
+    name: "environmental_justice",
+    description: "Investigate environmental hazards and their proximity to communities — pollution, enforcement, health impacts.",
+    arguments: [
+      { name: "location", description: "City, state, or ZIP code (e.g. 'Flint, MI', 'TX', '70112')", required: true },
+    ],
+    load: async ({ location: _location }) => {
+      const location = _location ?? "";
+      const isState = location.length === 2;
+      const stateCode = isState ? location.toUpperCase() : undefined;
+      return `Environmental justice investigation: ${location}\n\n` +
+        "EPA FACILITIES & COMPLIANCE:\n" +
+        `- epa_facilities for ${location} — regulated facilities, compliance status, violations\n` +
+        "- epa_enforcement — enforcement cases, penalties, outcomes\n" +
+        `- epa_toxic_releases for${stateCode ? ` state=${stateCode}` : ` ${location}`} — Toxics Release Inventory: which chemicals, how much, which facilities\n` +
+        `- epa_superfund for${stateCode ? ` state=${stateCode}` : ` ${location}`} — contaminated sites on the National Priorities List\n\n` +
+        "AIR & WATER QUALITY:\n" +
+        `- epa_air_quality for${stateCode ? ` state FIPS code` : ` ${location}`} — ambient air monitoring data (PM2.5, ozone, lead)\n` +
+        `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — drinking water system violations\n` +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — water monitoring stations\n\n` +
+        "COMMUNITY HEALTH:\n" +
+        `- cdc_places_health for ${location} — county/city health indicators (asthma, cancer, COPD)\n` +
+        `- cdc_mortality_rates — death rates for respiratory and cancer causes\n` +
+        "- cdc_life_expectancy — compare community life expectancy to national average\n\n" +
+        "DEMOGRAPHICS:\n" +
+        `- census_query for ${location} — population, income, poverty rate, racial composition\n\n` +
+        "ENFORCEMENT & ACCOUNTABILITY:\n" +
+        "- doj_press_releases title='environmental' — DOJ environmental enforcement actions\n" +
+        "- lobbying_search for polluting companies found above\n" +
+        "- congress_search_bills for 'environmental justice', 'clean air', 'clean water'\n\n" +
+        "Key question: Are pollution sources disproportionately located near low-income or minority communities? " +
+        "Cross-reference EPA facility locations with Census demographics and CDC health outcomes. " +
+        "Present as correlation, not causation.";
+    },
+  },
+
+  // ─── Government Contractor ────────────────────────────────────────
+
+  {
+    name: "government_contractor",
+    description: "Investigate a government contractor — contracts, lobbying, campaign contributions, safety record, and financials.",
+    arguments: [
+      { name: "company", description: "Company name (e.g. 'Lockheed Martin', 'Booz Allen Hamilton', 'Raytheon')", required: true },
+    ],
+    load: async ({ company: _company }) => {
+      const company = _company ?? "";
+      return `Government contractor investigation: ${company}\n\n` +
+        "FEDERAL CONTRACTS:\n" +
+        `- usa_spending_by_recipient keyword='${company}' — total contract awards by fiscal year\n` +
+        `- usa_spending_by_award keyword='${company}' — individual contracts, amounts, awarding agencies\n` +
+        "- usa_spending_over_time — spending trend over 5+ years\n\n" +
+        "LOBBYING:\n" +
+        `- lobbying_search registrant_name='${company}' — lobbying filings, issue areas, expenditures\n` +
+        `- lobbying_search client_name='${company}' — if they hire external lobbying firms\n` +
+        `- lobbying_detail for filing UUIDs — specific bills lobbied on\n\n` +
+        "CAMPAIGN CONTRIBUTIONS:\n" +
+        `- fec_search_committees name='${company}' committee_type=Q — find the company PAC\n` +
+        "- fec_committee_financials for the PAC — total raised/spent\n" +
+        "- fec_committee_disbursements for the PAC — which politicians received money\n\n" +
+        "WORKPLACE SAFETY:\n" +
+        `- dol_osha_inspections for '${company}' — workplace safety inspections\n` +
+        `- dol_osha_violations for '${company}' — violations found, penalties\n\n` +
+        "FINANCIALS:\n" +
+        `- sec_company_search for '${company}' — SEC filings, CIK number\n` +
+        "- sec_company_financials for the CIK — revenue, profit, assets\n\n" +
+        "DOJ:\n" +
+        `- doj_press_releases title='${company}' — any enforcement actions, fraud cases, settlements\n\n` +
+        "Present: Contracts received -> Lobbying spent -> Politicians funded -> Legislation influenced. " +
+        "Show both perspectives: legitimate government partnership vs potential conflicts of interest.";
+    },
+  },
+
+  // ─── Water Quality ────────────────────────────────────────────────
+
+  {
+    name: "water_quality",
+    description: "Investigate water quality and safety for a location — drinking water, monitoring data, contamination sources.",
+    arguments: [
+      { name: "location", description: "State abbreviation or city (e.g. 'WV', 'Flint', 'Jackson, MS')", required: true },
+    ],
+    load: async ({ location: _location }) => {
+      const location = _location ?? "";
+      const isState = location.length === 2;
+      const stateCode = isState ? location.toUpperCase() : undefined;
+      return `Water quality investigation: ${location}\n\n` +
+        "DRINKING WATER:\n" +
+        `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — public water system violations (Safe Drinking Water Act)\n\n` +
+        "WATER MONITORING:\n" +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — USGS monitoring stations\n` +
+        "- usgs_water_data — real-time streamflow and water quality readings\n" +
+        "- usgs_daily_water_data — historical daily values for trend analysis\n\n" +
+        "CONTAMINATION SOURCES:\n" +
+        `- epa_facilities for ${location} media=water — facilities with water discharge permits\n` +
+        `- epa_toxic_releases for${stateCode ? ` state=${stateCode}` : ` ${location}`} — industrial chemical releases to water\n` +
+        `- epa_superfund for${stateCode ? ` state=${stateCode}` : ` ${location}`} — contaminated sites that may affect groundwater\n\n` +
+        "HEALTH IMPACTS:\n" +
+        `- cdc_places_health for ${location} — kidney disease, cancer rates in the area\n` +
+        "- cdc_mortality_rates — compare local mortality to national baseline\n\n" +
+        "INFRASTRUCTURE SPENDING:\n" +
+        "- usa_spending_by_agency for EPA — federal water infrastructure spending\n" +
+        "- congress_search_bills for 'drinking water', 'water infrastructure', 'lead pipes'\n\n" +
+        "ENFORCEMENT:\n" +
+        `- epa_enforcement for ${location} law=SDWA — Safe Drinking Water Act enforcement\n` +
+        `- doj_press_releases title='water' — DOJ water-related enforcement\n\n` +
+        "Key metrics: Number of water system violations, types (health-based vs monitoring), " +
+        "affected population, contaminants detected, enforcement actions taken.";
+    },
+  },
+
+  // ─── Pharma Pricing ───────────────────────────────────────────────
+
+  {
+    name: "pharma_pricing",
+    description: "Investigate why a drug costs what it does — manufacturer profits, lobbying, doctor payments, shortages, and alternatives.",
+    arguments: [
+      { name: "drug", description: "Drug name (e.g. 'Ozempic', 'Humira', 'insulin')", required: true },
+    ],
+    load: async ({ drug: _drug }) => {
+      const drug = _drug ?? "";
+      return `Pharma pricing investigation: ${drug}\n\n` +
+        "DRUG IDENTITY:\n" +
+        `- fda_approved_drugs search='openfda.brand_name:"${drug}"' — approval history, manufacturer, application number\n` +
+        `- fda_drug_ndc search='brand_name:"${drug}"' — NDC codes, dosage forms, active ingredients, DEA schedule\n` +
+        `- fda_drug_labels search='openfda.brand_name:"${drug}"' — official prescribing information\n\n` +
+        "SUPPLY & SHORTAGES:\n" +
+        `- fda_drug_shortages search='generic_name:"${drug}"' — is it in shortage? why?\n` +
+        "- fda_count endpoint='drug/shortages' count_field='status.exact' — shortage status breakdown\n\n" +
+        "SAFETY RECORD:\n" +
+        `- fda_drug_events search='patient.drug.openfda.brand_name:${drug} AND serious:1' — serious adverse events\n` +
+        `- fda_drug_counts count_field='patient.reaction.reactionmeddrapt.exact' search='patient.drug.openfda.brand_name:${drug}' — top adverse reactions\n\n` +
+        "CLINICAL PIPELINE:\n" +
+        `- clinical_trials_search intervention='${drug}' — active trials\n` +
+        `- clinical_trials_stats condition='${drug}' search_as_drug=true — pipeline overview\n\n` +
+        "MANUFACTURER INFLUENCE:\n" +
+        "- Identify manufacturer from FDA results above, then:\n" +
+        "- lobbying_search for the manufacturer — lobbying expenditures and issue areas\n" +
+        "- lobbying_detail for filing UUIDs — specific bills lobbied on (drug pricing bills?)\n" +
+        "- fec_search_committees for manufacturer PAC (committee_type=Q)\n" +
+        "- fec_committee_disbursements — which legislators received PAC money\n\n" +
+        "DOCTOR PAYMENTS:\n" +
+        `- open_payments_by_company for the manufacturer — total payments to doctors\n` +
+        "- open_payments_top_doctors — highest-paid doctors by this manufacturer\n" +
+        "- open_payments_search — payment details (consulting, speaking, research)\n\n" +
+        "COST CONTEXT:\n" +
+        "- bls_cpi_breakdown medical — medical care inflation trend\n" +
+        "- wb_compare US,CA,GB,DE indicator=SH.XPD.CHEX.PC.CD — per-capita health spending internationally\n\n" +
+        "SEC FINANCIALS:\n" +
+        "- sec_company_search for the manufacturer — find CIK\n" +
+        "- sec_company_financials — revenue, profit margins\n\n" +
+        "LEGISLATION:\n" +
+        "- congress_search_bills for 'drug pricing', 'prescription costs', 'pharmacy benefit'\n" +
+        "- congress_bill_votes for relevant drug pricing legislation\n\n" +
+        "Present the full chain: Drug cost -> Manufacturer revenue -> Lobbying spend -> " +
+        "Campaign contributions -> Legislative votes on drug pricing. " +
+        "Include international price comparisons where available. " +
+        "Note that high profits fund R&D — present both perspectives.";
+    },
+  },
 ];

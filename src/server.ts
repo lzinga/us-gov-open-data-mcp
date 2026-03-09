@@ -259,24 +259,66 @@ server.addResource({
   uri: "govdata://reference",
   name: "API Reference",
   mimeType: "text/markdown",
-  load: async () => ({
-    text: activeModules.map(m => {
-      const authLine = m.auth
-        ? `Key: \`${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}\` ([signup](${m.auth.signup}))`
-        : "No key needed.";
-      const refs = m.reference
-        ? Object.entries(m.reference).map(([section, value]) => {
-            if (typeof value === "object" && value !== null) {
-              const entries = Object.entries(value as Record<string, unknown>);
-              return `**${section}:**\n` + entries
-                .map(([k, v]) => `- ${k}: ${String(v)}`).join("\n");
-            }
-            return `**${section}:** ${String(value)}`;
-          }).join("\n\n")
-        : "";
-      return `## ${m.displayName}\n\n${m.description}\n\n${authLine}\n\n${refs}`;
-    }).join("\n\n---\n\n"),
-  }),
+  load: async () => {
+    const noKey = activeModules.filter(m => !m.auth);
+    const withKey = activeModules.filter(m => m.auth);
+
+    // Group keyed APIs by env var
+    const keyGroups: Record<string, { envVar: string; signup: string; apis: string[] }> = {};
+    for (const m of withKey) {
+      const vars = Array.isArray(m.auth!.envVar) ? m.auth!.envVar : [m.auth!.envVar];
+      for (const v of vars) {
+        if (!keyGroups[v]) keyGroups[v] = { envVar: v, signup: m.auth!.signup, apis: [] };
+        keyGroups[v].apis.push(m.displayName);
+      }
+    }
+
+    // Check which keys are actually configured
+    const configuredKeys = Object.keys(keyGroups).filter(k => !!process.env[k]);
+    const missingKeys = Object.keys(keyGroups).filter(k => !process.env[k]);
+
+    let md = `# US Government Open Data — API Reference\n\n`;
+    md += `**${activeModules.length} APIs loaded** · ${noKey.length} require no key · ${configuredKeys.length}/${Object.keys(keyGroups).length} API keys configured\n\n`;
+
+    // Status section
+    if (missingKeys.length) {
+      md += `## Missing API Keys\n\n`;
+      md += `These APIs are loaded but will fail without keys:\n\n`;
+      md += `| Key | APIs Affected | Get Key |\n|---|---|---|\n`;
+      for (const k of missingKeys) {
+        const g = keyGroups[k];
+        md += `| \`${k}\` | ${g.apis.join(", ")} | [Sign up](${g.signup}) |\n`;
+      }
+      md += `\n`;
+    }
+
+    if (configuredKeys.length) {
+      md += `## Configured API Keys\n\n`;
+      for (const k of configuredKeys) {
+        md += `- \`${k}\` → ${keyGroups[k].apis.join(", ")}\n`;
+      }
+      md += `\n`;
+    }
+
+    // Free APIs
+    md += `## No Key Required (${noKey.length} APIs)\n\n`;
+    md += noKey.map(m => `- **${m.displayName}** (${m.tools.length} tools) — ${m.description.split(".")[0]}.`).join("\n");
+    md += `\n\n`;
+
+    // All APIs with tools
+    md += `## All APIs & Tools\n\n`;
+    for (const m of activeModules) {
+      const status = !m.auth ? "No key needed"
+        : (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).every(v => !!process.env[v])
+          ? "Key configured"
+          : "Key missing";
+      md += `### ${m.displayName} — ${status}\n\n`;
+      md += `${m.tools.length} tools: ${m.tools.map(t => `\`${t.name}\``).join(", ")}\n\n`;
+      if (m.workflow) md += `**Workflow:** ${m.workflow}\n\n`;
+    }
+
+    return { text: md };
+  },
 });
 
 // ─── Start ───────────────────────────────────────────────────────────
