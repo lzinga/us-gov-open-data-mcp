@@ -8,6 +8,8 @@
 [![npm downloads](https://img.shields.io/npm/dm/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<a href="https://glama.ai/mcp/servers/lzinga/us-gov-open-data-mcp"><img width="380" height="200" src="https://glama.ai/mcp/servers/lzinga/us-gov-open-data-mcp/badge" alt="US Government Open Data MCP server" /></a>
+
 250+ tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, procurement, and legislative data.
 
 **22 APIs require no key** · The rest use free keys that take under a minute to get
