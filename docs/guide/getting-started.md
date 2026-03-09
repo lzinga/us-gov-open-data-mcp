@@ -1,5 +1,16 @@
 # Getting Started
 
+## Features
+
+- **300+ tools** across 40+ government APIs — economic, health, legislative, financial, environmental, and more
+- **Cross-referencing** — built-in instructions guide the LLM to combine data from multiple agencies
+- **[Code mode](/guide/code-mode)** — WASM-sandboxed JavaScript execution reduces context usage by 98-100% for large responses
+- **Selective loading** — load only the modules you need: `--modules fred,treasury,congress`
+- **Dual transport** — stdio for desktop clients, HTTP Stream for web/remote
+- **TypeScript SDK** — every API is importable as a standalone typed client, no MCP required
+- **Disk-backed caching** — responses cached to disk, survives restarts
+- **Rate limiting + retry** — token-bucket rate limiter with exponential backoff
+
 ## MCP Server
 
 ### Quick Start

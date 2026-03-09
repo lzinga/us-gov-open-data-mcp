@@ -8,15 +8,26 @@
 [![npm downloads](https://img.shields.io/npm/dm/us-gov-open-data-mcp)](https://www.npmjs.com/package/us-gov-open-data-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-250+ tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, procurement, and legislative data.
+300+ tools covering economic, fiscal, health, education, energy, environment, lobbying, housing, patents, safety, banking, consumer protection, workplace safety, transportation, seismic, clinical trials, pharma payments, research funding, procurement, and legislative data.
 
-**22 APIs require no key** · The rest use free keys that take under a minute to get
+**20+ APIs require no key** · The rest use free keys that take under a minute to get
 
 [Getting Started](https://lzinga.github.io/us-gov-open-data-mcp/guide/getting-started) · [API Reference](https://lzinga.github.io/us-gov-open-data-mcp/api/) · [Documentation](https://lzinga.github.io/us-gov-open-data-mcp/)
 
 </div>
 
 ---
+
+## Features
+
+- **300+ tools** across 40+ government APIs — economic, health, legislative, financial, environmental, and more
+- **Cross-referencing** — built-in instructions guide the LLM to combine data from multiple agencies (e.g., FDA adverse events + lobbying spend + campaign contributions)
+- **Code mode** — WASM-sandboxed JavaScript execution reduces context window usage by 98-100% for large responses
+- **Selective loading** — load only the modules you need: `--modules fred,treasury,congress`
+- **Dual transport** — stdio for desktop clients, HTTP Stream for web/remote
+- **TypeScript SDK** — every API is importable as a standalone typed client, no MCP required
+- **Disk-backed caching** — responses cached to disk, survives restarts
+- **Rate limiting + retry** — token-bucket rate limiter with exponential backoff on 429/503
 
 ## Quick Start
 
@@ -42,6 +53,37 @@ Add to `.vscode/mcp.json` for VS Code / Copilot:
   }
 }
 ```
+
+Add to `claude_desktop_config.json` for Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "us-gov-open-data": {
+      "command": "npx",
+      "args": ["-y", "us-gov-open-data-mcp"],
+      "env": {
+        "FRED_API_KEY": "your_key",
+        "DATA_GOV_API_KEY": "your_key"
+      }
+    }
+  }
+}
+```
+
+## Example Prompts
+
+Once connected, ask your AI assistant natural language questions:
+
+> **Economic:** "What's the current state of the U.S. economy? Show me GDP, unemployment, inflation, and interest rates."
+
+> **Health:** "Show me the adverse event profile for Ozempic including clinical trials, FDA reports, and pharma payments to doctors."
+
+> **Legislative:** "What happened with the Inflation Reduction Act? Who sponsored it, how did the vote break down by party?"
+
+> **Follow the money:** "Which banking PACs gave money to members of the Senate Banking Committee, and how did those members vote on banking deregulation?"
+
+> **Cross-reference:** "How has federal spending on healthcare changed over the last 5 years, and what health outcomes has it produced?"
 
 ### TypeScript SDK
 
@@ -89,7 +131,7 @@ Full documentation at **[lzinga.github.io/us-gov-open-data-mcp](https://lzinga.g
 
 ## Disclaimer
 
-This project integrates **30+ government APIs**, many of which have large, complex, or inconsistently documented schemas. AI is used as a tool throughout this project to help parse API documentation, generate type definitions, and scaffold tool implementations — making it possible to cover this much surface area and get people access to government data faster than would otherwise be feasible. While every effort has been made to ensure accuracy, some endpoints may return unexpected results, have incomplete parameter coverage, or behave differently than documented.
+This project integrates **a significant number of government APIs**, many of which have large, complex, or inconsistently documented schemas. AI is used as a tool throughout this project to help parse API documentation, generate type definitions, and scaffold tool implementations — making it possible to cover this much surface area and get people access to government data faster than would otherwise be feasible. While every effort has been made to ensure accuracy, some endpoints may return unexpected results, have incomplete parameter coverage, or behave differently than documented.
 
 This is a community-driven effort — if you find something that's broken or could be improved, **please open an issue or submit a PR**. Contributions that fix edge cases, improve schema accuracy, or expand coverage are especially welcome. The goal is to make U.S. government data as accessible and reliable as possible, together.
 
