@@ -1,6 +1,6 @@
 {
   "name": "us-gov-open-data-mcp",
-  "version": "1.1.0",
+  "version": "2026.3.9",
   "description": "MCP server + standalone TypeScript SDK for 40+ U.S. government and international data APIs. 300+ tools with WASM-sandboxed code mode for context reduction. Covers Treasury, FRED, BLS, BEA, EIA, Census, FEC, Congress, Federal Register, USAspending, SEC, FBI, GovInfo, NOAA, USDA, World Bank, CDC, NAEP, College Scorecard, NREL, FDA (25 endpoints), EPA, EPA-AQS, Senate Lobbying, Regulations.gov, USDA FoodData, FEMA, NHTSA, CMS, HUD, USPTO, CFPB, FDIC, DOL, USGS, ClinicalTrials.gov, BTS, Open Payments, NIH RePORTER, DOJ News, GSA CALC+.",
   "main": "dist/server.js",
   "bin": {
