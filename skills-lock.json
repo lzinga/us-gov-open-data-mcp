@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "github-actions-workflows": {
+      "source": "nickcrew/claude-ctx-plugin",
+      "sourceType": "github",
+      "computedHash": "03512bb8d70fc4200ded70c735d48075555a3c769f2197fdc4b9acc3af8d8362"
+    },
+    "mcp-builder": {
+      "source": "microsoft/skills",
+      "sourceType": "github",
+      "computedHash": "6e630f08b8ba5973a8fadeacf4e948971ba9b4f7b8552d8194aa10277b4ae6d9"
+    },
+    "vitepress": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "a8aa9c4c23b88c5f6ff59159d8dd0678c8c87ae28bab19b4e84fa399022ce5ce"
+    },
+    "zod4": {
+      "source": "kastalien-research/thoughtbox-dot-claude",
+      "sourceType": "github",
+      "computedHash": "71e0be18ab46518008b6b906b9c71bc0668b96bdcc5d5d6eb93442b7eb81a6ca"
+    }
+  }
+}

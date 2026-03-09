@@ -7,6 +7,40 @@ dist/
 .playwright-mcp/
 .vscode/settings.json
 
+# Agent skill folders (installed per-machine via `npx skills add`)
+# Run `npx skills experimental_install` to restore from skills-lock.json
+.agents/
+.claude/
+.adal/
+.agent/
+.augment/
+.codebuddy/
+.commandcode/
+.continue/
+.cortex/
+.crush/
+.factory/
+.goose/
+.iflow/
+.junie/
+.kilocode/
+.kiro/
+.kode/
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pi/
+.pochi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.vibe/
+.windsurf/
+.zencoder/
+skills/
+
 # VitePress / TypeDoc generated output
 docs/api/
 docs/index.md
