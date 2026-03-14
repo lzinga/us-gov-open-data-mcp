@@ -26,6 +26,12 @@ export default {
     "Parameters: 44201=Ozone, 88101=PM2.5, 42401=SO2, 42101=CO, 42602=NO2, 14129=Lead. " +
     "bdate/edate must be in same year (YYYYMMDD). Max 5 param codes per request. " +
     "Rate limit: 10 req/min with 5s pause. Cross-reference with epa_facilities (ECHO) for compliance data.",
+  domains: ["environment", "health"],
+  crossRef: [
+    { question: "energy/climate", route: "epa_air_quality, epa_aqs_daily, epa_aqs_monitors (criteria pollutant monitoring)" },
+    { question: "state-level", route: "epa_air_quality, epa_aqs_monitors (air quality monitoring data by state FIPS code)" },
+    { question: "health", route: "epa_air_quality, epa_aqs_daily (air pollution data linked to respiratory health outcomes)" },
+  ],
   reference: {
     docs: {
       "AQS API": "https://aqs.epa.gov/aqsweb/documents/data_api.html",

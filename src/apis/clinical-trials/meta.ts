@@ -37,6 +37,14 @@ export default {
     "Use filter_advanced for Essie expression queries like 'AREA[StartDate]RANGE[2024-01-01,MAX]'. " +
     "Search by sponsor name (e.g. 'Pfizer', 'NIH') to track industry vs. government research. " +
     "Phase/studyType filtering uses aggFilters internally (not filter.* params — v2 API design).",
+  domains: ["health"],
+  crossRef: [
+    { question: "health", route: "clinical_trials_search, clinical_trials_detail, clinical_trials_results, clinical_trials_stats, clinical_trials_field_values" },
+    { question: "drug investigation", route: "clinical_trials_search (search_as_drug=true), clinical_trials_stats, clinical_trials_results (completed trials), clinical_trials_field_values (phase distribution)" },
+    { question: "pharma-doctor payments", route: "clinical_trials_search, clinical_trials_results, clinical_trials_by_location" },
+    { question: "substance/ingredient lookup", route: "clinical_trials_search (by intervention name), clinical_trials_results, clinical_trials_field_values" },
+    { question: "medical devices", route: "clinical_trials_search (intervention_type=DEVICE — device clinical trials)" },
+  ],
   reference: {
     statuses: TRIAL_STATUSES,
     phases: TRIAL_PHASES,

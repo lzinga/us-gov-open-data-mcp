@@ -21,4 +21,9 @@ export default {
     "State-level tools accept two-letter codes (CA, TX). FMR data shows HUD-determined fair rents used for " +
     "Section 8 voucher amounts. Income Limits show Very Low, Extremely Low, and Low income thresholds by " +
     "household size (1-8 persons).",
+  domains: ["housing"],
+  crossRef: [
+    { question: "state-level", route: "hud_fair_market_rents (rental costs by county)" },
+    { question: "housing", route: "hud_fair_market_rents, hud_income_limits (FMR and Section 8 thresholds)" },
+  ],
 } satisfies ModuleMeta;

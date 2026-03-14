@@ -6,11 +6,64 @@
  * which tools to call and in what order.
  *
  * Users invoke these from the MCP prompt picker (e.g. "/" menu in VS Code).
+ *
+ * Module-aware: when modules are selectively loaded (MODULES=fred,bls),
+ * prompt steps referencing unavailable tools are silently omitted.
  */
 
 import type { InputPrompt } from "fastmcp";
+import type { ApiModule } from "../shared/types.js";
 
-export const analysisPrompts: InputPrompt<any, any>[] = [
+/**
+ * Build the cross-cutting analysis prompts, filtered for available modules.
+ *
+ * When all modules are loaded (the default), output is unchanged.
+ * When MODULES env filters modules, steps referencing
+ * unavailable tools are silently removed from prompt output.
+ */
+export function buildAnalysisPrompts(activeModules: ApiModule[]): InputPrompt<any, any>[] {
+  const availableTools = new Set(activeModules.flatMap(m => m.tools.map(t => t.name)));
+
+  /**
+   * Filter prompt output: remove lines that reference unavailable tools.
+   *
+   * Detects lines matching the pattern: "- tool_name_with_underscores ..."
+   * If the first word after "- " contains underscores (snake_case) and isn't
+   * in the available tools set, the line is removed.
+   *
+   * Lines that don't start with "- " are always kept (headers, instructions, etc.).
+   * Lines where the first word has no underscore are always kept (plain list items).
+   */
+  function filterUnavailableTools(text: string): string {
+    return text
+      .split("\n")
+      .filter(line => {
+        // Keep non-tool lines (headers, blank lines, instructions)
+        const match = line.match(/^-\s+(\w+)/);
+        if (!match) return true;
+        const toolName = match[1];
+        // Keep if it's not a tool name (e.g. plain text starting with "-")
+        // or if the tool IS available
+        return !toolName.includes("_") || availableTools.has(toolName);
+      })
+      .join("\n");
+  }
+
+  // Wrap each prompt's load() to filter unavailable tool references
+  return RAW_PROMPTS.map(prompt => ({
+    ...prompt,
+    load: async (args: any) => {
+      const raw = await prompt.load(args);
+      // load() returns a string in our prompts
+      const text = typeof raw === "string" ? raw : String(raw);
+      return filterUnavailableTools(text);
+    },
+  }));
+}
+
+// ─── Raw prompt templates ───────────────────────────────────────────
+
+const RAW_PROMPTS: InputPrompt<any, any>[] = [
 
   // ─── Economic & Fiscal ─────────────────────────────────────────────
 

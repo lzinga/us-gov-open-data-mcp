@@ -1,103 +1,98 @@
 /**
- * Cross-referencing guide — compact routing table for combining APIs.
+ * Instructions builder — auto-generates the full MCP instructions string from module metadata.
  *
- * Appended to auto-generated per-module instructions in server.ts.
- * ~3K tokens vs the original ~12K tokens — same knowledge, denser format.
+ * The routing table section is derived from each module's `crossRef` hints.
+ * Curated content (Code Mode, Rules) is appended unchanged.
  */
 
-export const CROSS_REFERENCE_GUIDE = `
-== CROSS-REFERENCING GUIDE ==
-Always cross-reference 2+ sources. Before responding: "What other data would make this more complete?"
+import { QUESTION_TYPES, type ApiModule } from "../shared/types.js";
+import { CODE_MODE_GUIDE, RULES } from "./curated-guides.js";
 
-=== ROUTING TABLE ===
-Question type → Primary sources + Enrichment sources
+/**
+ * Build the full MCP instructions string from module metadata.
+ *
+ * Structure:
+ *   1. Per-module blocks (displayName, description, tools, workflow, tips, auth)
+ *   2. Auto-generated cross-reference routing table (from crossRef metadata)
+ *   3. Code Mode guide (curated)
+ *   4. Rules (curated)
+ */
+export function buildInstructions(modules: ApiModule[]): string {
+  const sections: string[] = [];
 
-DEBT/DEFICIT → Treasury(debt_to_penny,avg_interest_rates) + FRED(GDP,FYFSGDA188S) + Congress(bills,votes) + WorldBank(GC.DOD.TOTL.GD.ZS)
-SPENDING/BUDGET → USAspending(by_agency,by_award,over_time) + Treasury(MTS mts_table_1) + Census(population→per-capita) + Congress(authorizing law+votes) + Lobbying
-ECONOMY(GDP,jobs,inflation) → FRED(GDP,UNRATE,CPIAUCSL,FEDFUNDS,PAYEMS) + BLS(cpi_breakdown,employment_by_industry) + BEA(gdp_by_industry) + DOL(ui_claims) + WorldBank(peers)
-STATE-LEVEL → Census(pop,income) + BEA(gdp_by_state,personal_income) + USAspending(by_state) + CDC(places_health) + HUD(fair_market_rents) + FEMA + FDIC + DOL(ui_claims_state)
-LEGISLATION → Congress(bill_full_profile for everything in 1 call, OR bill_details+bill_votes for targeted) + FRED(before/after) + USAspending(before/after) + Lobbying + Regulations.gov + DOJ(press_releases)
-ELECTIONS/CAMPAIGN FINANCE → FEC(candidates,financials,disbursements) + Congress(member_full_profile for complete picture, OR member_bills+votes) + Lobbying(contributions) + FRED(economic conditions)
-EXECUTIVE ACTIONS → FederalRegister(EOs,rules) + Regulations.gov(documents,comments) + Congress(related bills,votes) + Lobbying + FRED(before/after)
-PRESIDENTIAL COMPARISON → For EACH: FRED(GDP,UNRATE,CPI,FEDFUNDS,PAYEMS,SP500) at start vs end + Treasury(debt) + Congress(laws,votes) + FedRegister(EOs) + note external shocks
+  // ── Section 1: Per-module blocks ──
+  for (const m of modules) {
+    const authNote = m.auth
+      ? `Requires ${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}.`
+      : "No key required.";
+    sections.push(
+      [
+        `== ${m.displayName.toUpperCase()} ==`,
+        m.description,
+        `Tools: ${m.tools.map((t) => t.name).join(", ")}`,
+        m.workflow && `Workflow: ${m.workflow}`,
+        m.tips,
+        authNote,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+  }
 
-HEALTH → CDC(causes_of_death,mortality_rates,life_expectancy,weekly_deaths,places_health,drug_overdose) + FDA(drug_events,drug_labels,approved_drugs,drug_shortages,drug_ndc) + ClinicalTrials(search,detail,results,stats,field_values) + NIH(projects,spending) + CMS(hospitals,nursing_homes) + OpenPayments + BLS(cpi medical) + WorldBank(health spend)
-DRUG INVESTIGATION → FDA(drug_events,drug_counts,drug_labels,drug_ndc,drug_recalls,approved_drugs,drug_shortages) + ClinicalTrials(search,stats with search_as_drug=true,results for completed trials,field_values for phase distribution) + NIH(projects,spending) + OpenPayments(search,top_doctors,research,ownership) + Lobbying(PhRMA+companies) + FEC(pharma PACs→disbursements) + SEC(company financials) + WorldBank(drug pricing)
-DRUG SHORTAGES → FDA(drug_shortages,drug_ndc) + BLS(cpi medical) + Congress(drug pricing bills) + Lobbying(PhRMA) + NIH(projects) + WorldBank(health spend)
-PHARMA→DOCTOR PAYMENTS → OpenPayments(search,top_doctors,by_company,by_physician,by_specialty,ownership,research) + FDA(drug_events,drug_labels for same drugs) + ClinicalTrials(search,results,by_location) + Lobbying(company spend) + FEC(company PAC) + SEC(revenue)
-FOOD SAFETY → FDA(food_recalls,food_adverse_events,fda_count for food aggregations) + USDA FoodData + BLS(cpi food) + USDA NASS(crop_data,prices) + Congress(food safety bills) + Lobbying
-MEDICAL DEVICES → FDA(device_events,device_recalls,device_510k,device_classification,device_pma,device_udi,device_enforcement) + CMS(hospitals) + Lobbying(manufacturer) + USPTO(search_applications) + Congress(device regulation bills)
-ANIMAL/VET DRUGS → FDA(animal_events,fda_count for animal aggregations) + USDA NASS(livestock) + Congress(animal welfare bills)
-TOBACCO/VAPING → FDA(tobacco_problems,fda_count for tobacco aggregations) + CDC(drug_overdose,causes_of_death) + Congress(tobacco regulation bills) + Lobbying
+  // ── Section 2: Auto-generated routing table ──
+  sections.push(buildRoutingTable(modules));
 
-ENERGY/CLIMATE → EIA(petroleum,electricity,natural_gas) + NREL(fuel_stations,utility_rates,solar) + NOAA(climate_data) + EPA(facilities,enforcement,greenhouse_gas,toxic_releases) + EPA-AQS(air_quality,aqs_daily,aqs_monitors) + BLS(cpi energy) + Congress(energy bills,votes) + Lobbying + WorldBank(CO2)
-AGRICULTURE → USDA NASS(crop_data,prices) + BLS(cpi food) + EIA(petroleum→transport cost) + NOAA(weather→yields) + FDA(food recalls) + USAspending(USDA)
-HOUSING → HUD(fair_market_rents,income_limits) + FRED(MORTGAGE30US,CSUSHPINSA,USSTHPI) + Census(home values,rent) + BEA(personal_income) + BLS(cpi shelter) + USAspending(HUD) + FEMA(housing_assistance)
+  // ── Sections 3-4: Curated content ──
+  sections.push(CODE_MODE_GUIDE);
+  sections.push(RULES);
 
-EDUCATION → NAEP(scores,achievement_levels,compare_years/states/groups) + Census(poverty) + CDC(food insecurity) + WorldBank(education spending) + USAspending(Dept of Ed) + NIH(child development)
-COLLEGE → CollegeScorecard(search,compare,top) + FRED(SLOAS student debt) + BLS(employment by education) + Census(attainment) + NAEP(K-12 pipeline)
+  return sections.join("\n\n");
+}
 
-BANKING → FDIC(institutions,failures,financials) + CFPB(complaints,trends,aggregations) + SEC(company financials) + FRED(FEDFUNDS,DGS10,MORTGAGE30US) + Lobbying + Congress(banking bills) + DOJ(enforcement)
-CONSUMER COMPLAINTS → CFPB(search,aggregations,trends,state_complaints) + FDIC(institutions) + SEC(financials) + Lobbying + Congress(consumer protection bills) + DOJ(enforcement)
-WORKPLACE SAFETY → DOL(osha_inspections,violations,accidents,whd_enforcement) + BLS(employment_by_industry) + Census(per-capita) + Congress(OSHA bills,votes) + Lobbying + USAspending(DOL)
-UNEMPLOYMENT → DOL(ui_claims_national,ui_claims_state) + FRED(UNRATE,PAYEMS) + BLS(employment_by_industry) + BEA(personal_income) + Congress(jobs legislation)
+/**
+ * Auto-generate the cross-reference routing table from module `crossRef` metadata.
+ *
+ * Groups RouteHints by question type across all modules, producing lines like:
+ *   DEBT/DEFICIT → FRED(FYFSGDA188S, GDP) + Treasury(debt_to_penny, avg_interest_rates)
+ *
+ * Question types are output in QUESTION_TYPES order (topic-clustered),
+ * not alphabetically, to preserve the reader-friendly grouping.
+ */
+function buildRoutingTable(modules: ApiModule[]): string {
+  // Collect all hints grouped by question type
+  const questionMap = new Map<string, { displayName: string; route: string }[]>();
 
-DISASTERS → FEMA(declarations,housing_assistance,public_assistance) + NOAA(weather) + USGS(earthquakes) + USAspending(FEMA) + Census(population→per-capita) + Congress(disaster bills,votes)
-EARTHQUAKES/WATER → USGS(earthquakes,water_data,water_sites) + FEMA(declarations) + NOAA(precipitation) + EPA(facilities,drinking_water,superfund) + CDC(health impacts)
-VEHICLE SAFETY → NHTSA(recalls,recall_detail,complaints,complaint_detail,safety_ratings,safety_rating_detail,decode_vin,models,car_seat_stations) + NREL(EV chargers) + EPA(emissions)
-FDA SUBSTANCE/INGREDIENT LOOKUP → FDA(substance,unii,drug_ndc) + ClinicalTrials(search by intervention,results for completed trials,field_values for analytics) + NIH(projects by substance)
-TRANSPORTATION → BTS(transport_stats,border_crossings) + EIA(fuel prices) + BLS(cpi transportation) + USAspending(DOT) + NHTSA + NREL + Congress(infrastructure bills)
-PATENTS → USPTO(search_applications,application_details,ptab_proceedings,ptab_decisions) + SEC(company financials) + USAspending(R&D) + WorldBank(R&D spending)
-PROCUREMENT/CONTRACTING → GSA-CALC(search_rates,contract_rates) + USAspending(by_award,by_agency,by_recipient) + Lobbying(contractor lobbying) + SEC(contractor financials) + Congress(procurement bills)
-INTERNATIONAL → WorldBank(wb_compare) + FRED(US baseline) + Treasury(fiscal position). Always use per-capita for size-different nations.
+  for (const mod of modules) {
+    if (!mod.crossRef) continue;
+    for (const hint of mod.crossRef) {
+      const key = hint.question;
+      if (!questionMap.has(key)) questionMap.set(key, []);
+      questionMap.get(key)!.push({
+        displayName: mod.displayName,
+        route: hint.route,
+      });
+    }
+  }
 
-=== FOLLOW THE MONEY (investigative workflow) ===
-When asked about conflicts of interest, corruption, PAC influence, "who benefits":
-1. IDENTIFY: FEC(search_candidates) + Congress(member_full_profile) → candidate ID, committee assignments, sponsored bills
-2. MONEY IN: FEC(candidate_financials→PAC%) + FEC(search_committees type=Q by company name→committee_id) + FEC(committee_disbursements→recipient_name) for EXACT dollar amounts. Try ±1 election cycle. Also: lobbying_search for trade group + individual companies, 3+ years
-3. THE VOTE: Congress(bill_votes for all roll calls on the bill) OR Congress(bill_full_profile for everything) → party-line breakdown
-4. THE OUTCOME: FRED/BLS/FDIC/CFPB/CDC before vs after. USAspending changes. WorldBank comparison.
-5. WHO BENEFITED: SEC(company financials improved?), Lobbying(spending increased after?), FEC(PAC donations continued?), OpenPayments(top_doctors for pharma)
-Present: Money In → Vote → Outcome → Who Benefited. Show both suspicious and innocent interpretations.
+  const lines: string[] = [
+    "== CROSS-REFERENCING GUIDE ==",
+    'Always cross-reference 2+ sources. Before responding: "What other data would make this more complete?"',
+    "",
+    "=== ROUTING TABLE ===",
+    "Question type \u2192 Primary sources + Enrichment sources",
+    "",
+  ];
 
-=== CODE MODE — WHEN AND HOW TO USE ===
-code_mode wraps any tool + runs a JS script against its output in a WASM sandbox. Only the script's console.log() enters context.
+  // Output in QUESTION_TYPES order (topic-clustered, not alphabetical)
+  for (const question of QUESTION_TYPES) {
+    const entries = questionMap.get(question);
+    if (!entries?.length) continue;
 
-USE code_mode when:
-- You need COUNTS or AGGREGATIONS from a large response (e.g. "top 10 reactions", "count by status")
-- You need to FILTER a large result set (e.g. "only death reports", "only Class I recalls")
-- You need SPECIFIC FIELDS from many records (e.g. "just drug names and dates")
-- The tool returns >50KB and you only need a summary
+    const routeStr = entries
+      .map((e) => `${e.displayName}(${e.route})`)
+      .join(" + ");
+    lines.push(`${question.toUpperCase()} \u2192 ${routeStr}`);
+  }
 
-NEVER use code_mode when:
-- You need to READ and REASON about the data (cross-referencing, finding correlations, explaining trends)
-- You need to COMPARE data from multiple tools (the LLM must see both datasets in context)
-- The response is already small (<10KB) — FRED, BLS, most count/aggregate tools
-- You're doing DISCOVERY ("show me everything about this drug") — you need to see what's there
-- The user asked for RAW DATA or DETAILED RECORDS — they want the actual data, not a summary
-
-LARGE-RESPONSE TOOLS (consider code_mode for these):
-- fda_drug_events (1-5MB), fda_drug_labels (500KB-1MB), fda_device_udi (200KB+)
-- fda_device_510k (200KB+), fda_drug_ndc (100KB+), fda_substance (50KB+)
-- cfpb_search_complaints (100-200KB), doj_press_releases (50-100KB)
-- congress_bill_full_profile (50-100KB)
-
-ALREADY COMPACT (never needs code_mode):
-- fred_series_data, bls_cpi_breakdown, fda_drug_counts, fda_count
-- cfpb_complaint_aggregations, cfpb_complaint_trends, any count/aggregate tool
-
-MULTI-STEP STRATEGY: Use code_mode for extraction steps, direct calls for analysis steps.
-Example: code_mode(fda_drug_events) to get "top 10 reactions: nausea 23, vomiting 15..."
-then direct lobbying_search, open_payments_search, clinical_trials_search for cross-referencing.
-This fits 6+ sources in context instead of 2.
-
-=== RULES (apply to EVERY response) ===
-1. CONTEXT: Debt→show debt/GDP ratio. Spending→show per-capita. Dollars over time→note inflation. Always note president+Congress in office.
-2. TRENDS: Never just a snapshot. Show 3-5+ data points. If asked about one year, also show year before and after.
-3. CAUSATION: Never say a policy "caused" an outcome. Use "coincided with", "occurred during". List confounding factors.
-4. OBJECTIVITY: Neutral language ("declined 21%" not "collapsed"). No editorial. Present both interpretations when ambiguous.
-5. PRECISION: "decline of X%, largest since [date]" not "massive drop". Provide historical range for context.
-6. SOURCES: Cite API and endpoint for every number. Distinguish raw data from calculated figures.
-7. PERSPECTIVES: GDP can grow while wages stagnate. Unemployment can be low while participation is low. Show both.
-8. CONNECT DOTS: If a bill passed→check FRED 1-3yr after. If spending spiked→find the authorizing law+vote. If indicator moved→check FedRegister for nearby EOs. Label connections as correlations.
-`;
+  return lines.join("\n");
+}

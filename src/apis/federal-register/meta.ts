@@ -12,27 +12,15 @@ export default {
   workflow: "fr_executive_orders or fr_search_rules → review results",
   tips:
     "Use president slugs: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'. No API key required.",
+  domains: ["legislation"],
+  crossRef: [
+    { question: "executive actions", route: "fr_executive_orders, fr_search_rules, fr_presidential_documents" },
+    { question: "presidential comparison", route: "fr_executive_orders (EO count and topics by president)" },
+    { question: "legislation", route: "fr_search_rules (final rules implementing legislation)" },
+    { question: "energy/climate", route: "fr_executive_orders, fr_search_rules (energy/environmental executive orders and regulations)" },
+    { question: "health", route: "fr_search_rules (HHS/FDA/CMS rulemaking)" },
+  ],
   reference: {
-  presidentSlugs: {
-    trump: "donald-trump",
-    biden: "joe-biden",
-    obama: "barack-obama",
-    bush: "george-w-bush",
-    clinton: "william-j-clinton",
-  } as Record<string, string>,
-  documentTypes: {
-    RULE: "Rule — final rule published in CFR",
-    PRORULE: "Proposed Rule — notice of proposed rulemaking",
-    NOTICE: "Notice — agency announcement",
-    PRESDOCU: "Presidential Document — EOs, memoranda, proclamations",
-  } as Record<string, string>,
-  presidentialDocTypes: {
-    executive_order: "Executive Order",
-    determination: "Presidential Determination",
-    executive_memorandum: "Presidential Memorandum",
-    proclamation: "Proclamation",
-    notice: "Notice",
-  } as Record<string, string>,
   docs: {
     "API Docs": "https://www.federalregister.gov/developers/documentation/api/v1",
     "Developer Hub": "https://www.federalregister.gov/developers",

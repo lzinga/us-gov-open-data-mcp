@@ -13,6 +13,13 @@ export default {
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "fooddata_search to find foods → fooddata_detail for full nutrient breakdown",
   tips: "Data types: 'Foundation' (minimally processed), 'SR Legacy' (historical reference), 'Branded' (commercial products), 'Survey' (FNDDS dietary studies). Use Foundation or SR Legacy for generic foods, Branded for specific products.",
+  domains: ["agriculture", "health"],
+  crossRef: [
+    { question: "food safety", route: "fooddata_search, fooddata_detail (nutritional/ingredient data for food products)" },
+    { question: "agriculture", route: "fooddata_search, fooddata_detail (nutritional composition of agricultural products)" },
+    { question: "health", route: "fooddata_search, fooddata_detail (nutritional data for diet/health analysis)" },
+    { question: "substance/ingredient lookup", route: "fooddata_search, fooddata_detail (food ingredient and nutrient composition lookup)" },
+  ],
   reference: {
   dataTypes: DATA_TYPES,
   docs: {

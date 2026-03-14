@@ -12,17 +12,15 @@ export default {
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "regulations_search_documents to find rules → regulations_document_detail for full info → regulations_search_comments for public feedback",
   tips: "Document types: 'Proposed Rule', 'Rule', 'Supporting & Related Material', 'Other'. Sort by '-postedDate' for newest first. Agency IDs: EPA, FDA, DOL, HHS, DOT, etc.",
+  domains: ["legislation"],
+  crossRef: [
+    { question: "legislation", route: "regulations_search_documents, regulations_search_comments (rulemaking implementation of legislation)" },
+    { question: "executive actions", route: "regulations_search_documents, regulations_search_comments (proposed/final rules and public feedback)" },
+    { question: "energy/climate", route: "regulations_search_documents (agency=EPA — environmental rulemaking and public comments)" },
+    { question: "health", route: "regulations_search_documents (agency=FDA,HHS — health/drug/device rulemaking)" },
+    { question: "workplace safety", route: "regulations_search_documents (agency=DOL — OSHA rulemaking and public comments)" },
+  ],
   reference: {
-  documentTypes: {
-    "Proposed Rule": "Notice of proposed rulemaking (NPRM)",
-    "Rule": "Final rule",
-    "Supporting & Related Material": "Supporting documents, analyses, studies",
-    "Other": "Other documents",
-  } as Record<string, string>,
-  docketTypes: {
-    "Rulemaking": "Rulemaking docket",
-    "Nonrulemaking": "Nonrulemaking docket",
-  } as Record<string, string>,
   docs: {
     "API Docs": "https://open.gsa.gov/api/regulationsgov/",
     "Regulations.gov": "https://www.regulations.gov/",

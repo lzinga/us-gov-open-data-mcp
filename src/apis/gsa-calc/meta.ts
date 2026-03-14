@@ -14,6 +14,10 @@ export default {
     "Use calc_search_rates to find rates by keyword, labor category, vendor, or filters -> calc_suggest for autocomplete on labor categories, vendors, or contract numbers -> calc_contract_rates to see all rates under a specific contract.",
   tips:
     "Search modes: 'keyword' for wildcard (2 char min), 'search' for exact field match (field:value). Filters: education_level (HS/AA/BA/MA/PHD, pipe for multiple), experience_range (min,max), price_range (min,max), worksite (Contractor/Customer/Both), business_size (S=small/O=other), security_clearance (yes/no), sin, category, subcategory. Ordering: current_price (default), labor_category, vendor_name, education_level, min_years_experience. Data refreshed daily.",
+  domains: ["spending"],
+  crossRef: [
+    { question: "procurement/contracting", route: "calc_search_rates, calc_contract_rates (GSA MAS ceiling rates for market research/IGCEs)" },
+  ],
   reference: {
     docs: {
       "API docs": "https://open.gsa.gov/api/dx-calc-api/",

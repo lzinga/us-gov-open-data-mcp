@@ -19,14 +19,16 @@ export default {
     "Company names: 'Pfizer', 'Novo Nordisk', 'Johnson & Johnson'. States: 'CA', 'TX', 'NY'. " +
     "Specialties: 'Cardiology', 'Orthopedic', 'Psychiatry'. Years: 2018-2024 available. " +
     "Dataset IDs are auto-discovered from the CMS metastore — new years are picked up automatically.",
+  domains: ["health", "finance"],
+  crossRef: [
+    { question: "health", route: "open_payments_search, open_payments_top (pharma/device payments to providers)" },
+    { question: "drug investigation", route: "open_payments_search, open_payments_top_doctors, open_payments_research, open_payments_ownership" },
+    { question: "pharma-doctor payments", route: "open_payments_search, open_payments_top_doctors, open_payments_by_company, open_payments_by_physician, open_payments_by_specialty, open_payments_ownership, open_payments_research" },
+    { question: "state-level", route: "open_payments_search (pharma/device payments to providers by state)" },
+    { question: "medical devices", route: "open_payments_search, open_payments_by_company (device company payments to providers)" },
+  ],
   reference: {
     paymentTypes: PAYMENT_TYPES,
-    apiEndpoints: {
-      metastore: "/api/1/metastore/schemas/dataset/items?show-reference-ids — lists all datasets with distribution IDs",
-      datastoreQuery: "/api/1/datastore/query/{distributionId} — GET/POST queries with conditions, sorts, aggregations",
-      datastoreSql: "/api/1/datastore/sql?query=[SELECT...] — SQL-like queries for fast filtering and sorting",
-      search: "/api/1/search — fulltext catalog search with facets (keyword, theme)",
-    },
     docs: {
       "Open Payments": "https://openpaymentsdata.cms.gov/",
       "API Documentation": "https://openpaymentsdata.cms.gov/about/api",

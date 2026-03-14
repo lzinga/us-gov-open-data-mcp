@@ -13,6 +13,15 @@ export default {
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "fec_search_candidates → fec_candidate_financials for PAC totals → fec_search_committees(committee_type='Q', name='Company Name') to find industry PACs → fec_committee_disbursements(committee_id, recipient_name='Politician Last Name') for direct money trail",
   tips: "Office codes: 'H' (House), 'S' (Senate), 'P' (President). Party: 'DEM', 'REP', 'LIB', 'GRE'. To trace industry money to politicians: (1) search committees by company name with type Q to find PAC IDs, (2) query disbursements with recipient_name filter. Try multiple cycles. Common banking PACs: C00004275 (ABA), C00034595 (Wells Fargo), C00008474 (Citigroup), C00350744 (Goldman Sachs), C00364778 (Bank of America). Common pharma PACs: C00016683 (Pfizer), C00097485 (Merck).",
+  domains: ["finance", "legislation"],
+  crossRef: [
+    { question: "elections/campaign finance", route: "fec_search_candidates, fec_candidate_financials, fec_committee_disbursements" },
+    { question: "drug investigation", route: "fec_search_committees (type=Q, pharma PACs), fec_committee_disbursements (PAC\u2192politician trail)" },
+    { question: "pharma-doctor payments", route: "fec_search_committees (company PAC), fec_committee_disbursements" },
+    { question: "legislation", route: "fec_candidate_financials, fec_committee_disbursements (campaign finance context for legislative votes)" },
+    { question: "banking", route: "fec_search_committees (type=Q, banking PACs: ABA C00004275, Wells Fargo C00034595, Goldman Sachs C00350744), fec_committee_disbursements" },
+    { question: "energy/climate", route: "fec_search_committees (type=Q, energy company PACs), fec_committee_disbursements" },
+  ],
   reference: {
   candidateStatus: CANDIDATE_STATUS,
   committeeTypes: COMMITTEE_TYPES,

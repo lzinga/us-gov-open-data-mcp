@@ -70,7 +70,7 @@ Endpoint: `http://localhost:8080/mcp`
 
 ### Selective Module Loading
 
-Load only the modules you need for faster startup:
+Load only the modules you need — reduces startup time and context window usage:
 
 ```bash
 # CLI flag
@@ -82,6 +82,8 @@ MODULES=fred,bls,treasury node dist/server.js
 # Combine with HTTP
 node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 ```
+
+With all 41 modules, the server sends ~14K tokens of instructions to the LLM. With 3 modules, this drops to ~3K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
 See all 40+ module names in the [Data Sources](/guide/data-sources) page.
 

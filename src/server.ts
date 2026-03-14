@@ -2,7 +2,7 @@
 /**
  * FastMCP server — auto-discovers API modules from src/apis/{name}/ folders.
  *
- * Each module folder exports: name, displayName, description, auth?, workflow?, tips?, reference?, tools[]
+ * Each module folder exports: name, displayName, description, auth?, workflow?, tips?, domains, crossRef?, reference?, tools[]
  * This file auto-registers tools, generates resources + instructions, and adds clear_cache.
  *
  * Adding a new API = create an apis/{name}/ folder with sdk.ts, meta.ts, tools.ts, index.ts.
@@ -26,8 +26,8 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { FastMCP, type Tool, type InputPrompt } from "fastmcp";
 import { z } from "zod";
-import { CROSS_REFERENCE_GUIDE } from "./server/instructions.js";
-import { analysisPrompts } from "./server/prompts.js";
+import { buildInstructions } from "./server/instructions.js";
+import { buildAnalysisPrompts } from "./server/prompts.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import type { ApiModule } from "./shared/types.js";
 
@@ -128,21 +128,7 @@ const server = new FastMCP({
   name: "US Government Open Data",
   version: "2.0.0",
   logger,
-  instructions:
-    activeModules.map(m => {
-      const authNote = m.auth
-        ? `Requires ${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}.`
-        : "No key required.";
-      return [
-        `== ${m.displayName.toUpperCase()} ==`,
-        m.description,
-        `Tools: ${m.tools.map(t => t.name).join(", ")}`,
-        m.workflow && `Workflow: ${m.workflow}`,
-        m.tips,
-        authNote,
-      ].filter(Boolean).join("\n");
-    }).join("\n\n")
-    + "\n\n" + CROSS_REFERENCE_GUIDE,
+  instructions: buildInstructions(activeModules),
 });
 
 // ─── Register all module tools + prompts ─────────────────────────────
@@ -178,7 +164,7 @@ server.addTool({
 
 // ─── Cross-cutting analysis prompts ──────────────────────────────────
 
-server.addPrompts(analysisPrompts as any);
+server.addPrompts(buildAnalysisPrompts(activeModules) as any);
 
 // ─── Code mode tool ──────────────────────────────────────────────────
 

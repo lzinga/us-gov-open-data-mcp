@@ -18,6 +18,10 @@ import {
   getAllTools,
   type ModuleTool,
 } from "./helpers.js";
+import { QUESTION_TYPES, DOMAINS } from "../src/shared/types.js";
+
+const VALID_DOMAINS = new Set<string>(DOMAINS);
+const VALID_QUESTIONS = new Set<string>(QUESTION_TYPES);
 
 // ─── File structure ──────────────────────────────────────────────────
 
@@ -67,6 +71,29 @@ describe("API module exports", () => {
 
     it("exports clearCache (function)", () => {
       expect(typeof mod.clearCache).toBe("function");
+    });
+
+    // Domain validation
+    it("exports domains (non-empty array of valid Domain values)", () => {
+      const domains = mod.domains as string[];
+      expect(Array.isArray(domains)).toBe(true);
+      expect(domains.length).toBeGreaterThan(0);
+      for (const d of domains) {
+        expect(VALID_DOMAINS.has(d), `Invalid domain "${d}"`).toBe(true);
+      }
+    });
+
+    // crossRef validation (optional but if present, must be valid)
+    it("crossRef entries use valid question types", () => {
+      const crossRef = mod.crossRef as { question: string; route: string }[] | undefined;
+      if (!crossRef) return;
+      expect(Array.isArray(crossRef)).toBe(true);
+      for (const hint of crossRef) {
+        expect(typeof hint.question).toBe("string");
+        expect(VALID_QUESTIONS.has(hint.question as any), `Invalid question type "${hint.question}"`).toBe(true);
+        expect(typeof hint.route).toBe("string");
+        expect(hint.route.length).toBeGreaterThan(0);
+      }
     });
 
     // Tool validation

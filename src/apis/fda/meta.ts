@@ -28,22 +28,20 @@ export default {
     "For counts, use '.exact' suffix for full phrase counts (e.g. 'brand_name.exact'). " +
     "Without '.exact', multi-word values like 'Class III' count as separate words. " +
     "The fda_count tool works on ANY endpoint — drug, device, food, tobacco, etc.",
+  domains: ["health", "safety"],
+  crossRef: [
+    { question: "health", route: "fda_drug_events, fda_drug_labels, fda_approved_drugs, fda_drug_shortages, fda_drug_ndc" },
+    { question: "drug investigation", route: "fda_drug_events, fda_drug_counts, fda_drug_labels, fda_drug_ndc, fda_drug_recalls, fda_approved_drugs, fda_drug_shortages" },
+    { question: "drug shortages", route: "fda_drug_shortages, fda_drug_ndc" },
+    { question: "pharma-doctor payments", route: "fda_drug_events, fda_drug_labels (drug safety/labeling context)" },
+    { question: "food safety", route: "fda_food_recalls, fda_food_adverse_events, fda_count (food endpoint aggregations)" },
+    { question: "medical devices", route: "fda_device_events, fda_device_recalls, fda_device_510k, fda_device_classification, fda_device_pma, fda_device_udi, fda_device_enforcement" },
+    { question: "animal/vet drugs", route: "fda_animal_events, fda_count (animal/vet endpoint aggregations)" },
+    { question: "tobacco/vaping", route: "fda_tobacco_problems, fda_count (tobacco endpoint aggregations)" },
+    { question: "substance/ingredient lookup", route: "fda_substance, fda_unii, fda_drug_ndc" },
+    { question: "agriculture", route: "fda_food_recalls (food supply safety)" },
+  ],
   reference: {
-    drugEventFields: {
-      "patient.drug.openfda.brand_name": "Drug brand name",
-      "patient.drug.openfda.generic_name": "Generic drug name",
-      "patient.reaction.reactionmeddrapt": "Adverse reaction term",
-      "serious": "1=serious, 2=not serious",
-      "seriousnessdeath": "1=resulted in death",
-      "receivedate": "Date FDA received report (YYYYMMDD)",
-    },
-    foodRecallFields: {
-      "classification": "Class I (most serious), Class II, Class III",
-      "reason_for_recall": "Text description of reason",
-      "recalling_firm": "Company name",
-      "state": "State of recalling firm",
-      "status": "Ongoing, Complete, Terminated",
-    },
     docs: {
       "OpenFDA": "https://open.fda.gov/",
       "Authentication": "https://open.fda.gov/apis/authentication/",

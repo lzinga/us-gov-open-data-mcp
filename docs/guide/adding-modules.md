@@ -111,28 +111,72 @@ export function clearCache() {
 Create `src/apis/{name}/meta.ts`:
 
 ```typescript
-export const name = "example";
-export const displayName = "Example Agency";
-export const category = "Other";
-export const description = "What this API provides";
-export const auth = {
-  envVar: "EXAMPLE_API_KEY",
-  signup: "https://example.gov/signup",
-};
-export const workflow = "example_search → example_data to get values";
-export const tips = "Helpful tips for the MCP client";
+import type { ModuleMeta } from "../../shared/types.js";
 
-export const reference = {
-  popularItems: { ITEM1: "Description", ITEM2: "Description" },
-  docs: {
-    "API Docs": "https://example.gov/api",
-    "Get Key": "https://example.gov/signup",
+export default {
+  name: "example",
+  displayName: "Example Agency",
+  category: "Other",
+  description: "What this API provides",
+  auth: {
+    envVar: "EXAMPLE_API_KEY",
+    signup: "https://example.gov/signup",
   },
-};
+  workflow: "example_search → example_data to get values",
+  tips: "Helpful tips for the MCP client",
+  domains: ["economy"],
+  crossRef: [
+    { question: "economy", route: "example_data (key economic indicators)" },
+    { question: "state-level", route: "example_data with state param (state-level breakdown)" },
+  ],
+  reference: {
+    popularItems: { ITEM1: "Description", ITEM2: "Description" },
+    docs: {
+      "API Docs": "https://example.gov/api",
+      "Get Key": "https://example.gov/signup",
+    },
+  },
+} satisfies ModuleMeta;
 ```
 
+### Metadata fields
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `name` | Yes | Folder name (e.g. `"fred"`) |
+| `displayName` | Yes | Human-readable (e.g. `"FRED (Federal Reserve Economic Data)"`) |
+| `category` | Yes | Docs grouping (e.g. `"Economic"`, `"Health"`, `"Legislative"`) |
+| `description` | Yes | Brief description for the instructions block |
+| `auth` | No | Omit for keyless APIs |
+| `workflow` | Yes | Tool call sequence guidance for the LLM |
+| `tips` | Yes | Usage tips (parameters, gotchas, rate limits) |
+| `domains` | Yes | Which domains this module participates in (from `Domain` type). Used for type checking and docs grouping. |
+| `crossRef` | No | Question-type routing hints. Maps research questions to specific tools/params. Auto-generates the routing table. |
+| `reference` | No | Lookup tables, docs links — exposed as MCP resources |
+
+### `domains` — which topic areas does your module serve?
+
+Pick from: `"economy"`, `"health"`, `"legislation"`, `"finance"`, `"energy"`, `"environment"`, `"education"`, `"housing"`, `"spending"`, `"safety"`, `"agriculture"`, `"justice"`, `"transportation"`, `"international"`.
+
+Most modules have 1-3 domains. FRED has 4 (`economy`, `finance`, `housing`, `international`) because its data serves many research contexts.
+
+### `crossRef` — how does the routing table know about your module?
+
+Each entry says: "When someone asks about **X**, use **these specific tools/params** from this module."
+
+```typescript
+crossRef: [
+  { question: "economy", route: "example_data with GDP, UNRATE, CPI" },
+  { question: "housing", route: "example_data with MORTGAGE30US, home_prices" },
+]
+```
+
+The `route` string is consumed by the LLM as natural language guidance. Be specific — include tool names, parameter values, series IDs. The more specific, the fewer wasted tool calls.
+
+The `question` field is type-checked against the `QuestionType` union — a typo fails compilation.
+
 ::: info
-Omit `auth` entirely for keyless APIs. Omit `reference` if no reference data is needed.
+Omit `auth` entirely for keyless APIs. Omit `reference` if no reference data is needed. `crossRef` is optional but strongly encouraged — without it, your module won't appear in the routing table.
 :::
 
 ## Step 3: Create the Tools
@@ -179,15 +223,24 @@ export const tools: Tool<any, any>[] = [
 Create `src/apis/{name}/index.ts`:
 
 ```typescript
-export * from "./meta.js";
-export { tools } from "./tools.js";
-export { clearCache } from "./sdk.js";
+import type { ApiModule } from "../../shared/types.js";
+import meta from "./meta.js";
+import { tools } from "./tools.js";
+import { clearCache } from "./sdk.js";
+
+export default { ...meta, tools, clearCache } satisfies ApiModule;
 ```
 
 If you have prompts, also create `prompts.ts` and add:
 
 ```typescript
-export { prompts } from "./prompts.js";
+import type { ApiModule } from "../../shared/types.js";
+import meta from "./meta.js";
+import { tools } from "./tools.js";
+import { prompts } from "./prompts.js";
+import { clearCache } from "./sdk.js";
+
+export default { ...meta, tools, prompts, clearCache } satisfies ApiModule;
 ```
 
 ## Step 5: Build and Test

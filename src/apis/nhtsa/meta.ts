@@ -23,6 +23,11 @@ export default {
     "Recalls/complaints require make + model + modelYear (all three). " +
     "Use nhtsa_models with issue_type='r' to find models that have recalls before querying. " +
     "VINs are 17 characters. Campaign numbers look like '23V838000'.",
+  domains: ["safety", "transportation"],
+  crossRef: [
+    { question: "vehicle safety", route: "nhtsa_recalls, nhtsa_recall_detail, nhtsa_complaints, nhtsa_complaint_detail, nhtsa_safety_ratings, nhtsa_safety_rating_detail, nhtsa_decode_vin, nhtsa_models, nhtsa_car_seat_stations" },
+    { question: "transportation", route: "nhtsa_recalls, nhtsa_complaints (vehicle safety data for transport analysis)" },
+  ],
   reference: {
     docs: {
       "NHTSA Datasets & APIs": "https://www.nhtsa.gov/nhtsa-datasets-and-apis",

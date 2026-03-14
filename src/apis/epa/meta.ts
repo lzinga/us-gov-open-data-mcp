@@ -23,6 +23,14 @@ export default {
     "TRI covers 700+ chemicals from 20K+ facilities. GHG covers large emitters (25K+ tons CO2e/year). " +
     "SDWIS system types: CWS (community), NTNCWS (non-transient), TNCWS (transient). " +
     "UV index: 0-2 Low, 3-5 Moderate, 6-7 High, 8-10 Very High, 11+ Extreme.",
+  domains: ["environment", "health"],
+  crossRef: [
+    { question: "energy/climate", route: "epa_facilities, epa_enforcement, epa_greenhouse_gas, epa_toxic_releases" },
+    { question: "earthquakes/water", route: "epa_facilities, epa_drinking_water, epa_superfund" },
+    { question: "vehicle safety", route: "epa_facilities (emissions compliance data)" },
+    { question: "state-level", route: "epa_facilities (facility compliance and violations searchable by state)" },
+    { question: "health", route: "epa_drinking_water, epa_toxic_releases (environmental health: water quality, toxic chemical exposure)" },
+  ],
   reference: {
     docs: {
       "ECHO Web Services": "https://echo.epa.gov/tools/web-services",

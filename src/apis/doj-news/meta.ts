@@ -15,6 +15,15 @@ export default {
     "doj_press_releases to search/browse press releases → doj_press_release_detail for full text → doj_blog_entries to search blog posts → doj_blog_detail for full text.",
   tips:
     "Sort: 'date' or 'created'. Direction: 'DESC' (newest first), 'ASC' (oldest). Max 50 results per page. Filter by title keyword: title='cybercrime'. Date is a Unix timestamp in the response — the tool auto-converts to readable dates. Components include: FBI, DEA, ATF, Civil Rights Division, Antitrust Division, USAO (U.S. Attorneys). Topics include: Drug Trafficking, Cybercrime, National Security, Civil Rights, Financial Fraud, Public Corruption.",
+  domains: ["justice"],
+  crossRef: [
+    { question: "legislation", route: "doj_press_releases (enforcement outcomes of legislation)" },
+    { question: "banking", route: "doj_press_releases (financial fraud enforcement actions)" },
+    { question: "consumer complaints", route: "doj_press_releases (consumer protection enforcement)" },
+    { question: "drug investigation", route: "doj_press_releases (drug trafficking indictments, pharmaceutical fraud enforcement)" },
+    { question: "workplace safety", route: "doj_press_releases (criminal workplace safety enforcement)" },
+    { question: "energy/climate", route: "doj_press_releases (environmental enforcement actions under CAA/CWA)" },
+  ],
   reference: {
   components: COMPONENTS,
   topics: TOPICS,

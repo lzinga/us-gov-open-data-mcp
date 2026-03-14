@@ -24,6 +24,14 @@ export default {
     "States use two-letter codes (CA, TX, NY). " +
     "WHD covers FLSA (minimum wage/overtime), FMLA (family leave), Davis-Bacon (prevailing wage), SCA (service contracts). " +
     "Sort uses sort_by (field name) + sort_order ('asc' or 'desc').",
+  domains: ["economy", "safety"],
+  crossRef: [
+    { question: "economy", route: "dol_ui_claims_national (weekly unemployment claims)" },
+    { question: "state-level", route: "dol_ui_claims_state (state-level unemployment claims)" },
+    { question: "workplace safety", route: "dol_osha_inspections, dol_osha_violations, dol_osha_accidents, dol_whd_enforcement" },
+    { question: "unemployment", route: "dol_ui_claims_national, dol_ui_claims_state" },
+    { question: "procurement/contracting", route: "dol_whd_enforcement (Davis-Bacon prevailing wage enforcement on federal contracts)" },
+  ],
   reference: {
     inspectionTypes: INSPECTION_TYPES,
     violationTypes: VIOLATION_TYPES,

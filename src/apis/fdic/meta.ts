@@ -2,7 +2,7 @@
  * fdic module metadata.
  */
 
-import { DATASETS, INSTITUTION_FIELDS, FILTER_EXAMPLES } from "./sdk.js";
+import { DATASETS } from "./sdk.js";
 import type { ModuleMeta } from "../../shared/types.js";
 
 export default {
@@ -15,10 +15,14 @@ export default {
     "fdic_search_institutions to find banks → fdic_financials for Call Report data → fdic_failures for failed banks → fdic_deposits for branch deposits",
   tips:
     "Filter syntax: STALP:\"CA\" (state), ACTIVE:1 (active), ASSET:[1000000 TO *] (assets > $1B in thousands), INSTNAME:\"Wells Fargo\" (name). Combine with AND: STALP:\"TX\" AND ACTIVE:1. Assets/deposits are in thousands of dollars. Sort by ASSET DESC for largest banks.",
+  domains: ["finance"],
+  crossRef: [
+    { question: "state-level", route: "fdic_search_institutions (state bank data)" },
+    { question: "banking", route: "fdic_search_institutions, fdic_failures, fdic_financials" },
+    { question: "consumer complaints", route: "fdic_search_institutions (bank identification context)" },
+  ],
   reference: {
   datasets: DATASETS,
-  institutionFields: INSTITUTION_FIELDS,
-  filterExamples: FILTER_EXAMPLES,
   docs: {
     "BankFind Suite API": "https://banks.data.fdic.gov/docs/",
     "FDIC Bank Data": "https://www.fdic.gov/bank/statistical/",

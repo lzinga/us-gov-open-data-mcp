@@ -15,6 +15,11 @@ export default {
   workflow: "fbi_agencies → fbi_crime_summarized or fbi_arrest_data → fbi_hate_crime for detail",
   tips:
     "State codes: two-letter abbreviations (CA, TX, NY). Data typically available up to 1-2 years ago. Summarized offense codes: V (violent), P (property), HOM, RPE, ROB, ASS, BUR, LAR, MVT, ARS. Arrest offense codes are numeric: 'all', '11' (murder), '20' (rape), '30' (robbery), '50' (assault), '150' (drug abuse).",
+  domains: ["justice", "safety"],
+  crossRef: [
+    { question: "state-level", route: "fbi_crime_summarized, fbi_arrest_data (state-level crime and arrest statistics)" },
+    { question: "health", route: "fbi_expanded_homicide, fbi_crime_summarized (violence as public health indicator)" },
+  ],
   reference: {
   summarizedOffenses: SUMMARIZED_OFFENSES,
   arrestOffenses: ARREST_OFFENSES,

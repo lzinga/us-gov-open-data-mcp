@@ -14,21 +14,15 @@ export default {
   workflow: "scorecard_search to find schools → scorecard_compare for side-by-side → scorecard_top for rankings",
   tips:
     "Ownership: 1=Public, 2=Private nonprofit, 3=Private for-profit. Degree types: 1=Certificate, 2=Associate, 3=Bachelor's, 4=Graduate. Use state abbreviations for filtering: 'CA', 'NY', 'TX'. Sort by cost, earnings, or graduation rate to find best/worst schools.",
+  domains: ["education"],
+  crossRef: [
+    { question: "college", route: "scorecard_search, scorecard_compare, scorecard_top (costs, graduation rates, earnings, debt)" },
+    { question: "state-level", route: "scorecard_search, scorecard_top (college costs and outcomes by state)" },
+    { question: "education", route: "scorecard_search, scorecard_compare (post-secondary outcomes as education system metric)" },
+  ],
   reference: {
   ownership: OWNERSHIP,
   degreeTypes: DEGREE_TYPES,
-  popularFields: {
-    "latest.cost.tuition.in_state": "In-state tuition ($)",
-    "latest.cost.tuition.out_of_state": "Out-of-state tuition ($)",
-    "latest.cost.avg_net_price.overall": "Average net price after aid ($)",
-    "latest.admissions.admission_rate.overall": "Admission rate (0-1)",
-    "latest.completion.rate_suppressed.overall": "Graduation rate (0-1)",
-    "latest.earnings.10_yrs_after_entry.median": "Median earnings 10 years after entry ($)",
-    "latest.earnings.6_yrs_after_entry.median": "Median earnings 6 years after entry ($)",
-    "latest.aid.median_debt.completers.overall": "Median debt at graduation ($)",
-    "latest.aid.pell_grant_rate": "Pell grant rate (proxy for low-income students)",
-    "latest.student.size": "Undergraduate enrollment",
-  },
   docs: {
     "College Scorecard": "https://collegescorecard.ed.gov/",
     "API Documentation": "https://collegescorecard.ed.gov/data/documentation/",

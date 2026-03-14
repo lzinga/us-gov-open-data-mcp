@@ -15,6 +15,13 @@ export default {
     "Use bts_transport_stats for national monthly transportation indicators (airlines, transit, rail, fuel, safety) → bts_border_crossings for port-of-entry volumes (trucks, vehicles, pedestrians).",
   tips:
     "Transport stats are monthly time series — use limit=24 for 2 years of trend data. Border crossing states use full names ('Texas', 'California'). Measures: 'Trucks', 'Personal Vehicles', 'Pedestrians'. Borders: 'US-Mexico Border', 'US-Canada Border'.",
+  domains: ["transportation"],
+  crossRef: [
+    { question: "transportation", route: "bts_transport_stats (airlines, transit, rail, fuel, safety), bts_border_crossings (port-of-entry volumes)" },
+    { question: "state-level", route: "bts_border_crossings (port-of-entry traffic by state)" },
+    { question: "economy", route: "bts_transport_stats (Transportation Services Index as economic indicator)" },
+    { question: "international", route: "bts_border_crossings (U.S.-Mexico and U.S.-Canada cross-border traffic volumes)" },
+  ],
   reference: {
   transportFields: TRANSPORT_FIELDS,
   borderMeasures: BORDER_MEASURES,

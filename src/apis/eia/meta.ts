@@ -13,6 +13,14 @@ export default {
   auth: { envVar: "EIA_API_KEY", signup: "https://www.eia.gov/opendata/register.php" },
   workflow: "Pick energy type (petroleum/electricity/gas/state/total) → query with optional state/sector filters",
   tips: "Energy prices drive inflation (BLS CPI energy component), affect policy (Federal Register EOs), and vary hugely by state. Key advantage: granular energy data by fuel, sector, and state.",
+  domains: ["energy"],
+  crossRef: [
+    { question: "energy/climate", route: "eia_petroleum, eia_electricity, eia_natural_gas, eia_state_energy" },
+    { question: "agriculture", route: "eia_petroleum (fuel/transport cost for agriculture)" },
+    { question: "transportation", route: "eia_petroleum (fuel prices)" },
+    { question: "state-level", route: "eia_state_energy (state-level energy production, consumption, prices, and expenditures)" },
+    { question: "economy", route: "eia_petroleum, eia_total_energy (energy prices as economic driver/inflation factor)" },
+  ],
   reference: {
   sedsMsnCodes: sedsMsnCodes as Record<string, string>,
   routes: routes.map(r => ({ path: r.path, description: r.description, frequency: r.frequency })),
