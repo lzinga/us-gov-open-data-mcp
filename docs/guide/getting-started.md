@@ -85,7 +85,53 @@ node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 
 With all 41 modules, the server sends ~14K tokens of instructions to the LLM. With 3 modules, this drops to ~3K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
-See all 40+ module names in the [Data Sources](/guide/data-sources) page.
+To see all available module names without starting the server:
+
+```bash
+npx us-gov-open-data-mcp --list-modules
+# or shorter:
+npx us-gov-open-data-mcp --list
+```
+
+Modules are grouped by domain, with tool count and env var name for modules that require an API key:
+
+```
+Economy
+  bea    Bureau of Economic Analysis           13 tools  [BEA_API_KEY]  https://apps.bea.gov/API/signup/
+  bls    Bureau of Labor Statistics             4 tools  [BLS_API_KEY]  https://www.bls.gov/developers/home.htm
+  fred   Federal Reserve Economic Data          4 tools  [FRED_API_KEY]  https://fredaccount.stlouisfed.org/apikeys
+  ...
+
+Health
+  cdc    CDC Health Data                       13 tools
+  cms    Centers for Medicare & Medicaid        4 tools
+  ...
+
+41 modules total.
+```
+
+For scripting or tooling, add `--json` to get structured output:
+
+```bash
+npx us-gov-open-data-mcp --list-modules --json
+```
+
+```json
+[
+  {
+    "name": "bea",
+    "displayName": "Bureau of Economic Analysis",
+    "toolCount": 13,
+    "requiresApiKey": true,
+    "envVars": ["BEA_API_KEY"],
+    "signupUrl": "https://apps.bea.gov/API/signup/",
+    "domains": ["economy", "international"]
+  },
+  ...
+]
+```
+
+See full descriptions in the [Data Sources](/guide/data-sources) page.
 
 ---
 

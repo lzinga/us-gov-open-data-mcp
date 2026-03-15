@@ -18,6 +18,9 @@
  *   node dist/server.js --transport httpStream --port 8080 # HTTP on port 8080
  *   MODULES=fred,bls,treasury node dist/server.js         # load only 3 modules
  *   node dist/server.js --modules fred,bls,treasury       # same via CLI flag
+ *   node dist/server.js --list-modules                    # list all modules grouped by domain and exit
+ *   node dist/server.js --list                            # alias for --list-modules
+ *   node dist/server.js --list-modules --json             # same, as JSON (for scripting)
  */
 
 import "dotenv/config";
@@ -29,7 +32,7 @@ import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { executeInSandbox } from "./shared/sandbox.js";
-import type { ApiModule } from "./shared/types.js";
+import { DOMAINS, type ApiModule } from "./shared/types.js";
 
 const logger = {
   ...console,
@@ -80,11 +83,54 @@ function parseArgs() {
   const transport = (get("--transport") ?? process.env.MCP_TRANSPORT ?? "stdio") as "stdio" | "httpStream";
   const port = Number(get("--port") ?? process.env.MCP_PORT ?? 8080);
   const modulesFilter = get("--modules") ?? process.env.MODULES;
+  const listModules = args.includes("--list-modules") || args.includes("--list");
 
-  return { transport, port, modulesFilter };
+  return { transport, port, modulesFilter, listModules };
 }
 
-const { transport, port, modulesFilter } = parseArgs();
+const { transport, port, modulesFilter, listModules } = parseArgs();
+
+if (listModules) {
+  const asJson = process.argv.includes("--json");
+
+  if (asJson) {
+    const output = MODULES.map(m => ({
+      name: m.name,
+      displayName: m.displayName,
+      toolCount: m.tools.length,
+      requiresApiKey: !!m.auth,
+      envVars: m.auth ? (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]) : null,
+      signupUrl: m.auth?.signup ?? null,
+      domains: m.domains,
+    }));
+    console.log(JSON.stringify(output, null, 2));
+    process.exit(0);
+  }
+
+  // Group by primary (first) domain, in canonical DOMAINS order
+  const groups = new Map<string, ApiModule[]>(DOMAINS.map(d => [d, []]));
+  for (const m of MODULES) {
+    const key = m.domains[0] ?? "other";
+    groups.get(key)?.push(m);
+  }
+
+  const maxNameLen = Math.max(...MODULES.map(m => m.name.length));
+  const maxDisplayLen = Math.max(...MODULES.map(m => m.displayName.length));
+  const maxToolsLen = Math.max(...MODULES.map(m => `${m.tools.length} tools`.length));
+
+  for (const [domain, mods] of groups) {
+    if (mods.length === 0) continue;
+    console.log(`\n${domain.charAt(0).toUpperCase() + domain.slice(1)}`);
+    for (const m of mods) {
+      const toolsStr = `${m.tools.length} tools`.padEnd(maxToolsLen);
+      const envVars = m.auth ? (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]) : null;
+      const authNote = envVars ? `  [${envVars.join(", ")}]  ${m.auth!.signup}` : "";
+      console.log(`  ${m.name.padEnd(maxNameLen)}  ${m.displayName.padEnd(maxDisplayLen)}  ${toolsStr}${authNote}`);
+    }
+  }
+  console.log(`\n${MODULES.length} modules total.`);
+  process.exit(0);
+}
 
 // ─── Selective module loading ────────────────────────────────────────
 
