@@ -258,6 +258,62 @@ export async function getTotalEnergy(opts: {
   return queryEia("/total-energy/data", params);
 }
 
+/** Get international energy data by country/region. */
+export async function getInternational(opts: {
+  countryRegionId?: string;
+  productId?: string;
+  activityId?: string;
+  unitId?: string;
+  frequency?: string;
+  start?: string;
+  end?: string;
+  length?: number;
+  offset?: number;
+} = {}): Promise<EiaResponse> {
+  const params = qp({
+    frequency: opts.frequency || "annual",
+    "data[0]": "value",
+    start: opts.start || String(new Date().getFullYear() - 5),
+    "sort[0][column]": "period",
+    "sort[0][direction]": "desc",
+    end: opts.end,
+    length: opts.length,
+    offset: opts.offset,
+    "facets[countryRegionId][]": opts.countryRegionId?.toUpperCase(),
+    "facets[productId][]": opts.productId,
+    "facets[activityId][]": opts.activityId,
+    "facets[unitId][]": opts.unitId,
+  });
+
+  return queryEia("/international/data", params);
+}
+
+/** Get petroleum stocks/inventory data (including SPR). */
+export async function getPetroleumStocks(opts: {
+  product?: string;
+  duoarea?: string;
+  frequency?: string;
+  start?: string;
+  end?: string;
+  length?: number;
+  offset?: number;
+} = {}): Promise<EiaResponse> {
+  const params = qp({
+    frequency: opts.frequency || "weekly",
+    "data[0]": "value",
+    start: opts.start || `${new Date().getFullYear() - 2}-01`,
+    "sort[0][column]": "period",
+    "sort[0][direction]": "desc",
+    end: opts.end,
+    length: opts.length,
+    offset: opts.offset,
+    "facets[product][]": opts.product,
+    "facets[duoarea][]": opts.duoarea?.toUpperCase(),
+  });
+
+  return queryEia("/petroleum/stoc/wstk/data", params);
+}
+
 /** Clear cached responses. */
 export function clearCache(): void {
   api.clearCache();

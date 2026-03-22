@@ -10,6 +10,8 @@ import {
   getNaturalGas,
   getStateEnergy,
   getTotalEnergy,
+  getInternational,
+  getPetroleumStocks,
   sedsMsnCodes,
   routes,
   type EiaObservation,
@@ -253,6 +255,140 @@ export const tools: Tool<any, any>[] = [
           valueKey: "value",
           extraFields: ["units", "series"],
           meta: { frequency: frequency || "monthly" },
+        },
+      );
+    },
+  },
+
+  {
+    name: "eia_international",
+    description:
+      "Get international energy data — production, consumption, imports, exports, and reserves " +
+      "by country and energy source.\n\n" +
+      "Common countryRegionId codes (3-letter):\n" +
+      "- USA, CAN, MEX, BRA, ARG (Americas)\n" +
+      "- GBR, DEU, FRA, ITA, NOR, RUS (Europe)\n" +
+      "- SAU, IRN, IRQ, ARE, KWT (Middle East/OPEC)\n" +
+      "- CHN, IND, JPN, KOR, AUS (Asia-Pacific)\n" +
+      "- NGA, AGO, LBY, DZA (Africa)\n" +
+      "- WORL (World), OPEC (OPEC total)\n\n" +
+      "Common productId codes:\n" +
+      "- 57: Crude oil (including lease condensate)\n" +
+      "- 55: Crude oil, NGPL, and other liquids\n" +
+      "- 26: Dry natural gas\n" +
+      "- 1: Primary coal\n" +
+      "- 79: Total primary energy\n" +
+      "- 2: Natural gas plant liquids\n\n" +
+      "Common activityId codes:\n" +
+      "- 1: Production\n" +
+      "- 2: Consumption\n" +
+      "- 3: Imports (total by country, not bilateral)\n" +
+      "- 4: Exports (total by country, not bilateral)\n" +
+      "- 6: Proved reserves\n\n" +
+      "Note: This provides country-level totals. For bilateral trade (e.g., US imports by origin), " +
+      "use eia_petroleum with the imports route.",
+    annotations: { title: "EIA: International Energy Data", readOnlyHint: true },
+    parameters: z.object({
+      country: z.string().optional().describe(
+        "Country/region 3-letter code (e.g., 'SAU', 'RUS', 'CHN', 'IRN', 'OPEC', 'WORL'). Omit for all.",
+      ),
+      product: z.string().optional().describe(
+        "Product ID number: 57 (crude oil), 55 (crude+NGPL), 26 (dry natural gas), 1 (coal), 79 (total primary energy)",
+      ),
+      activity: z.string().optional().describe(
+        "Activity ID: 1 (production), 2 (consumption), 3 (imports), 4 (exports), 6 (reserves)",
+      ),
+      unit: z.string().optional().describe("Unit ID to filter results by specific unit of measurement"),
+      frequency: z.enum(["monthly", "annual"]).optional().describe("Frequency (default: annual)"),
+      start: z.string().optional().describe("Start date (YYYY for annual, YYYY-MM for monthly). Default: 5 years ago"),
+      end: z.string().optional().describe("End date. Default: latest available"),
+      length: z.number().int().max(5000).optional().describe("Max rows (API max: 5000)"),
+      offset: z.number().int().optional().describe("Row offset for pagination"),
+    }),
+    execute: async ({ country, product, activity, unit, frequency, start, end, length, offset }) => {
+      const res = await getInternational({
+        countryRegionId: country,
+        productId: product,
+        activityId: activity,
+        unitId: unit,
+        frequency,
+        start,
+        end,
+        length,
+        offset,
+      });
+      const data = res.response?.data || [];
+
+      if (!data.length) return emptyResponse("No international energy data found.");
+
+      const observations = data.map(row => ({
+        period: row.period || null,
+        country: String(row["countryRegionName"] || row["countryRegionId"] || ""),
+        product: String(row["productName"] || row["productId"] || ""),
+        activity: String(row["activityName"] || row["activityId"] || ""),
+        value: row.value != null ? Number(row.value) : null,
+        units: String(row["unitName"] || row["unitId"] || row.units || row.unit || ""),
+      }));
+
+      return timeseriesResponse(
+        `EIA international energy data: ${res.response?.total || observations.length} total, showing ${observations.length}`,
+        {
+          rows: observations,
+          dateKey: "period",
+          valueKey: "value",
+          extraFields: ["country", "product", "activity", "units"],
+          total: res.response?.total,
+          meta: {
+            country: country?.toUpperCase() || null,
+            product: product || null,
+            activity: activity || null,
+            frequency: frequency || "annual",
+          },
+        },
+      );
+    },
+  },
+
+  {
+    name: "eia_petroleum_stocks",
+    description:
+      "Get US petroleum stock/inventory levels — crude oil stocks (commercial and SPR), " +
+      "gasoline stocks, distillate stocks, and other petroleum product inventories.\n\n" +
+      "Common product codes:\n" +
+      "- WCESTUS1: US commercial crude oil stocks (excl. SPR)\n" +
+      "- WCSSTUS1: US Strategic Petroleum Reserve (SPR) crude oil stocks\n" +
+      "- WTTSTUS1: US total crude oil stocks (commercial + SPR)\n" +
+      "- WGTSTUS1: US total gasoline stocks\n" +
+      "- WDISTUS1: US distillate fuel oil stocks\n" +
+      "- WPRSTUS1: US propane/propylene stocks",
+    annotations: { title: "EIA: Petroleum Stocks & SPR", readOnlyHint: true },
+    parameters: z.object({
+      product: z.string().optional().describe(
+        "Product series code (e.g., 'WCSSTUS1' for SPR, 'WCESTUS1' for commercial crude). Omit for all.",
+      ),
+      duoarea: z.string().optional().describe("Geographic area code (e.g., 'NUS' for US national). Omit for all."),
+      frequency: z.enum(["weekly", "monthly", "annual"]).optional().describe("Frequency (default: weekly)"),
+      start: z.string().optional().describe("Start date (YYYY-MM-DD for weekly, YYYY-MM for monthly). Default: 2 years ago"),
+      end: z.string().optional().describe("End date. Default: latest available"),
+      length: z.number().int().max(5000).optional().describe("Max rows (API max: 5000)"),
+      offset: z.number().int().optional().describe("Row offset for pagination"),
+    }),
+    execute: async ({ product, duoarea, frequency, start, end, length, offset }) => {
+      const res = await getPetroleumStocks({ product, duoarea, frequency, start, end, length, offset });
+      const data = res.response?.data || [];
+
+      if (!data.length) return emptyResponse("No petroleum stocks data found.");
+
+      const observations = formatObservations(data);
+      return timeseriesResponse(
+        `EIA petroleum stocks: ${res.response?.total || observations.length} total, showing ${observations.length}`,
+        {
+          rows: observations,
+          dateKey: "period",
+          valueKey: "value",
+          extraFields: ["units", "series", "state", "sector"],
+          total: res.response?.total,
+          meta: { product: product || null, frequency: frequency || "weekly" },
         },
       );
     },
