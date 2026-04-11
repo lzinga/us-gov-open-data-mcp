@@ -31,6 +31,8 @@ export default {
     { question: "workplace safety", route: "dol_osha_inspections, dol_osha_violations, dol_osha_accidents, dol_whd_enforcement" },
     { question: "unemployment", route: "dol_ui_claims_national, dol_ui_claims_state" },
     { question: "procurement/contracting", route: "dol_whd_enforcement (Davis-Bacon prevailing wage enforcement on federal contracts)" },
+    { question: "agriculture", route: "dol_osha_inspections, dol_whd_enforcement (farm/agricultural workplace safety and wage enforcement)" },
+    { question: "presidential comparison", route: "dol_ui_claims_national (unemployment claims trends across administrations)" },
   ],
   reference: {
     inspectionTypes: INSPECTION_TYPES,

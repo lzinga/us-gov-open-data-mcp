@@ -21,6 +21,8 @@ export default {
     { question: "housing", route: "fema_housing_assistance (disaster housing aid)" },
     { question: "disasters", route: "fema_disaster_declarations, fema_housing_assistance, fema_public_assistance" },
     { question: "earthquakes/water", route: "fema_disaster_declarations (earthquake/flood declarations)" },
+    { question: "spending/budget", route: "fema_public_assistance, fema_housing_assistance (federal disaster spending)" },
+    { question: "presidential comparison", route: "fema_disaster_declarations (disaster responses across administrations)" },
   ],
   reference: { datasets: DATASETS },
 } satisfies ModuleMeta;

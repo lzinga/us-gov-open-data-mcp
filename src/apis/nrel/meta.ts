@@ -18,6 +18,8 @@ export default {
     { question: "energy/climate", route: "nrel_fuel_stations, nrel_utility_rates, nrel_solar" },
     { question: "vehicle safety", route: "nrel_fuel_stations (ELEC — EV charger locations)" },
     { question: "transportation", route: "nrel_fuel_stations (alt fuel station infrastructure)" },
+    { question: "state-level", route: "nrel_fuel_stations, nrel_utility_rates, nrel_solar (energy infrastructure and rates by state)" },
+    { question: "housing", route: "nrel_utility_rates, nrel_solar (electricity costs and solar potential for housing)" },
   ],
   reference: {
   fuelTypes: FUEL_TYPES,

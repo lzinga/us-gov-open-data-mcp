@@ -44,6 +44,9 @@ export default {
     { question: "pharma-doctor payments", route: "clinical_trials_search, clinical_trials_results, clinical_trials_by_location" },
     { question: "substance/ingredient lookup", route: "clinical_trials_search (by intervention name), clinical_trials_results, clinical_trials_field_values" },
     { question: "medical devices", route: "clinical_trials_search (intervention_type=DEVICE — device clinical trials)" },
+    { question: "drug shortages", route: "clinical_trials_search (check pipeline of drugs in shortage for R&D activity)" },
+    { question: "tobacco/vaping", route: "clinical_trials_search (condition='tobacco' or 'nicotine' — cessation/treatment trials)" },
+    { question: "state-level", route: "clinical_trials_by_location (trials near a geographic location)" },
   ],
   reference: {
     statuses: TRIAL_STATUSES,

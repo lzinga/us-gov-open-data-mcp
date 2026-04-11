@@ -22,6 +22,8 @@ export default {
     { question: "state-level", route: "cfpb_state_complaints (complaint counts and trends by state)" },
     { question: "housing", route: "cfpb_search_complaints (product='Mortgage' — mortgage complaint data)" },
     { question: "college", route: "cfpb_search_complaints (product='Student loan' — student loan complaint data)" },
+    { question: "vehicle safety", route: "cfpb_search_complaints (product='Vehicle loan or lease' — auto lending complaints)" },
+    { question: "debt/deficit", route: "cfpb_search_complaints (product='Debt collection' — consumer debt complaint trends)" },
   ],
   reference: {
   products: PRODUCTS,

@@ -19,6 +19,9 @@ export default {
   crossRef: [
     { question: "state-level", route: "fbi_crime_summarized, fbi_arrest_data (state-level crime and arrest statistics)" },
     { question: "health", route: "fbi_expanded_homicide, fbi_crime_summarized (violence as public health indicator)" },
+    { question: "drug investigation", route: "fbi_arrest_data (drug abuse arrests: offense code '150')" },
+    { question: "presidential comparison", route: "fbi_crime_summarized (national crime trends across administrations)" },
+    { question: "education", route: "fbi_hate_crime (hate crimes at educational institutions)" },
   ],
   reference: {
   summarizedOffenses: SUMMARIZED_OFFENSES,

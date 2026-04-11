@@ -23,6 +23,10 @@ export default {
     { question: "drug investigation", route: "doj_press_releases (drug trafficking indictments, pharmaceutical fraud enforcement)" },
     { question: "workplace safety", route: "doj_press_releases (criminal workplace safety enforcement)" },
     { question: "energy/climate", route: "doj_press_releases (environmental enforcement actions under CAA/CWA)" },
+    { question: "tobacco/vaping", route: "doj_press_releases (tobacco/vaping enforcement actions)" },
+    { question: "animal/vet drugs", route: "doj_press_releases (animal cruelty and illegal vet drug enforcement)" },
+    { question: "patents", route: "doj_press_releases (IP theft and patent fraud prosecutions)" },
+    { question: "elections/campaign finance", route: "doj_press_releases (campaign finance violations, election fraud prosecutions)" },
   ],
   reference: {
   components: COMPONENTS,

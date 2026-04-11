@@ -21,6 +21,8 @@ export default {
     { question: "state-level", route: "bts_border_crossings (port-of-entry traffic by state)" },
     { question: "economy", route: "bts_transport_stats (Transportation Services Index as economic indicator)" },
     { question: "international", route: "bts_border_crossings (U.S.-Mexico and U.S.-Canada cross-border traffic volumes)" },
+    { question: "energy/climate", route: "bts_transport_stats (fuel consumption and prices in transportation sector)" },
+    { question: "presidential comparison", route: "bts_transport_stats (transportation activity trends across administrations)" },
   ],
   reference: {
   transportFields: TRANSPORT_FIELDS,

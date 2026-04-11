@@ -31,6 +31,7 @@ export default {
     { question: "energy/climate", route: "epa_air_quality, epa_aqs_daily, epa_aqs_monitors (criteria pollutant monitoring)" },
     { question: "state-level", route: "epa_air_quality, epa_aqs_monitors (air quality monitoring data by state FIPS code)" },
     { question: "health", route: "epa_air_quality, epa_aqs_daily (air pollution data linked to respiratory health outcomes)" },
+    { question: "agriculture", route: "epa_air_quality (ozone and particulate data affecting crop yields)" },
   ],
   reference: {
     docs: {

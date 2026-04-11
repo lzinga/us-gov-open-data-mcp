@@ -24,6 +24,9 @@ export default {
     { question: "education", route: "nih_search_projects (child development research)" },
     { question: "state-level", route: "nih_search_projects (NIH-funded research by state/institution)" },
     { question: "medical devices", route: "nih_search_projects (device-related research grants)" },
+    { question: "tobacco/vaping", route: "nih_search_projects, nih_spending_by_category (NIDA tobacco/nicotine research funding)" },
+    { question: "animal/vet drugs", route: "nih_search_projects (animal model research, veterinary science grants)" },
+    { question: "spending/budget", route: "nih_spending_by_category, nih_projects_by_agency (federal research funding allocation)" },
   ],
   reference: {
   agencies: NIH_AGENCIES,

@@ -26,6 +26,8 @@ export default {
     { question: "pharma-doctor payments", route: "open_payments_search, open_payments_top_doctors, open_payments_by_company, open_payments_by_physician, open_payments_by_specialty, open_payments_ownership, open_payments_research" },
     { question: "state-level", route: "open_payments_search (pharma/device payments to providers by state)" },
     { question: "medical devices", route: "open_payments_search, open_payments_by_company (device company payments to providers)" },
+    { question: "spending/budget", route: "open_payments_summary, open_payments_by_company (pharmaceutical industry spending patterns)" },
+    { question: "elections/campaign finance", route: "open_payments_by_company (pharma company financial influence patterns, cross-ref with FEC)" },
   ],
   reference: {
     paymentTypes: PAYMENT_TYPES,

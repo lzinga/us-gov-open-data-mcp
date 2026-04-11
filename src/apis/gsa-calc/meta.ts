@@ -17,6 +17,7 @@ export default {
   domains: ["spending"],
   crossRef: [
     { question: "procurement/contracting", route: "calc_search_rates, calc_contract_rates (GSA MAS ceiling rates for market research/IGCEs)" },
+    { question: "spending/budget", route: "calc_search_rates (federal professional services pricing data)" },
   ],
   reference: {
     docs: {

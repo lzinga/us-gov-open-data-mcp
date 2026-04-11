@@ -25,5 +25,7 @@ export default {
   crossRef: [
     { question: "state-level", route: "hud_fair_market_rents (rental costs by county)" },
     { question: "housing", route: "hud_fair_market_rents, hud_income_limits (FMR and Section 8 thresholds)" },
+    { question: "economy", route: "hud_income_limits (income limit thresholds as economic indicator)" },
+    { question: "college", route: "hud_fair_market_rents (housing costs near colleges for affordability analysis)" },
   ],
 } satisfies ModuleMeta;

@@ -20,6 +20,8 @@ export default {
     { question: "disasters", route: "usgs_earthquakes, usgs_significant (earthquake events)" },
     { question: "earthquakes/water", route: "usgs_earthquakes, usgs_water_data, usgs_water_sites, usgs_daily_water_data" },
     { question: "state-level", route: "usgs_water_sites, usgs_water_data (water monitoring stations and streamflow data by state)" },
+    { question: "energy/climate", route: "usgs_water_data (water flow and drought monitoring for hydroelectric/energy context)" },
+    { question: "agriculture", route: "usgs_water_data, usgs_water_sites (irrigation water availability and drought data)" },
   ],
   reference: {
   waterParams: WATER_PARAMS,

@@ -30,6 +30,9 @@ export default {
     { question: "vehicle safety", route: "epa_facilities (emissions compliance data)" },
     { question: "state-level", route: "epa_facilities (facility compliance and violations searchable by state)" },
     { question: "health", route: "epa_drinking_water, epa_toxic_releases (environmental health: water quality, toxic chemical exposure)" },
+    { question: "agriculture", route: "epa_toxic_releases, epa_facilities (agricultural chemical contamination, pesticide facilities)" },
+    { question: "food safety", route: "epa_drinking_water (water contamination affecting food safety)" },
+    { question: "disasters", route: "epa_superfund, epa_enforcement (environmental disaster sites and cleanup enforcement)" },
   ],
   reference: {
     docs: {

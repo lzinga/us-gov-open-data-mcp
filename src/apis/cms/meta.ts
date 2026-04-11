@@ -20,6 +20,9 @@ export default {
     { question: "health", route: "cms_hospitals (hospital quality/mortality/readmissions), cms_nursing_homes (nursing home ratings)" },
     { question: "medical devices", route: "cms_hospitals (hospital quality measures for device outcomes)" },
     { question: "state-level", route: "cms_hospitals, cms_nursing_homes (provider quality ratings by state)" },
+    { question: "drug shortages", route: "cms_hospitals (Medicare spending patterns, hospital service availability)" },
+    { question: "college", route: "cms_hospitals (teaching hospital quality and medical education context)" },
+    { question: "spending/budget", route: "cms_query (Medicare/Medicaid spending data by provider)" },
   ],
   reference: { datasets: DATASETS },
 } satisfies ModuleMeta;

@@ -19,6 +19,8 @@ export default {
   crossRef: [
     { question: "patents", route: "uspto_search_applications, uspto_application_details, uspto_ptab_proceedings, uspto_ptab_decisions" },
     { question: "medical devices", route: "uspto_search_applications (device patent applications)" },
+    { question: "drug investigation", route: "uspto_search_applications (pharmaceutical patent searches, patent expiry dates)" },
+    { question: "international", route: "uspto_application_assignments (patent ownership and foreign assignees)" },
   ],
   reference: {
     docs: {

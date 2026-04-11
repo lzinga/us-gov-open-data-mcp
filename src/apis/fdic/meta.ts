@@ -20,6 +20,9 @@ export default {
     { question: "state-level", route: "fdic_search_institutions (state bank data)" },
     { question: "banking", route: "fdic_search_institutions, fdic_failures, fdic_financials" },
     { question: "consumer complaints", route: "fdic_search_institutions (bank identification context)" },
+    { question: "economy", route: "fdic_financials, fdic_summary (banking sector health as economic indicator)" },
+    { question: "disasters", route: "fdic_failures (bank failures during economic crises)" },
+    { question: "presidential comparison", route: "fdic_failures (bank failure counts across administrations)" },
   ],
   reference: {
   datasets: DATASETS,

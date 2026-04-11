@@ -27,6 +27,8 @@ export default {
   crossRef: [
     { question: "vehicle safety", route: "nhtsa_recalls, nhtsa_recall_detail, nhtsa_complaints, nhtsa_complaint_detail, nhtsa_safety_ratings, nhtsa_safety_rating_detail, nhtsa_decode_vin, nhtsa_models, nhtsa_car_seat_stations" },
     { question: "transportation", route: "nhtsa_recalls, nhtsa_complaints (vehicle safety data for transport analysis)" },
+    { question: "consumer complaints", route: "nhtsa_complaints, nhtsa_complaint_detail (vehicle owner complaints to NHTSA)" },
+    { question: "state-level", route: "nhtsa_car_seat_stations (car seat inspection stations by state)" },
   ],
   reference: {
     docs: {

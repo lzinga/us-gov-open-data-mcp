@@ -19,6 +19,10 @@ export default {
     { question: "energy/climate", route: "regulations_search_documents (agency=EPA — environmental rulemaking and public comments)" },
     { question: "health", route: "regulations_search_documents (agency=FDA,HHS — health/drug/device rulemaking)" },
     { question: "workplace safety", route: "regulations_search_documents (agency=DOL — OSHA rulemaking and public comments)" },
+    { question: "tobacco/vaping", route: "regulations_search_documents (agency=FDA — tobacco/nicotine rulemaking)" },
+    { question: "banking", route: "regulations_search_documents (agency=CFPB,FDIC,OCC — financial rulemaking)" },
+    { question: "transportation", route: "regulations_search_documents (agency=DOT,NHTSA — transportation rulemaking)" },
+    { question: "agriculture", route: "regulations_search_documents (agency=USDA — agricultural rulemaking)" },
   ],
   reference: {
   docs: {
