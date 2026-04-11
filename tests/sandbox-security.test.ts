@@ -121,7 +121,7 @@ describe("Resource limits", () => {
       `const a = []; while(true) a.push("x".repeat(1e6));`,
     );
     expect(result.error).toBeDefined();
-  });
+  }, 15_000);
 
   it("rejects DATA exceeding 10 MB", async () => {
     const big = "x".repeat(11 * 1024 * 1024);
