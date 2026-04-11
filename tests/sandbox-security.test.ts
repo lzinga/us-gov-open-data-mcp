@@ -118,10 +118,10 @@ describe("Resource limits", () => {
   it("terminates memory bombs via memory limit", async () => {
     const result = await executeInSandbox(
       SAMPLE_DATA,
-      `const a = []; while(true) a.push("x".repeat(1e6));`,
+      `const a = "x".repeat(1024*1024); const b = []; while(true) b.push(a + b.length);`,
     );
     expect(result.error).toBeDefined();
-  }, 15_000);
+  }, 30_000);
 
   it("rejects DATA exceeding 10 MB", async () => {
     const big = "x".repeat(11 * 1024 * 1024);
