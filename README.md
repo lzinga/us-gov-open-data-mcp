@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/lzinga-us-gov-open-data-mcp-badge.png)](https://mseep.ai/app/lzinga-us-gov-open-data-mcp)
+
 <div align="center">
 
 # US Government Open Data MCP
