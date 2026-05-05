@@ -532,7 +532,23 @@ export function createClient(config: ClientConfig): ApiClient {
       throw new Error(`${name}: HTTP ${res.status} — ${body || res.statusText}`);
     }
 
-    const data = await res.json();
+    // Some upstream endpoints (e.g. DOL OSHA "no results") return 200 with an
+    // empty body. Read as text first so we can short-circuit instead of letting
+    // res.json() throw "Unexpected end of JSON input".
+    const raw = await res.text();
+    let data: unknown;
+    if (raw.trim() === "") {
+      data = null;
+    } else {
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        const preview = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw;
+        throw new Error(
+          `${name}: invalid JSON response (HTTP ${res.status}): ${(err as Error).message}. Body: ${preview}`,
+        );
+      }
+    }
 
     // Check for API-level errors in body
     if (checkError) {
