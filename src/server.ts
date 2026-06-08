@@ -179,8 +179,27 @@ const server = new FastMCP({
 
 // ─── Register all module tools + prompts ─────────────────────────────
 
+/**
+ * Default tool annotations applied to every module tool.
+ *
+ * All government data tools are read-only fetches against external APIs that
+ * are safe to retry with identical args (data is published, not user-driven),
+ * so they're idempotent and openWorld by default. Per-tool annotations
+ * (e.g. `title`) are preserved via spread.
+ */
+const DEFAULT_TOOL_ANNOTATIONS = {
+  readOnlyHint: true,
+  idempotentHint: true,
+  openWorldHint: true,
+  destructiveHint: false,
+} as const;
+
 for (const mod of activeModules) {
-  server.addTools(mod.tools as any);
+  const annotated = mod.tools.map(t => ({
+    ...t,
+    annotations: { ...DEFAULT_TOOL_ANNOTATIONS, ...(t.annotations ?? {}) },
+  }));
+  server.addTools(annotated as any);
   if (mod.prompts?.length) server.addPrompts(mod.prompts as any);
 }
 
@@ -190,7 +209,12 @@ server.addTool({
   name: "clear_cache",
   description: "Clear cached API responses to force fresh data on next query. " +
     "Specify a source name or omit to clear all.",
-  annotations: { readOnlyHint: false },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   parameters: z.object({
     source: z.string().optional().describe(
       `Module name to clear: ${activeModules.map(m => m.name).join(", ")}. Omit for all.`
@@ -215,6 +239,16 @@ server.addPrompts(buildAnalysisPrompts(activeModules) as any);
 
 // ─── Code mode tool ──────────────────────────────────────────────────
 
+/**
+ * Tool-name alias map. Resolves old/legacy names to current canonical names
+ * inside `code_mode` so cached client prompts and saved system messages keep
+ * working after a tool rename. Empty today — populate when a tool is renamed.
+ */
+const TOOL_ALIASES: Record<string, string> = {
+  // Example for future use:
+  // "fda_search_events": "fda_drug_events",
+};
+
 // Build a lookup map of all registered tools for code_mode to call
 const allToolMap = new Map<string, (args: Record<string, unknown>) => Promise<unknown>>();
 for (const mod of activeModules) {
@@ -238,7 +272,13 @@ server.addTool({
     "  code='const d=JSON.parse(DATA);const data=d.data||d;const items=data.items||data.results||[];' +\n" +
     "       'const counts={};items.forEach(r=>{const rxs=r.reactions||[];rxs.forEach(rx=>{counts[rx]=(counts[rx]||0)+1})});' +\n" +
     "       'Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10).forEach(([k,v])=>console.log(k+\": \"+v))'",
-  annotations: { title: "Code Mode: Process Tool Output", readOnlyHint: true },
+  annotations: {
+    title: "Code Mode: Process Tool Output",
+    readOnlyHint: true,
+    idempotentHint: true,
+    openWorldHint: true,
+    destructiveHint: false,
+  },
   parameters: z.object({
     tool: z.string().describe(
       "Name of the MCP tool to call (e.g. 'fda_drug_events', 'fred_series_data', 'congress_search_bills')"
@@ -252,13 +292,16 @@ server.addTool({
       "Only console.log output is returned — keep it concise."
     ),
   }),
-  execute: async ({ tool: toolName, tool_args: toolArgs, code }) => {
-    // Find the tool
-    const toolFn = allToolMap.get(toolName);
+  execute: async ({ tool: toolName, tool_args: toolArgs, code }, { reportProgress }) => {
+    // Resolve any deprecated alias to the current canonical name
+    const resolvedName = TOOL_ALIASES[toolName] ?? toolName;
+    const toolFn = allToolMap.get(resolvedName);
     if (!toolFn) {
       const available = [...allToolMap.keys()].sort().join(", ");
       return `Error: tool '${toolName}' not found. Available tools: ${available}`;
     }
+
+    await reportProgress({ progress: 0, total: 2 });
 
     // Call the underlying tool
     let rawResult: string;
@@ -269,9 +312,13 @@ server.addTool({
       return `Error calling '${toolName}': ${(err as Error).message}`;
     }
 
+    await reportProgress({ progress: 1, total: 2 });
+
     // Execute script in sandbox
     const { stdout, beforeBytes, afterBytes, reductionPct, error } =
       await executeInSandbox(rawResult, code);
+
+    await reportProgress({ progress: 2, total: 2 });
 
     if (error) {
       const previewLen = Math.min(200, rawResult.length);
