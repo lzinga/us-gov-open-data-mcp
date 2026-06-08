@@ -465,10 +465,10 @@ export function createClient(config: ClientConfig): ApiClient {
     return resolved;
   }
 
-  /** True if at least one auth credential is available in env. */
+  /** True if all required auth credentials are available in env. */
   function hasAuth(): boolean {
     if (!auth) return false;
-    return Object.values(auth.envParams).some((ev) => !!process.env[ev]);
+    return Object.values(auth.envParams).every((ev) => !!process.env[ev]);
   }
 
   function buildUrl(path: string, params?: Params): string {
