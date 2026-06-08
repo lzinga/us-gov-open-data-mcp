@@ -197,9 +197,10 @@ server.addTool({
     ),
   }),
   execute: async ({ source }) => {
+    const target = source?.toLowerCase();
     const cleared: string[] = [];
     for (const mod of activeModules) {
-      if (source && mod.name !== source) continue;
+      if (target && mod.name.toLowerCase() !== target) continue;
       if (mod.clearCache) { mod.clearCache(); cleared.push(mod.name); }
     }
     return cleared.length
@@ -273,15 +274,19 @@ server.addTool({
       await executeInSandbox(rawResult, code);
 
     if (error) {
+      const previewLen = Math.min(200, rawResult.length);
+      const preview = rawResult.length > 200 ? rawResult.slice(0, 200) + "…" : rawResult;
+      const argsJson = JSON.stringify(toolArgs ?? {});
       return (
         `Script error: ${error}\n\n` +
-        `The tool '${toolName}' returned ${(beforeBytes / 1024).toFixed(1)}KB of data. ` +
-        `Fix the script and try again. The DATA variable contains the tool's raw response as a string.`
+        `Called '${toolName}' with args ${argsJson} — returned ${(beforeBytes / 1024).toFixed(1)}KB. ` +
+        `Fix the script and try again. The DATA variable contains the tool's raw response as a string.\n\n` +
+        `DATA preview (first ${previewLen} chars):\n${preview}`
       );
     }
 
     const tag = `[code-mode: ${(beforeBytes / 1024).toFixed(1)}KB → ${(afterBytes / 1024).toFixed(1)}KB (${reductionPct.toFixed(1)}% reduction)]`;
-    return `${stdout}\n\n${tag}`;
+    return stdout ? `${stdout}\n\n${tag}` : `(script produced no console.log output)\n${tag}`;
   },
 });
 

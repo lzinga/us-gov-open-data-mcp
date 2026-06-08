@@ -27,6 +27,7 @@ export * as dojNews from "./doj-news/sdk.js";
 export * as dol from "./dol/sdk.js";
 export * as eia from "./eia/sdk.js";
 export * as epa from "./epa/sdk.js";
+export * as epaAqs from "./epa-aqs/sdk.js";
 export * as fbi from "./fbi/sdk.js";
 export * as fda from "./fda/sdk.js";
 export * as fdic from "./fdic/sdk.js";
