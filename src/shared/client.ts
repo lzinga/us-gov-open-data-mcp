@@ -461,6 +461,12 @@ async function fetchRetry(
   throw lastErr ?? new Error("Request failed");
 }
 
+/** Truncate body text to a manageable size for inclusion in error messages. */
+function truncateBody(body: string, max = 300): string {
+  if (body.length <= max) return body;
+  return body.slice(0, max) + `… (truncated, ${body.length} chars total)`;
+}
+
 // ─── Client Factory ──────────────────────────────────────────────────
 
 export function createClient(config: ClientConfig): ApiClient {
@@ -555,7 +561,7 @@ export function createClient(config: ClientConfig): ApiClient {
         );
       }
 
-      throw new Error(`${name}: HTTP ${res.status} — ${body || res.statusText}`);
+      throw new Error(`${name}: HTTP ${res.status} — ${truncateBody(body || res.statusText)}`);
     }
 
     const data = await res.json();
