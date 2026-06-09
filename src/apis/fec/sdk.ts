@@ -118,6 +118,54 @@ export interface FecDisbursement {
   memo_text: string | null;
   [key: string]: unknown;
 }
+
+/** Itemized individual contribution (Schedule A). */
+export interface FecContribution {
+  committee_id: string;
+  committee_name: string | null;
+  committee?: { name?: string; committee_id?: string } | null;
+  contributor_name: string | null;
+  contributor_employer: string | null;
+  contributor_occupation: string | null;
+  contributor_city: string | null;
+  contributor_state: string | null;
+  contributor_zip: string | null;
+  contribution_receipt_amount: number | null;
+  contribution_receipt_date: string | null;
+  receipt_type_full: string | null;
+  is_individual: boolean | null;
+  candidate_id: string | null;
+  candidate_name: string | null;
+  memo_text: string | null;
+  [key: string]: unknown;
+}
+
+/** Itemized independent expenditure line item (Schedule E). */
+export interface FecIndependentExpenditure {
+  committee_id: string;
+  committee_name: string | null;
+  committee?: { name?: string; committee_id?: string } | null;
+  payee_name: string | null;
+  expenditure_amount: number | null;
+  expenditure_date: string | null;
+  support_oppose_indicator: string | null; // "S" = support, "O" = oppose
+  candidate_id: string | null;
+  candidate_name: string | null;
+  candidate_office_full: string | null;
+  expenditure_description: string | null;
+  category_code_full: string | null;
+  election_type: string | null;
+  [key: string]: unknown;
+}
+
+/** Independent expenditure totals for a candidate, split by support/oppose (Schedule E totals/by_candidate). */
+export interface FecIETotalsByCandidate {
+  candidate_id: string;
+  cycle: number;
+  support_oppose_indicator: string | null;
+  total: number;
+  [key: string]: unknown;
+}
 // ─── Reference Data ──────────────────────────────────────────────────────
 
 /** FEC candidate status codes. */
@@ -253,6 +301,85 @@ export async function getCommitteeDisbursements(opts: {
   if (opts.recipient_name) params.recipient_name = opts.recipient_name;
 
   return api.get<FecSearchResult<FecDisbursement>>("/schedules/schedule_b/", params);
+}
+
+/**
+ * Get itemized individual contributions (Schedule A) — who donated, their
+ * employer/occupation, amount, and date. Filter by recipient committee and/or
+ * contributor attributes. The full dataset is ~123M records, so a filter
+ * (committee_id or contributor_name) is strongly recommended.
+ */
+export async function getIndividualContributions(opts: {
+  committee_id?: string;
+  contributor_name?: string;
+  contributor_employer?: string;
+  contributor_occupation?: string;
+  contributor_state?: string;
+  cycle?: number;          // two_year_transaction_period, e.g. 2024
+  min_amount?: number;
+  max_amount?: number;
+  per_page?: number;
+  sort?: string;
+}): Promise<FecSearchResult<FecContribution>> {
+  const params: Record<string, string | number | undefined> = {
+    committee_id: opts.committee_id,
+    contributor_name: opts.contributor_name,
+    contributor_employer: opts.contributor_employer,
+    contributor_occupation: opts.contributor_occupation,
+    contributor_state: opts.contributor_state,
+    min_amount: opts.min_amount,
+    max_amount: opts.max_amount,
+    per_page: opts.per_page ?? 20,
+    sort: opts.sort ?? "-contribution_receipt_date",
+    sort_null_only: "false",
+  };
+  if (opts.cycle) params.two_year_transaction_period = opts.cycle;
+  return api.get<FecSearchResult<FecContribution>>("/schedules/schedule_a/", params);
+}
+
+/**
+ * Get itemized independent expenditures (Schedule E) — outside spending (Super
+ * PACs, etc.) for or against a candidate. Filter by candidate, spending
+ * committee, and/or support/oppose indicator.
+ */
+export async function getIndependentExpenditures(opts: {
+  candidate_id?: string;
+  committee_id?: string;
+  support_oppose?: string; // "S" = support, "O" = oppose
+  cycle?: number;
+  per_page?: number;
+  sort?: string;
+}): Promise<FecSearchResult<FecIndependentExpenditure>> {
+  return api.get<FecSearchResult<FecIndependentExpenditure>>("/schedules/schedule_e/", {
+    candidate_id: opts.candidate_id,
+    committee_id: opts.committee_id,
+    support_oppose_indicator: opts.support_oppose,
+    cycle: opts.cycle,
+    per_page: opts.per_page ?? 20,
+    sort: opts.sort ?? "-expenditure_date",
+    sort_null_only: "false",
+  });
+}
+
+/**
+ * Get total independent expenditures for a candidate, split into supporting vs.
+ * opposing (Schedule E totals/by_candidate). Returns exact aggregate totals
+ * (2-3 rows: S, O, and occasionally an unspecified row) — no pagination needed.
+ */
+export async function getOutsideSpendingTotals(opts: {
+  candidate_id: string;
+  cycle?: number;
+  election_full?: boolean; // aggregate across the full election period (default true)
+}): Promise<FecIETotalsByCandidate[]> {
+  const res = await api.get<FecSearchResult<FecIETotalsByCandidate>>(
+    "/schedules/schedule_e/totals/by_candidate/",
+    {
+      candidate_id: opts.candidate_id,
+      cycle: opts.cycle,
+      election_full: String(opts.election_full ?? true),
+    },
+  );
+  return res.results ?? [];
 }
 
 /** Clear cached responses. */

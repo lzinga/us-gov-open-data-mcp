@@ -11,6 +11,9 @@ import {
   getCommitteeFinancials,
   getTopCandidates,
   getCommitteeDisbursements,
+  getIndividualContributions,
+  getIndependentExpenditures,
+  getOutsideSpendingTotals,
   CANDIDATE_STATUS,
   type FecCandidate,
   type FecCommittee,
@@ -243,6 +246,127 @@ export const tools: Tool<any, any>[] = [
           })),
           total: data.pagination.count,
           meta: { committeeId: committee_id, committeeName: results[0]?.committee?.name ?? null },
+        },
+      );
+    },
+  },
+
+  {
+    name: "fec_individual_contributions",
+    description:
+      "Get itemized individual contributions (Schedule A) — who donated to a committee, their employer and occupation, amount, and date.\n" +
+      "This is the KEY tool for donor research: 'who funds this candidate and where do they work?'\n" +
+      "The full dataset is ~123M records, so ALWAYS pass a filter — typically committee_id (the recipient committee) and/or contributor_name/employer.\n" +
+      "WORKFLOW: (1) fec_search_committees or fec_search_candidates to find the committee_id, (2) this tool filtered by committee_id, optionally narrowing by contributor_employer (e.g. 'Goldman Sachs') or contributor_state.",
+    annotations: { title: "FEC: Individual Contributions", readOnlyHint: true },
+    parameters: z.object({
+      committee_id: z.string().optional().describe("Recipient FEC committee ID (e.g. 'C00401224'). Get from fec_search_committees."),
+      contributor_name: z.string().optional().describe("Donor name to filter by, e.g. 'Smith'"),
+      contributor_employer: z.string().optional().describe("Donor employer, e.g. 'Goldman Sachs'"),
+      contributor_occupation: z.string().optional().describe("Donor occupation, e.g. 'Attorney'"),
+      contributor_state: z.string().length(2).optional().describe("Two-letter state code of the donor"),
+      cycle: z.number().int().optional().describe("Two-year transaction period / election cycle (even year, e.g. 2024)"),
+      min_amount: z.number().optional().describe("Minimum contribution amount"),
+      max_amount: z.number().optional().describe("Maximum contribution amount"),
+      per_page: z.number().int().min(1).max(100).default(20).describe("Results per page (default 20)"),
+    }),
+    execute: async (args) => {
+      if (!args.committee_id && !args.contributor_name && !args.contributor_employer) {
+        return emptyResponse("Provide at least one filter (committee_id, contributor_name, or contributor_employer) — the contributions dataset is too large to query unfiltered.");
+      }
+      const data = await getIndividualContributions(args);
+      const results = data.results ?? [];
+      if (!results.length) return emptyResponse("No individual contributions found for the given filters.");
+      return tableResponse(
+        `${data.pagination.count.toLocaleString()} individual contributions match, showing ${results.length}`,
+        {
+          rows: results.map(c => ({
+            contributor: c.contributor_name,
+            employer: c.contributor_employer,
+            occupation: c.contributor_occupation,
+            amount: c.contribution_receipt_amount,
+            date: c.contribution_receipt_date,
+            state: c.contributor_state,
+            recipient: c.committee?.name ?? c.committee_name,
+            type: c.receipt_type_full,
+          })),
+          total: data.pagination.count,
+          meta: { committeeId: args.committee_id ?? null },
+        },
+      );
+    },
+  },
+
+  {
+    name: "fec_independent_expenditures",
+    description:
+      "Get itemized independent expenditures (Schedule E) — outside spending by Super PACs and other groups FOR or AGAINST a candidate (ad buys, mailers, etc.).\n" +
+      "This is the KEY tool for tracking outside money: 'how much did Super PACs spend against Senator X?'\n" +
+      "Filter by candidate_id (most common), committee_id (the spender), and/or support_oppose ('S'=support, 'O'=oppose).\n" +
+      "WORKFLOW: (1) fec_search_candidates to find candidate_id, (2) this tool filtered by candidate_id. Use fec_outside_spending_by_candidate for totals instead of line items.",
+    annotations: { title: "FEC: Independent Expenditures", readOnlyHint: true },
+    parameters: z.object({
+      candidate_id: z.string().optional().describe("Target FEC candidate ID (e.g. 'P80000722'). Get from fec_search_candidates."),
+      committee_id: z.string().optional().describe("Spending committee ID (the Super PAC making the expenditure)"),
+      support_oppose: z.enum(["S", "O"]).optional().describe("'S' = supporting the candidate, 'O' = opposing"),
+      cycle: z.number().int().optional().describe("Election cycle year (even year, e.g. 2024)"),
+      per_page: z.number().int().min(1).max(100).default(20).describe("Results per page (default 20)"),
+    }),
+    execute: async (args) => {
+      if (!args.candidate_id && !args.committee_id) {
+        return emptyResponse("Provide a candidate_id or committee_id to filter independent expenditures.");
+      }
+      const data = await getIndependentExpenditures(args);
+      const results = data.results ?? [];
+      if (!results.length) return emptyResponse("No independent expenditures found for the given filters.");
+      return tableResponse(
+        `${data.pagination.count.toLocaleString()} independent expenditures match, showing ${results.length}`,
+        {
+          rows: results.map(e => ({
+            spender: e.committee?.name ?? e.committee_name,
+            supportOppose: e.support_oppose_indicator === "S" ? "support" : e.support_oppose_indicator === "O" ? "oppose" : e.support_oppose_indicator,
+            candidate: e.candidate_name,
+            amount: e.expenditure_amount,
+            date: e.expenditure_date,
+            payee: e.payee_name,
+            purpose: e.expenditure_description,
+          })),
+          total: data.pagination.count,
+          meta: { candidateId: args.candidate_id ?? null },
+        },
+      );
+    },
+  },
+
+  {
+    name: "fec_outside_spending_by_candidate",
+    description:
+      "Get TOTAL independent (outside) spending supporting vs. opposing a candidate (Schedule E totals).\n" +
+      "Use this for an exact summary — 'how much outside money supported vs. opposed this candidate?' — instead of paginating raw line items.\n" +
+      "For the itemized breakdown of who spent it, use fec_independent_expenditures.",
+    annotations: { title: "FEC: Outside Spending Summary", readOnlyHint: true },
+    parameters: z.object({
+      candidate_id: z.string().describe("Target FEC candidate ID (e.g. 'P80000722'). Get from fec_search_candidates."),
+      cycle: z.number().int().optional().describe("Election cycle year (even year, e.g. 2024)"),
+    }),
+    execute: async ({ candidate_id, cycle }) => {
+      const rows = await getOutsideSpendingTotals({ candidate_id, cycle });
+      if (!rows.length) return emptyResponse(`No independent expenditures found for candidate ${candidate_id}.`);
+      let support = 0;
+      let oppose = 0;
+      for (const r of rows) {
+        if (r.support_oppose_indicator === "S") support += r.total ?? 0;
+        else if (r.support_oppose_indicator === "O") oppose += r.total ?? 0;
+      }
+      return tableResponse(
+        `Candidate ${candidate_id}: ${fmtUsd(support)} supporting, ${fmtUsd(oppose)} opposing (outside spending${cycle ? `, ${cycle} cycle` : ""})`,
+        {
+          rows: rows.map(r => ({
+            supportOppose: r.support_oppose_indicator === "S" ? "support" : r.support_oppose_indicator === "O" ? "oppose" : "unspecified",
+            total: r.total,
+            cycle: r.cycle,
+          })),
+          meta: { candidateId: candidate_id, totalSupport: support, totalOppose: oppose },
         },
       );
     },
