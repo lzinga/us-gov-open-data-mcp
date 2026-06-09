@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { getIndicator, compareCountries, searchIndicators, listCountries, POPULAR_INDICATORS } from "./sdk.js";
+import { getIndicator, compareCountries, searchIndicators, listCountries, listTopics, getTopicIndicators, listSources, getSourceIndicators, listRegions, listIncomeLevels, listLendingTypes, POPULAR_INDICATORS } from "./sdk.js";
 import { timeseriesResponse, tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 
 export const tools: Tool<any, any>[] = [
@@ -104,6 +104,87 @@ export const tools: Tool<any, any>[] = [
           })),
         },
       );
+    },
+  },
+
+  {
+    name: "wb_topics",
+    description:
+      "Browse World Bank indicators by theme. With no topic_id, lists all 21 topics (Agriculture, Health, Climate Change, Education, etc.). " +
+      "With a topic_id, lists every indicator under that topic — the best way to discover indicators for a subject without keyword guessing.",
+    annotations: { title: "World Bank: Topics", readOnlyHint: true },
+    parameters: z.object({
+      topic_id: z.string().optional().describe("Topic ID to list its indicators (e.g. '8' = Health). Omit to list all topics."),
+    }),
+    execute: async ({ topic_id }) => {
+      if (topic_id) {
+        const indicators = await getTopicIndicators(topic_id);
+        if (!indicators.length) return emptyResponse(`No indicators found for topic ${topic_id}.`);
+        return listResponse(
+          `${indicators.length} indicators in topic ${topic_id}`,
+          { items: indicators.map(i => ({ id: i.id, name: i.name, source: i.source?.value })) },
+        );
+      }
+      const topics = await listTopics();
+      return listResponse(
+        `${topics.length} World Bank topics`,
+        { items: topics.map(t => ({ id: t.id, topic: t.value })) },
+      );
+    },
+  },
+
+  {
+    name: "wb_sources",
+    description:
+      "Browse World Bank data source databases. With no source_id, lists all ~70 sources (World Development Indicators, Doing Business, " +
+      "International Debt Statistics, etc.). With a source_id, lists every indicator in that database.",
+    annotations: { title: "World Bank: Sources", readOnlyHint: true },
+    parameters: z.object({
+      source_id: z.string().optional().describe("Source ID to list its indicators (e.g. '2' = World Development Indicators). Omit to list all sources."),
+    }),
+    execute: async ({ source_id }) => {
+      if (source_id) {
+        const indicators = await getSourceIndicators(source_id);
+        if (!indicators.length) return emptyResponse(`No indicators found for source ${source_id}.`);
+        return listResponse(
+          `${indicators.length} indicators in source ${source_id}`,
+          { items: indicators.map(i => ({ id: i.id, name: i.name, source: i.source?.value })) },
+        );
+      }
+      const sources = await listSources();
+      return listResponse(
+        `${sources.length} World Bank data sources`,
+        { items: sources.map(s => ({ id: s.id, source: s.name, lastUpdated: s.lastupdated })) },
+      );
+    },
+  },
+
+  {
+    name: "wb_reference",
+    description:
+      "Get World Bank classification lookup tables: regions, income levels, or lending types. " +
+      "Use the resulting codes to filter wb_countries-style queries (e.g. income level 'LIC' = low income).",
+    annotations: { title: "World Bank: Reference Lookups", readOnlyHint: true },
+    parameters: z.object({
+      type: z.enum(["region", "income_level", "lending_type"]).describe("Which classification to list"),
+    }),
+    execute: async ({ type }) => {
+      if (type === "region") {
+        const regions = await listRegions();
+        return listResponse(`${regions.length} World Bank regions`, {
+          items: regions.map(r => ({ code: r.code, id: r.id, name: r.name })),
+        });
+      }
+      if (type === "income_level") {
+        const levels = await listIncomeLevels();
+        return listResponse(`${levels.length} income-level classifications`, {
+          items: levels.map(l => ({ id: l.id, name: l.value })),
+        });
+      }
+      const types = await listLendingTypes();
+      return listResponse(`${types.length} lending-type classifications`, {
+        items: types.map(l => ({ id: l.id, name: l.value })),
+      });
     },
   },
 ];

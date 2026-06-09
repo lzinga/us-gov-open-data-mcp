@@ -57,6 +57,37 @@ export interface WBCountry {
 // World Bank wraps responses in [metadata, data] tuple
 type WBResponse<T> = [{ page: number; pages: number; per_page: string; total: number }, T[]];
 
+/** World Bank topic (thematic grouping of indicators). */
+export interface WBTopic {
+  id: string;
+  value: string;
+  sourceNote?: string;
+}
+
+/** World Bank data source / database. */
+export interface WBSource {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  url?: string;
+  lastupdated?: string;
+}
+
+/** World Bank classification entry (income level or lending type). */
+export interface WBClassification {
+  id: string;
+  iso2code: string;
+  value: string;
+}
+
+/** World Bank region. */
+export interface WBRegion {
+  id: string;
+  code: string;
+  name: string;
+}
+
 // ─── Public API ──────────────────────────────────────────────────────
 
 /** Get indicator data for a country or set of countries. */
@@ -134,6 +165,48 @@ export async function listCountries(perPage = 300): Promise<WBCountry[]> {
   const data = await api.get<WBResponse<WBCountry>>("/country", { format: "json", per_page: perPage });
   if (!Array.isArray(data) || data.length < 2) return [];
   return (data[1] ?? []).filter(c => c.region?.id !== "NA"); // filter out aggregates
+}
+
+/** Helper to fetch a simple WB list endpoint. */
+async function wbList<T>(path: string): Promise<T[]> {
+  const data = await api.get<WBResponse<T>>(path, { format: "json", per_page: 2000 });
+  if (!Array.isArray(data) || data.length < 2) return [];
+  return data[1] ?? [];
+}
+
+/** List the 21 thematic topics indicators are grouped under. */
+export async function listTopics(): Promise<WBTopic[]> {
+  return wbList<WBTopic>("/topic");
+}
+
+/** List all indicators belonging to a topic. */
+export async function getTopicIndicators(topicId: string | number): Promise<WBIndicatorInfo[]> {
+  return wbList<WBIndicatorInfo>(`/topic/${topicId}/indicator`);
+}
+
+/** List the data source databases (World Development Indicators, Doing Business, etc.). */
+export async function listSources(): Promise<WBSource[]> {
+  return wbList<WBSource>("/source");
+}
+
+/** List all indicators provided by a specific source database. */
+export async function getSourceIndicators(sourceId: string | number): Promise<WBIndicatorInfo[]> {
+  return wbList<WBIndicatorInfo>(`/source/${sourceId}/indicator`);
+}
+
+/** List geographic regions and regional aggregates. */
+export async function listRegions(): Promise<WBRegion[]> {
+  return wbList<WBRegion>("/region");
+}
+
+/** List income-level classifications (HIC, UMC, LMC, LIC, etc.). */
+export async function listIncomeLevels(): Promise<WBClassification[]> {
+  return wbList<WBClassification>("/incomelevel");
+}
+
+/** List lending-type classifications (IBRD, IDA, Blend, Unclassified). */
+export async function listLendingTypes(): Promise<WBClassification[]> {
+  return wbList<WBClassification>("/lendingtype");
 }
 
 /** Popular indicator IDs for quick reference. */
