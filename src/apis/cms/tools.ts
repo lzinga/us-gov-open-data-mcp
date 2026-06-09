@@ -48,7 +48,7 @@ export const tools: Tool<any, any>[] = [
         .describe("Hospital dataset to query"),
       state: z.string().max(2).optional().describe("Two-letter state code (e.g. CA, TX, NY)"),
       city: z.string().optional().describe("City name"),
-      limit: z.number().optional().describe("Max results (default 50)"),
+      limit: z.number().default(50).describe("Max results (default 50)"),
     }),
     execute: async (args) => {
       const conditions: Array<{ property: string; value: string }> = [];
@@ -74,7 +74,7 @@ export const tools: Tool<any, any>[] = [
         .default("nursing_home_info")
         .describe("Nursing home dataset to query"),
       state: z.string().max(2).optional().describe("Two-letter state code"),
-      limit: z.number().optional().describe("Max results (default 50)"),
+      limit: z.number().default(50).describe("Max results (default 50)"),
     }),
     execute: async (args) => {
       const conditions: Array<{ property: string; value: string }> = [];
@@ -99,7 +99,7 @@ export const tools: Tool<any, any>[] = [
         .describe("CMS dataset identifier (e.g. 'xubh-q36u' for hospitals, '4pq5-n9py' for nursing homes) or catalog key"),
       filter_field: z.string().optional().describe("Field name to filter on (e.g. 'state', 'city', 'provider_name')"),
       filter_value: z.string().optional().describe("Value to filter for"),
-      limit: z.number().optional().describe("Max results (default 50)"),
+      limit: z.number().default(50).describe("Max results (default 50)"),
       offset: z.number().optional().describe("Offset for pagination"),
     }),
     execute: async (args) => {

@@ -54,7 +54,7 @@ export const tools: Tool<any, any>[] = [
       longitude: z.number().optional().describe("Center longitude for radius search"),
       maxradiuskm: z.number().optional().describe("Search radius in km (requires lat/lon)"),
       alertlevel: z.enum(keysEnum(ALERT_LEVELS)).optional().describe(`PAGER alert level: ${describeEnum(ALERT_LEVELS)}`),
-      limit: z.number().int().max(200).optional().describe("Max results (default 20, max 200)"),
+      limit: z.number().int().max(200).default(20).describe("Max results (default 20, max 200)"),
       orderby: z.enum(["time", "time-asc", "magnitude", "magnitude-asc"]).optional().describe("Sort order (default: time)"),
     }),
     execute: async (args) => {

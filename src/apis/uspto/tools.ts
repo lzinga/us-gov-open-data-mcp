@@ -87,7 +87,7 @@ export const tools: Tool<any, any>[] = [
       sort: z.string().optional().describe("Sort as 'field order' - e.g. 'applicationMetaData.filingDate desc'. Default: filingDate desc. Text fields cannot be sorted."),
       fields: z.array(z.string()).optional().describe("Fields to include in response - e.g. ['applicationNumberText', 'applicationMetaData.patentNumber', 'applicationMetaData.filingDate']. Omit for all fields. Supports wildcards like '*Date*'."),
       offset: z.number().optional().describe("Starting position (default 0)"),
-      limit: z.number().optional().describe("Results per page (default 25)"),
+      limit: z.number().default(25).describe("Results per page (default 25)"),
       facets: z.array(z.string()).optional().describe("Fields to aggregate - e.g. ['applicationMetaData.applicationTypeLabelName', 'applicationMetaData.applicationStatusCode']. Text fields not supported."),
     }),
     execute: async (args) => {
@@ -217,7 +217,7 @@ export const tools: Tool<any, any>[] = [
       sort: z.string().optional().describe("Sort as 'field order' - e.g. 'patentOwnerData.technologyCenterNumber desc'"),
       fields: z.array(z.string()).optional().describe("Fields to include in response"),
       offset: z.number().optional().describe("Starting position (default 0)"),
-      limit: z.number().optional().describe("Results per page (default 25)"),
+      limit: z.number().default(25).describe("Results per page (default 25)"),
     }),
     execute: async (args) => {
       const filters = parseFilters(args.filters);
@@ -272,7 +272,7 @@ export const tools: Tool<any, any>[] = [
       sort: z.string().optional().describe("Sort as 'field order'"),
       fields: z.array(z.string()).optional().describe("Fields to include in response"),
       offset: z.number().optional().describe("Starting position (default 0)"),
-      limit: z.number().optional().describe("Results per page (default 25)"),
+      limit: z.number().default(25).describe("Results per page (default 25)"),
     }),
     execute: async (args) => {
       const filters = parseFilters(args.filters);
@@ -311,7 +311,7 @@ export const tools: Tool<any, any>[] = [
       sort: z.string().optional().describe("Sort as 'field order' - e.g. 'petitionMailDate desc'"),
       fields: z.array(z.string()).optional().describe("Fields to include in response"),
       offset: z.number().optional().describe("Starting position (default 0)"),
-      limit: z.number().optional().describe("Results per page (default 25)"),
+      limit: z.number().default(25).describe("Results per page (default 25)"),
     }),
     execute: async (args) => {
       const filters = parseFilters(args.filters);

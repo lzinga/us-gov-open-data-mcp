@@ -60,7 +60,7 @@ export const tools: Tool<any, any>[] = [
       ordering: z.string().optional().describe(`Sort field: ${describeKeys(orderableFields)}. Default: current_price`),
       sort: z.enum(["asc", "desc"]).optional().describe("Sort direction (default: asc)"),
       page: z.number().optional().describe("Page number (default 1)"),
-      page_size: z.number().optional().describe("Results per page (default 20)"),
+      page_size: z.number().default(20).describe("Results per page (default 20)"),
     }),
     execute: async (args) => {
       const result = await searchCeilingRates({
@@ -128,7 +128,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "GSA CALC: Contract Rates", readOnlyHint: true },
     parameters: z.object({
       contract_number: z.string().describe("GSA contract number (IDV PIID) - e.g. 'GS10F0303V', 'GS35F0581X'"),
-      page_size: z.number().optional().describe("Max results (default 100)"),
+      page_size: z.number().default(100).describe("Max results (default 100)"),
     }),
     execute: async (args) => {
       const result = await getRatesByContract(args.contract_number, args.page_size);

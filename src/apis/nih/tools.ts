@@ -84,7 +84,7 @@ export const tools: Tool<any, any>[] = [
       award_amount_max: z.number().optional().describe("Maximum award amount in dollars"),
       covid_response: z.array(z.string()).optional().describe("COVID funding: ['All'], ['C3'] (CARES Act), ['C6'] (American Rescue Plan)"),
       exclude_subprojects: z.boolean().optional().describe("Exclude subprojects for cleaner counts (default: true)"),
-      limit: z.number().int().max(50).optional().describe("Results per page (default 10, max 50)"),
+      limit: z.number().int().max(50).default(10).describe("Results per page (default 10, max 50)"),
       offset: z.number().int().optional().describe("Starting offset for pagination"),
       sort_field: z.string().optional().describe("Sort by: 'award_amount', 'project_start_date', 'fiscal_year'"),
       sort_order: z.enum(["asc", "desc"]).optional().describe("Sort order"),
@@ -134,7 +134,7 @@ export const tools: Tool<any, any>[] = [
       pmids: z.array(z.number().int()).optional().describe("PubMed IDs: [33298401, 33105091]"),
       core_project_nums: z.array(z.string()).optional().describe("Core project numbers: ['R01AG060942']"),
       appl_ids: z.array(z.number().int()).optional().describe("Application IDs"),
-      limit: z.number().int().max(50).optional().describe("Results per page (default 10)"),
+      limit: z.number().int().max(50).default(10).describe("Results per page (default 10)"),
       offset: z.number().int().optional().describe("Starting offset for pagination"),
     }),
     execute: async (args) => {

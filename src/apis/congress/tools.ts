@@ -195,7 +195,7 @@ export const tools: Tool<any, any>[] = [
       query: z.string().optional().describe("Keyword/text search across bill titles and summaries (e.g., 'infrastructure', 'tax reform', 'climate')"),
       congress: z.number().int().optional().describe("Congress number (e.g., 119 for 2025-2026, 118 for 2023-2024). Omit to list bills across all congresses"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).optional().describe("Bill type"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       offset: z.number().int().optional().describe("Results offset for pagination (default: 0)"),
       fromDateTime: z.string().optional().describe("Filter by update date from this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
@@ -269,7 +269,7 @@ export const tools: Tool<any, any>[] = [
       currentMember: z.boolean().optional().describe("Filter by current member status. true = current members only, false = former only"),
       fromDateTime: z.string().optional().describe("Filter by update date start (YYYY-MM-DDT00:00:00Z)"),
       toDateTime: z.string().optional().describe("Filter by update date end (YYYY-MM-DDT00:00:00Z)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
     }),
     execute: async ({ congress, state, district, currentMember, fromDateTime, toDateTime, limit }) => {
       const data = await searchMembers({ congress, state, district, currentMember, fromDateTime, toDateTime, limit });
@@ -299,7 +299,7 @@ export const tools: Tool<any, any>[] = [
       session: z.number().int().optional().describe("Session (1 or 2). Default: current session"),
       year: z.number().int().optional().describe("Calendar year (e.g. 2024). Overrides congress+session if provided."),
       vote_number: z.number().int().optional().describe("Specific roll call vote number. Omit to list recent votes."),
-      limit: z.number().int().positive().max(250).optional().describe("Max results when listing votes (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results when listing votes (default: 20)"),
     }),
     execute: async ({ congress, session, year, vote_number, limit }) => {
       const data = await getHouseVotes({ congress, session, year, vote_number, limit });
@@ -363,7 +363,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().optional().describe("Congress number (default: current). Coverage: 101st (1989) to present"),
       session: z.number().int().optional().describe("Session (1 or 2). Default: current session (1 for odd years, 2 for even)"),
       vote_number: z.number().int().optional().describe("Specific roll call vote number. Omit to list recent votes."),
-      limit: z.number().int().positive().max(250).optional().describe("Max results when listing votes (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results when listing votes (default: 20)"),
     }),
     execute: async ({ congress, session, vote_number, limit }) => {
       const data = await getSenateVotes({ congress, session, vote_number, limit });
@@ -424,7 +424,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number (default: current)"),
       law_type: z.enum(keysEnum(LAW_TYPES)).optional().describe("Law type: pub (public law) or priv (private law). Default: all"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ congress, law_type, limit }) => {
       const congressNum = congress ?? currentCongress();
@@ -449,7 +449,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       bioguide_id: z.string().describe("Member's BioGuide ID (e.g., 'S000033' for Bernie Sanders, 'C001098' for Ted Cruz)"),
       type: z.enum(["sponsored", "cosponsored"]).optional().describe("Bill relationship type (default: sponsored)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ bioguide_id, type, limit }) => {
       const legType = (type === "cosponsored" ? "cosponsored" : "sponsored") as "sponsored" | "cosponsored";
@@ -478,7 +478,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number (e.g., 118)"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max actions to return (default: 100)"),
+      limit: z.number().int().positive().max(250).default(100).describe("Max actions to return (default: 100)"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit }) => {
       const data = await getBillActions(congress, bill_type, bill_number, limit ?? 100);
@@ -512,7 +512,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit }) => {
       const data = await getBillAmendments(congress, bill_type, bill_number, limit ?? 50);
@@ -607,7 +607,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit }) => {
       const data = await getBillRelatedBills(congress, bill_type, bill_number, limit ?? 50);
@@ -640,7 +640,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 100)"),
+      limit: z.number().int().positive().max(250).default(100).describe("Max results (default: 100)"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit }) => {
       const data = await getBillSubjects(congress, bill_type, bill_number, limit ?? 100);
@@ -695,7 +695,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 100)"),
+      limit: z.number().int().positive().max(250).default(100).describe("Max results (default: 100)"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit }) => {
       const data = await getBillTitles(congress, bill_type, bill_number, limit ?? 100);
@@ -728,7 +728,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 250)"),
+      limit: z.number().int().positive().max(250).default(250).describe("Max results (default: 250)"),
       sort: z.string().optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit, sort }) => {
@@ -806,7 +806,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number (e.g., 119). Default: current"),
       chamber: z.enum(keysEnum(CHAMBERS)).optional().describe("Chamber"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -840,7 +840,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       chamber: z.enum(keysEnum(CHAMBERS)).describe("Chamber"),
       committee_code: z.string().describe("Committee system code (e.g., 'hsba00' for House Financial Services, 'ssfi00' for Senate Finance)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ chamber, committee_code, limit }) => {
       const data = await getCommitteeBills(chamber, committee_code, limit ?? 20);
@@ -898,7 +898,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number (default: current)"),
       amendment_type: z.enum(keysEnum(AMENDMENT_TYPES)).optional().describe("Amendment type"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -969,7 +969,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Congress: Nominations", readOnlyHint: true },
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number (default: current)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1040,7 +1040,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Congress: Treaties", readOnlyHint: true },
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number (default: all)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1111,7 +1111,7 @@ export const tools: Tool<any, any>[] = [
       "CRS reports are considered the gold standard for policy research.",
     annotations: { title: "Congress: CRS Reports", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1178,7 +1178,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number to filter by (omit for all congresses)"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).optional().describe("Bill type to filter by"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
       sort: z.string().optional().describe("Sort order: updateDate+asc or updateDate+desc"),
@@ -1221,7 +1221,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Specific congress number (e.g., 118). Omit to list recent congresses"),
       current: z.boolean().optional().describe("Set true to get the current congress info"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results when listing (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results when listing (default: 20)"),
     }),
     execute: async ({ congress, current, limit }) => {
       const data = await getCongressInfo({ congress, current, limit });
@@ -1258,7 +1258,7 @@ export const tools: Tool<any, any>[] = [
       year: z.number().int().optional().describe("Year (e.g., 2024)"),
       month: z.number().int().min(1).max(12).optional().describe("Month (1-12)"),
       day: z.number().int().min(1).max(31).optional().describe("Day of month"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ year, month, day, limit }) => {
       const data = await getCongressionalRecord({ year, month, day, limit });
@@ -1327,7 +1327,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().optional().describe("Congress number"),
       report_type: z.enum(keysEnum(REPORT_TYPES)).optional().describe(`Report type: ${describeEnum(REPORT_TYPES)}`),
       conference: z.boolean().optional().describe("Filter to conference reports only"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1397,7 +1397,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number"),
       chamber: z.enum(keysEnum(CHAMBERS)).optional().describe("Chamber"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1464,7 +1464,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number"),
       chamber: z.enum(keysEnum(CHAMBERS)).optional().describe("Chamber"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -1535,7 +1535,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number"),
       chamber: z.enum(keysEnum(CHAMBERS)).optional().describe("Chamber"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ congress, chamber, limit }) => {
       const data = await listHearings({ congress, chamber, limit });
@@ -1600,7 +1600,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       volume_number: z.number().int().optional().describe("Volume number (e.g., 171)"),
       issue_number: z.number().int().optional().describe("Issue number (requires volume_number)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ volume_number, issue_number, limit }) => {
       const data = await getDailyCongressionalRecord({ volumeNumber: volume_number, issueNumber: issue_number, limit });
@@ -1649,7 +1649,7 @@ export const tools: Tool<any, any>[] = [
       year: z.number().int().optional().describe("Year (e.g., 1990)"),
       month: z.number().int().min(1).max(12).optional().describe("Month (1-12)"),
       day: z.number().int().min(1).max(31).optional().describe("Day of month"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ year, month, day, limit }) => {
       const data = await getBoundCongressionalRecord({ year, month, day, limit });
@@ -1683,7 +1683,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number"),
       communication_type: z.enum(keysEnum(HOUSE_COMMUNICATION_TYPES)).optional().describe(`Communication type: ${describeEnum(HOUSE_COMMUNICATION_TYPES)}`),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ congress, communication_type, limit }) => {
       const data = await listHouseCommunications({ congress, communicationType: communication_type, limit });
@@ -1750,7 +1750,7 @@ export const tools: Tool<any, any>[] = [
       "Shows requirement number, frequency, and matching communications count.",
     annotations: { title: "Congress: House Requirements", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ limit }) => {
       const data = await listHouseRequirements({ limit });
@@ -1810,7 +1810,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       congress: z.number().int().optional().describe("Congress number"),
       communication_type: z.enum(keysEnum(SENATE_COMMUNICATION_TYPES)).optional().describe(`Communication type: ${describeEnum(SENATE_COMMUNICATION_TYPES)}`),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ congress, communication_type, limit }) => {
       const data = await listSenateCommunications({ congress, communicationType: communication_type, limit });
@@ -1993,7 +1993,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       amendment_type: z.enum(keysEnum(AMENDMENT_TYPES)).describe("Amendment type"),
       amendment_number: z.union([z.string(), z.number()]).describe("Amendment number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 250)"),
+      limit: z.number().int().positive().max(250).default(250).describe("Max results (default: 250)"),
     }),
     execute: async ({ congress, amendment_type, amendment_number, limit }) => {
       const data = await getAmendmentCosponsors(congress, amendment_type, amendment_number, limit ?? 250);
@@ -2026,7 +2026,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       amendment_type: z.enum(keysEnum(AMENDMENT_TYPES)).describe("Amendment type"),
       amendment_number: z.union([z.string(), z.number()]).describe("Amendment number"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
     }),
     execute: async ({ congress, amendment_type, amendment_number, limit }) => {
       const data = await getAmendmentAmendments(congress, amendment_type, amendment_number, limit ?? 50);
@@ -2092,7 +2092,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       chamber: z.enum(keysEnum(CHAMBERS)).describe("Chamber"),
       committee_code: z.string().describe("Committee system code (e.g., 'hsju00')"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
     }),
@@ -2126,7 +2126,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       chamber: z.enum(keysEnum(CHAMBERS)).describe("Chamber (usually 'senate' for nominations)"),
       committee_code: z.string().describe("Committee system code (e.g., 'ssju00' for Senate Judiciary)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ chamber, committee_code, limit }) => {
       const data = await getCommitteeNominations(chamber, committee_code, limit ?? 20);
@@ -2156,7 +2156,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Congress: Committee's House Communications", readOnlyHint: true },
     parameters: z.object({
       committee_code: z.string().describe("House committee system code (e.g., 'hsgo00')"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ committee_code, limit }) => {
       const data = await getCommitteeHouseCommunications(committee_code, limit ?? 20);
@@ -2185,7 +2185,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Congress: Committee's Senate Communications", readOnlyHint: true },
     parameters: z.object({
       committee_code: z.string().describe("Senate committee system code (e.g., 'ssfr00')"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ committee_code, limit }) => {
       const data = await getCommitteeSenateCommunications(committee_code, limit ?? 20);
@@ -2279,7 +2279,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       nomination_number: z.union([z.string(), z.number()]).describe("Nomination number"),
       ordinal: z.number().int().describe("Position ordinal (typically 1)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ congress, nomination_number, ordinal, limit }) => {
       const data = await getNominationNominees(congress, nomination_number, ordinal, limit ?? 20);
@@ -2310,7 +2310,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Congress: House Requirement Matching Communications", readOnlyHint: true },
     parameters: z.object({
       requirement_number: z.number().int().describe("Requirement number (e.g., 8070)"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 20)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
     }),
     execute: async ({ requirement_number, limit }) => {
       const data = await getHouseRequirementMatchingCommunications(requirement_number, limit ?? 20);
@@ -2375,7 +2375,7 @@ export const tools: Tool<any, any>[] = [
       congress: z.number().int().describe("Congress number"),
       treaty_number: z.union([z.string(), z.number()]).describe("Treaty document number"),
       treaty_suffix: z.string().describe("Treaty partition letter (e.g., 'A', 'B')"),
-      limit: z.number().int().positive().max(250).optional().describe("Max results (default: 50)"),
+      limit: z.number().int().positive().max(250).default(50).describe("Max results (default: 50)"),
     }),
     execute: async ({ congress, treaty_number, treaty_suffix, limit }) => {
       const data = await getTreatyActionsWithSuffix(congress, treaty_number, treaty_suffix, limit ?? 50);
@@ -2665,7 +2665,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       chamber: z.enum(keysEnum(CHAMBERS)).describe("Chamber"),
       committee_code: z.string().describe("Committee system code (e.g., 'hsba00' for House Financial Services, 'ssju00' for Senate Judiciary)"),
-      limit: z.number().int().positive().max(50).optional().describe("Max items per sub-resource (default: 10)"),
+      limit: z.number().int().positive().max(50).default(10).describe("Max items per sub-resource (default: 10)"),
     }),
     execute: async ({ chamber, committee_code, limit }) => {
       const data = await getCommitteeFullProfile(chamber, committee_code, limit ?? 10);

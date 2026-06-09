@@ -33,7 +33,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       start_date: z.string().optional().describe("Start date: '2020-01-01'"),
       end_date: z.string().optional().describe("End date: '2024-12-31'"),
-      limit: z.number().int().max(120).optional().describe("Months of data (default 24 = 2 years)"),
+      limit: z.number().int().max(120).default(24).describe("Months of data (default 24 = 2 years)"),
     }),
     execute: async (args) => {
       const data = await getTransportStats({
@@ -57,7 +57,7 @@ export const tools: Tool<any, any>[] = [
       border: z.enum(["US-Mexico Border", "US-Canada Border"]).optional().describe("Border"),
       port_name: z.string().optional().describe("Port of entry name: 'El Paso', 'San Ysidro', 'Detroit'"),
       measure: z.enum(keysEnum(BORDER_MEASURES)).optional().describe(`Measure type: ${describeEnum(BORDER_MEASURES)}`),
-      limit: z.number().int().max(100).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Max results (default 20)"),
     }),
     execute: async (args) => {
       const data = await getBorderCrossings({

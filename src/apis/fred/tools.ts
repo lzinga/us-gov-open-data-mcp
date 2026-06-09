@@ -17,7 +17,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "FRED: Search", readOnlyHint: true },
     parameters: z.object({
       query: z.string().describe("Keywords"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Max results (default 20)"),
     }),
     execute: async ({ query, limit }) => {
       const data = await searchSeries(query, limit ?? 20);
@@ -52,7 +52,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "FRED: Series Data", readOnlyHint: true },
     parameters: z.object({
       series_id: z.string().describe("Series ID"),
-      limit: z.number().int().max(100000).optional().describe("Max obs (default 1000)"),
+      limit: z.number().int().max(100000).default(1000).describe("Max obs (default 1000)"),
       sort_order: z.enum(["asc", "desc"]).optional().describe("default: desc"),
       frequency: z.string().optional().describe("d, w, bw, m, q, sa, a"),
       start_date: z.string().optional().describe("YYYY-MM-DD"),

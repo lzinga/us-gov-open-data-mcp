@@ -32,7 +32,7 @@ export const tools: Tool<any, any>[] = [
       fields: z.string().optional().describe("Comma-separated fields to return: 'INSTNAME,STALP,ASSET,DEP,NETINC'"),
       sort_by: z.string().optional().describe("Sort field: 'ASSET', 'DEP', 'INSTNAME', 'NETINC'"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25, max 100)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25, max 100)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -58,7 +58,7 @@ export const tools: Tool<any, any>[] = [
       filters: z.string().optional().describe("Lucene-style filter: 'PSTALP:\"GA\"', 'FAILDATE:[2008-01-01 TO 2010-12-31]'"),
       sort_by: z.string().optional().describe("Sort field: 'FAILDATE' (default), 'COST', 'QBFASSET'"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25, max 100)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25, max 100)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -85,7 +85,7 @@ export const tools: Tool<any, any>[] = [
       fields: z.string().optional().describe("Fields: 'CERT,INSTNAME,REPDTE,ASSET,DEP,NETINC,ROA,ROE'"),
       sort_by: z.string().optional().describe("Sort field: 'REPDTE' (default), 'ASSET', 'NETINC'"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -111,7 +111,7 @@ export const tools: Tool<any, any>[] = [
       fields: z.string().optional().describe("Fields to return"),
       sort_by: z.string().optional().describe("Sort field"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -137,7 +137,7 @@ export const tools: Tool<any, any>[] = [
       filters: z.string().optional().describe("Filter: 'STALP:\"NY\"', 'CERT:3511', 'CITY:\"New York\"'"),
       sort_by: z.string().optional().describe("Sort field: 'DEPSUMBR' (branch deposits), 'INSTNAME'"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -162,7 +162,7 @@ export const tools: Tool<any, any>[] = [
       filters: z.string().optional().describe("Filter: 'CERT:3511', 'PSTALP:\"CA\"'"),
       sort_by: z.string().optional().describe("Sort field: 'EFFDATE' (effective date)"),
       sort_order: z.enum(["ASC", "DESC"]).optional().describe("Sort direction"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {

@@ -37,7 +37,7 @@ export const tools: Tool<any, any>[] = [
       state: z.string().optional().describe("Two-letter state: 'CA', 'TX', 'NY'"),
       specialty: z.string().optional().describe("Medical specialty (partial match): 'Cardiology', 'Orthopedic', 'Psychiatry'"),
       year: z.string().optional().describe("Payment year (auto-discovers latest if omitted). Available: 2018-2024+, new years added automatically when CMS publishes."),
-      limit: z.number().int().max(100).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Max results (default 20)"),
     }),
     execute: async (args) => {
       const data = await searchPayments(args);
@@ -62,7 +62,7 @@ export const tools: Tool<any, any>[] = [
       state: z.string().optional().describe("Two-letter state: 'WA', 'CA', 'TX'"),
       specialty: z.string().optional().describe("Specialty: 'Orthopaedic', 'Cardio', 'Neurology'"),
       year: z.string().optional().describe("Year (auto-discovers latest)"),
-      limit: z.number().int().max(100).optional().describe("Number of top results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Number of top results (default 20)"),
     }),
     execute: async (args) => {
       const data = await searchPaymentsAdvanced({
@@ -90,7 +90,7 @@ export const tools: Tool<any, any>[] = [
       specialty: z.string().optional().describe("Specialty: 'Orthopaedic', 'Cardio', 'Neurology'"),
       company: z.string().optional().describe("Company name: 'Pfizer', 'Stryker'"),
       year: z.string().optional().describe("Year (auto-discovers latest)"),
-      limit: z.number().int().max(100).optional().describe("Number of top doctors (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Number of top doctors (default 20)"),
     }),
     execute: async (args) => {
       const data = await getTopDoctorTotals(args);
@@ -109,7 +109,7 @@ export const tools: Tool<any, any>[] = [
       "Shows total amounts and number of payments per company.",
     annotations: { title: "Open Payments: By Company", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().max(50).optional().describe("Number of companies to return (default 20)"),
+      limit: z.number().int().max(50).default(20).describe("Number of companies to return (default 20)"),
     }),
     execute: async (args) => {
       const data = await getPaymentsByCompany({ limit: args.limit });
@@ -149,7 +149,7 @@ export const tools: Tool<any, any>[] = [
       doctor: z.string().optional().describe("Doctor last name: 'Smith'"),
       state: z.string().optional().describe("Two-letter state: 'CA', 'WA'"),
       year: z.string().optional().describe("Year (auto-discovers latest if omitted)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Max results (default 20)"),
     }),
     execute: async (args) => {
       const data = await searchResearchPayments(args);
@@ -172,7 +172,7 @@ export const tools: Tool<any, any>[] = [
       doctor: z.string().optional().describe("Doctor last name"),
       state: z.string().optional().describe("Two-letter state: 'CA', 'WA'"),
       year: z.string().optional().describe("Year (auto-discovers latest if omitted)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Max results (default 20)"),
     }),
     execute: async (args) => {
       const data = await searchOwnershipPayments(args);
@@ -191,7 +191,7 @@ export const tools: Tool<any, any>[] = [
       "Pre-aggregated totals — shows how much each doctor received from pharma overall.",
     annotations: { title: "Open Payments: By Physician", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().max(100).optional().describe("Number of physicians (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Number of physicians (default 20)"),
     }),
     execute: async (args) => {
       const data = await getPaymentsByPhysician({ limit: args.limit });
@@ -210,7 +210,7 @@ export const tools: Tool<any, any>[] = [
       "Shows total pharma payments to teaching hospitals — useful for identifying institutional conflicts of interest.",
     annotations: { title: "Open Payments: By Hospital", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().max(100).optional().describe("Number of hospitals (default 20)"),
+      limit: z.number().int().max(100).default(20).describe("Number of hospitals (default 20)"),
     }),
     execute: async (args) => {
       const data = await getPaymentsByTeachingHospital({ limit: args.limit });
@@ -229,7 +229,7 @@ export const tools: Tool<any, any>[] = [
       "Shows which specialties receive the most pharma money — cardiologists, orthopedic surgeons, psychiatrists, etc.",
     annotations: { title: "Open Payments: By Specialty", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().max(100).optional().describe("Number of specialties (default 30)"),
+      limit: z.number().int().max(100).default(30).describe("Number of specialties (default 30)"),
     }),
     execute: async (args) => {
       const data = await getPaymentsBySpecialty({ limit: args.limit });

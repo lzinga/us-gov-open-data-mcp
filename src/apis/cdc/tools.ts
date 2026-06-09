@@ -15,7 +15,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Full state name: 'New York', 'California', 'Texas'. Omit for all states"),
       year: z.number().int().optional().describe("Year (1999–2017). Omit for all years"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, year, limit }) => {
       const data = await getLeadingCausesOfDeath({ state, year, limit });
@@ -35,7 +35,7 @@ export const tools: Tool<any, any>[] = [
       year: z.number().int().optional().describe("Year (1900–2018)"),
       race: z.enum(["All Races", "Black", "White"]).optional().describe("Race filter"),
       sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Sex filter"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ year, race, sex, limit }) => {
       const data = await getLifeExpectancy({ year, race, sex, limit });
@@ -55,7 +55,7 @@ export const tools: Tool<any, any>[] = [
       quarter: z.string().optional().describe("Quarter: '2024 Q4', '2025 Q1'. Omit for all."),
       cause: z.string().optional().describe("'All causes', 'Heart disease', 'Cancer', 'COVID-19', 'Drug overdose', 'Suicide', 'Diabetes', 'Alzheimer disease'"),
       rate_type: z.enum(["Age-adjusted", "Crude"]).optional().describe("Rate type (default: Age-adjusted)"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ quarter, cause, rate_type, limit }) => {
       const data = await getMortalityRates({ quarter, cause, rateType: rate_type, limit });
@@ -80,7 +80,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'. Omit for all."),
       measure: z.string().optional().describe("Measure ID: 'OBESITY', 'DIABETES', 'CSMOKING', 'DEPRESSION', 'BINGE', 'SLEEP', 'BPHIGH', 'LPA', 'ACCESS2', 'FOODINSECU', 'LONELINESS', 'HOUSINSECU'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, measure, limit }) => {
       const data = await getPlacesHealth({ state, measure, limit });
@@ -101,7 +101,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'"),
       city: z.string().optional().describe("City name (partial match): 'Los Angeles', 'Chicago'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, city, limit }) => {
       const data = await getPlacesCityHealth({ state, city, limit });
@@ -122,7 +122,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Full state name: 'New York', 'California'. Omit for all."),
       year: z.number().int().optional().describe("Year (2020–present). Omit for all."),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, year, limit }) => {
       const data = await getWeeklyDeaths({ state, year, limit });
@@ -143,7 +143,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state code: 'NY', 'CA'. Omit for all."),
       disability_type: z.string().optional().describe("'Any Disability', 'Mobility Disability', 'Cognitive Disability', 'Hearing Disability', 'Vision Disability', 'Self-care Disability', 'Independent Living Disability'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, disability_type, limit }) => {
       const data = await getDisabilityData({ state, disabilityType: disability_type, limit });
@@ -164,7 +164,7 @@ export const tools: Tool<any, any>[] = [
       state: z.string().optional().describe("Full state name: 'West Virginia', 'Ohio', 'New Hampshire'. Omit for all."),
       year: z.number().int().optional().describe("Year (1999\u20132016)"),
       sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Sex filter"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, year, sex, limit }) => {
       const data = await getDrugOverdoseData({ state, year, sex, limit });
@@ -184,7 +184,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'. Omit for all."),
       topic: z.string().optional().describe("'Obesity', 'Physical Activity', 'Fruits and Vegetables'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, topic, limit }) => {
       const data = await getNutritionObesityData({ state, topic, limit });
@@ -206,7 +206,7 @@ export const tools: Tool<any, any>[] = [
       cause: z.enum(["Heart Disease", "Cancer", "Stroke", "Unintentional injuries", "CLRD"]).optional().describe("Cause of death. Omit for all causes."),
       start_year: z.number().int().optional().describe("Start year (earliest: 1900)"),
       end_year: z.number().int().optional().describe("End year (latest: ~2017)"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ cause, start_year, end_year, limit }) => {
       const data = await getHistoricalDeathRates({ cause, startYear: start_year, endYear: end_year, limit });
@@ -227,7 +227,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       topic: z.string().optional().describe("'General Fertility', 'Teen Birth', 'Preterm', 'Cesarean', 'Low Birthweight', 'NICU', 'Medicaid'"),
       race_ethnicity: z.string().optional().describe("'All races and origins', 'Hispanic', 'Non-Hispanic Black', 'Non-Hispanic White', 'Non-Hispanic Asian'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ topic, race_ethnicity, limit }) => {
       const data = await getBirthIndicators({ topic, raceEthnicity: race_ethnicity, limit });
@@ -245,7 +245,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "CDC: COVID-19 Data", readOnlyHint: true },
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state abbreviation: 'NY', 'CA', 'TX'"),
-      limit: z.number().int().max(1000).optional().describe("Max records (default 200)"),
+      limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, limit }) => {
       const data = await getCovidData({ state, limit });
@@ -267,7 +267,7 @@ export const tools: Tool<any, any>[] = [
       select: z.string().optional().describe("SODA $select: 'year, state, deaths'"),
       order: z.string().optional().describe("SODA $order: 'year DESC'"),
       group: z.string().optional().describe("SODA $group: 'year'"),
-      limit: z.number().int().max(1000).optional().describe("Max rows (default 1000)"),
+      limit: z.number().int().max(1000).default(1000).describe("Max rows (default 1000)"),
     }),
     execute: async ({ dataset_id, where, select, order, group, limit }) => {
       const data = await queryDataset(dataset_id, { where, select, order, group, limit });

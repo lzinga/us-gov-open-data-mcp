@@ -29,7 +29,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       dataset_id: z.string().optional().describe("e.g. 'GHCND', 'GSOM'"),
       location_id: z.string().optional().describe("e.g. 'FIPS:36' (NY), 'FIPS:06' (CA)"),
-      limit: z.number().int().max(1000).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(1000).default(25).describe("Max results (default 25)"),
     }),
     execute: async ({ dataset_id, location_id, limit }) => {
       const stations = await searchStations({
@@ -54,7 +54,7 @@ export const tools: Tool<any, any>[] = [
       station_id: z.string().optional().describe("Station ID, e.g. 'GHCND:USW00094728' (Central Park, NYC)"),
       location_id: z.string().optional().describe("Location ID, e.g. 'FIPS:36' (NY state)"),
       datatype_id: z.string().optional().describe("Data type: TMAX, TMIN, TAVG, PRCP, SNOW, SNWD, AWND"),
-      limit: z.number().int().max(1000).optional().describe("Max observations (default 1000)"),
+      limit: z.number().int().max(1000).default(1000).describe("Max observations (default 1000)"),
     }),
     execute: async ({ dataset_id, start_date, end_date, station_id, location_id, datatype_id, limit }) => {
       const result = await getClimateData({
@@ -81,7 +81,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       category: z.enum(["ST", "CITY", "CNTRY", "CLIM_REG"]).optional().describe("Location category: ST=states, CITY, CNTRY=countries, CLIM_REG=climate regions"),
       dataset_id: z.string().optional().describe("Filter by dataset, e.g. 'GHCND'"),
-      limit: z.number().int().max(1000).optional().describe("Max results (default 50)"),
+      limit: z.number().int().max(1000).default(50).describe("Max results (default 50)"),
     }),
     execute: async ({ category, dataset_id, limit }) => {
       const locations = await searchLocations({ categoryId: category, datasetId: dataset_id, limit });

@@ -81,7 +81,7 @@ export const tools: Tool<any, any>[] = [
       office: z.enum(["H", "S", "P"]).optional().describe("Office: H=House, S=Senate, P=President"),
       election_year: z.number().optional().describe("Election year, e.g. 2024"),
       page: z.number().int().positive().optional().describe("Page number (default: 1)"),
-      per_page: z.number().int().positive().max(100).optional().describe("Results per page (default: 20, max: 100)"),
+      per_page: z.number().int().positive().max(100).default(20).describe("Results per page (default: 20, max: 100)"),
     }),
     execute: async ({ name: candidateName, state, party, office, election_year, page, per_page }) => {
       const data = await searchCandidates({
@@ -115,7 +115,7 @@ export const tools: Tool<any, any>[] = [
       ),
       cycle: z.number().optional().describe("Two-year election cycle, e.g. 2024"),
       page: z.number().int().positive().optional().describe("Page number (default: 1)"),
-      per_page: z.number().int().positive().max(100).optional().describe("Results per page (default: 20)"),
+      per_page: z.number().int().positive().max(100).default(20).describe("Results per page (default: 20)"),
     }),
     execute: async ({ name: committeeName, state, committee_type, cycle, page, per_page }) => {
       const data = await searchCommittees({
@@ -182,7 +182,7 @@ export const tools: Tool<any, any>[] = [
       office: z.enum(["H", "S", "P"]).describe("Office: H=House, S=Senate, P=President"),
       election_year: z.number().describe("Election year, e.g. 2024"),
       state: z.string().optional().describe("Two-letter state code to filter by"),
-      per_page: z.number().int().positive().max(50).optional().describe("Number of results (default: 20)"),
+      per_page: z.number().int().positive().max(50).default(20).describe("Number of results (default: 20)"),
     }),
     execute: async ({ office, election_year, state, per_page }) => {
       const officeNames: Record<string, string> = { H: "House", S: "Senate", P: "President" };
@@ -221,7 +221,7 @@ export const tools: Tool<any, any>[] = [
       committee_id: z.string().describe("FEC committee ID (e.g. 'C00016683' for Pfizer PAC). Get from fec_search_committees."),
       cycle: z.number().int().optional().describe("Election cycle year (e.g. 2024, 2026). Must be even year."),
       recipient_name: z.string().optional().describe("Filter to specific recipient: 'Pelosi', 'McConnell', 'NRCC', 'DSCC'"),
-      per_page: z.number().int().max(100).optional().describe("Results per page (default 20)"),
+      per_page: z.number().int().max(100).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ committee_id, cycle, recipient_name, per_page }) => {
       const data = await getCommitteeDisbursements({ committee_id, cycle, recipient_name, per_page });

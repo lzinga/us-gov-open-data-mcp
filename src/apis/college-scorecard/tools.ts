@@ -53,7 +53,7 @@ export const tools: Tool<any, any>[] = [
       state: z.string().optional().describe("Two-letter state code: 'CA', 'NY', 'TX'"),
       ownership: z.number().int().optional().describe("1=Public, 2=Private nonprofit, 3=Private for-profit"),
       sort: z.string().optional().describe("Sort field: 'latest.cost.tuition.out_of_state:desc', 'latest.earnings.10_yrs_after_entry.median:desc', 'latest.completion.rate_suppressed.overall:desc'"),
-      per_page: z.number().int().max(100).optional().describe("Results per page (default 20, max 100)"),
+      per_page: z.number().int().max(100).default(20).describe("Results per page (default 20, max 100)"),
     }),
     execute: async ({ name, state, ownership, sort, per_page }) => {
       const data = await searchSchools({ name, state, ownership, sort, perPage: per_page });
@@ -99,7 +99,7 @@ export const tools: Tool<any, any>[] = [
       ranking: z.enum(["earnings", "graduation", "expensive"]).describe("Ranking metric"),
       state: z.string().optional().describe("Filter to state: 'CA', 'NY', 'TX'"),
       ownership: z.number().int().optional().describe("1=Public, 2=Private nonprofit, 3=Private for-profit"),
-      per_page: z.number().int().max(100).optional().describe("Number of schools (default 20)"),
+      per_page: z.number().int().max(100).default(20).describe("Number of schools (default 20)"),
     }),
     execute: async ({ ranking, state, ownership, per_page }) => {
       let data;
@@ -133,7 +133,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       filters: z.string().describe("Semicolon-separated filter params: 'school.state=CA;latest.admissions.admission_rate.overall__range=0..0.20;school.degrees_awarded.predominant=3'"),
       sort: z.string().optional().describe("Sort: 'latest.earnings.10_yrs_after_entry.median:desc'"),
-      per_page: z.number().int().max(100).optional().describe("Results per page (default 20)"),
+      per_page: z.number().int().max(100).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ filters, sort, per_page }) => {
       const params: Record<string, string | number | undefined> = {};

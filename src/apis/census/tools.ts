@@ -107,7 +107,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       dataset: z.string().describe("Census dataset path, e.g. '2023/acs/acs1'"),
       keyword: z.string().describe("Keyword to search for, e.g. 'income', 'poverty', 'housing', 'education'"),
-      max_results: z.number().int().positive().max(50).optional().describe("Maximum results (default: 20)"),
+      max_results: z.number().int().positive().max(50).default(20).describe("Maximum results (default: 20)"),
     }),
     execute: async ({ dataset, keyword, max_results }) => {
       const matches = await searchVariables(dataset, keyword, max_results ?? 20);

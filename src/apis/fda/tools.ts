@@ -40,7 +40,7 @@ function total(data: any): number {
 /** Standard search + limit params used by nearly every tool. */
 const searchParams = z.object({
   search: z.string().optional().describe("OpenFDA search query. Examples: 'field:value', 'field:\"Exact Phrase\"', 'field:[20200101+TO+20231231]', '_exists_:field'. Combine with '+AND+', '+OR+', '+NOT+'."),
-  limit: z.number().int().max(100).optional().describe("Max results (default 10, max 100)"),
+  limit: z.number().int().max(100).default(10).describe("Max results (default 10, max 100)"),
 });
 
 const endpointEnum = keysEnum(FDA_ENDPOINTS);
@@ -96,7 +96,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       count_field: z.string().describe("Field to count by. Use '.exact' suffix for full phrase counts. E.g. 'patient.reaction.reactionmeddrapt.exact'"),
       search: z.string().optional().describe("Optional search filter, e.g. 'patient.drug.openfda.brand_name:aspirin'"),
-      limit: z.number().int().max(1000).optional().describe("Max count results (default 10)"),
+      limit: z.number().int().max(1000).default(10).describe("Max count results (default 10)"),
     }),
     execute: async ({ count_field, search, limit }) => {
       const data = await countDrugEvents(count_field, { search, limit });

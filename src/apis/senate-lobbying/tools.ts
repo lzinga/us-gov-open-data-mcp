@@ -43,7 +43,7 @@ export const tools: Tool<any, any>[] = [
       issue_code: z.enum(keysEnum(ISSUE_CODES)).optional().describe(`Issue area code: ${describeEnum(ISSUE_CODES)}`),
       filing_year: z.number().int().optional().describe("Year: 2020-2026"),
       filing_type: z.enum(keysEnum(FILING_TYPES)).optional().describe(`Filing type: ${describeEnum(FILING_TYPES)}`),
-      page_size: z.number().int().max(25).optional().describe("Results per page (default 20)"),
+      page_size: z.number().int().max(25).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ registrant_name, client_name, issue_code, filing_year, filing_type, page_size }) => {
       const data = await searchFilings({ registrant_name, client_name, issue_code, filing_year, filing_type, page_size });
@@ -95,7 +95,7 @@ export const tools: Tool<any, any>[] = [
       filing_year: z.number().int().optional().describe("Year: 2020-2026"),
       registrant_name: z.string().optional().describe("Lobbying firm name"),
       lobbyist_name: z.string().optional().describe("Individual lobbyist name"),
-      page_size: z.number().int().max(25).optional().describe("Results per page (default 20)"),
+      page_size: z.number().int().max(25).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ filing_year, registrant_name, lobbyist_name, page_size }) => {
       const data = await searchContributions({ filing_year, registrant_name, lobbyist_name, page_size });
@@ -135,7 +135,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Lobbying: Search Registrants", readOnlyHint: true },
     parameters: z.object({
       name: z.string().describe("Registrant name: 'Amazon', 'Pfizer', 'National Rifle Association'"),
-      page_size: z.number().int().max(25).optional().describe("Results per page (default 20)"),
+      page_size: z.number().int().max(25).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ name, page_size }) => {
       const data = await searchRegistrants({ registrant_name: name, page_size });
@@ -163,7 +163,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       name: z.string().optional().describe("Lobbyist name (partial match): 'Smith', 'Johnson'"),
       firm: z.string().optional().describe("Lobbying firm name: 'Akin Gump', 'K Street'"),
-      page_size: z.number().int().max(50).optional().describe("Results per page (default 20)"),
+      page_size: z.number().int().max(50).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ name, firm, page_size }) => {
       const data = await searchLobbyists({ lobbyist_name: name, registrant_name: firm, page_size });

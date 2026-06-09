@@ -401,6 +401,32 @@ async function fetchTimeout(url: string, init: RequestInit | undefined, timeoutM
 
 const RETRYABLE = [429, 502, 503, 504];
 
+/**
+ * Parse a `Retry-After` header value.
+ * RFC 7231 allows either delta-seconds (an integer) or an HTTP-date.
+ * Returns the wait time in ms, or null if the header is absent/unparseable.
+ */
+function parseRetryAfter(header: string | null): number | null {
+  if (!header) return null;
+  const trimmed = header.trim();
+  // Delta-seconds form
+  if (/^\d+$/.test(trimmed)) {
+    return parseInt(trimmed, 10) * 1000;
+  }
+  // HTTP-date form (e.g. "Wed, 21 Oct 2026 07:28:00 GMT")
+  const dateMs = Date.parse(trimmed);
+  if (!isNaN(dateMs)) {
+    return Math.max(0, dateMs - Date.now());
+  }
+  return null;
+}
+
+/** Exponential backoff with full jitter; prevents synchronized retry stampedes. */
+function backoffDelay(attempt: number): number {
+  const base = 1000 * 2 ** attempt;
+  return Math.floor(base * (0.5 + Math.random() * 0.5));
+}
+
 async function fetchRetry(
   url: string,
   init: RequestInit | undefined,
@@ -416,8 +442,8 @@ async function fetchRetry(
     try {
       const res = await fetchTimeout(url, init, timeoutMs);
       if (RETRYABLE.includes(res.status) && attempt < maxRetries) {
-        const retryAfter = res.headers.get("Retry-After");
-        const delay = retryAfter ? (+retryAfter || 1) * 1000 : 1000 * 2 ** attempt;
+        const retryAfterMs = parseRetryAfter(res.headers.get("Retry-After"));
+        const delay = retryAfterMs ?? backoffDelay(attempt);
         console.error(`${name}: HTTP ${res.status}, retry in ${delay}ms (${attempt + 1}/${maxRetries})`);
         await new Promise(r => setTimeout(r, delay));
         continue;
@@ -426,7 +452,7 @@ async function fetchRetry(
     } catch (e) {
       lastErr = e instanceof Error ? e : new Error(String(e));
       if (attempt < maxRetries) {
-        const delay = 1000 * 2 ** attempt;
+        const delay = backoffDelay(attempt);
         console.error(`${name}: ${lastErr.message}, retry in ${delay}ms (${attempt + 1}/${maxRetries})`);
         await new Promise(r => setTimeout(r, delay));
       }

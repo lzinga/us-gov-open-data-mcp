@@ -29,7 +29,7 @@ export const tools: Tool<any, any>[] = [
         "'CREC' (Congressional Record), 'BUDGET', 'FR' (Federal Register)",
       ),
       congress: z.number().int().optional().describe("Filter by Congress number (e.g., 119)"),
-      page_size: z.number().int().optional().describe("Results per page (default: 10, max: 100)"),
+      page_size: z.number().int().default(10).describe("Results per page (default: 10, max: 100)"),
     }),
     execute: async ({ query, collection, congress, page_size }) => {
       const data = await searchPublications({ query, collection, congress, pageSize: page_size });
@@ -149,7 +149,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "GovInfo: CBO Cost Estimates & Reports", readOnlyHint: true },
     parameters: z.object({
       query: z.string().describe("Search query — bill name or topic (e.g., 'Tax Cuts and Jobs Act', 'reconciliation')"),
-      page_size: z.number().int().optional().describe("Results per page (default: 10)"),
+      page_size: z.number().int().default(10).describe("Results per page (default: 10)"),
     }),
     execute: async ({ query, page_size }) => {
       const data = await searchCboReports(query, page_size);

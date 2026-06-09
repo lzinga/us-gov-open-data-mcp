@@ -29,7 +29,7 @@ export const tools: Tool<any, any>[] = [
       year: z.number().optional().describe("Filter by year of declaration"),
       incident_type: z.string().optional().describe("Incident type: Hurricane, Flood, Fire, Severe Storm(s), Tornado, Earthquake, Snow, Biological"),
       declaration_type: z.string().optional().describe("DR=Major Disaster, EM=Emergency, FM=Fire Management"),
-      top: z.number().optional().describe("Max results (default 50)"),
+      top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Number of records to skip for pagination"),
     }),
     execute: async (args) => {
@@ -54,7 +54,7 @@ export const tools: Tool<any, any>[] = [
       disaster_number: z.number().optional().describe("FEMA disaster number (from disaster declarations)"),
       state: z.string().max(2).optional().describe("Two-letter state code"),
       county: z.string().optional().describe("County name"),
-      top: z.number().optional().describe("Max results (default 50)"),
+      top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Number of records to skip"),
     }),
     execute: async (args) => {
@@ -77,7 +77,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       disaster_number: z.number().optional().describe("FEMA disaster number"),
       state: z.string().max(2).optional().describe("Two-letter state code"),
-      top: z.number().optional().describe("Max results (default 50)"),
+      top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Number of records to skip"),
     }),
     execute: async (args) => {
@@ -116,7 +116,7 @@ export const tools: Tool<any, any>[] = [
       filter: z.string().optional().describe("OData $filter expression (e.g. \"state eq 'TX' and yearOfLoss eq '2017'\")"),
       select: z.string().optional().describe("Comma-separated fields to return (OData $select)"),
       order_by: z.string().optional().describe("OData $orderby expression (e.g. 'dateOfLoss desc')"),
-      top: z.number().optional().describe("Max results (default 50)"),
+      top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Offset for pagination"),
     }),
     execute: async (args) => {

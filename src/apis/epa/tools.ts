@@ -26,7 +26,7 @@ export const tools: Tool<any, any>[] = [
       media_type: z.string().optional().describe(`Media type: ${describeEnum(MEDIA_TYPES as Record<string, string>)}. Default: air`),
       major_only: z.boolean().optional().describe("Only show major facilities (true/false, default true)"),
       active_only: z.boolean().optional().describe("Only show active facilities (true/false, default true)"),
-      limit: z.number().int().max(1000).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(1000).default(20).describe("Max results (default 20)"),
     }),
     execute: async ({ state, media_type, major_only, active_only, limit }) => {
       const data = await searchFacilities({
@@ -165,7 +165,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       state: z.string().describe("Two-letter state code: 'CA', 'TX', 'NY'"),
       law: z.string().optional().describe("Filter by primary law: 'CAA' (Clean Air), 'CWA' (Clean Water), 'RCRA', 'CERCLA', 'TSCA', 'SDWA'"),
-      limit: z.number().int().max(1000).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(1000).default(20).describe("Max results (default 20)"),
     }),
     execute: async ({ state, law, limit }) => {
       const data = await searchEnforcementCases({ state, law, responseset: limit });
@@ -209,7 +209,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "EPA: RCRA Hazardous Waste", readOnlyHint: true },
     parameters: z.object({
       state: z.string().describe("Two-letter state code: 'CA', 'TX', 'NY'"),
-      limit: z.number().int().max(1000).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(1000).default(20).describe("Max results (default 20)"),
     }),
     execute: async ({ state, limit }) => {
       const data = await searchRCRAFacilities({ state, responseset: limit });

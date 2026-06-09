@@ -35,7 +35,7 @@ export const tools: Tool<any, any>[] = [
       insp_type: z.enum(["A", "B", "C", "H", "L"]).optional().describe("Inspection type: A=Accident, B=Complaint, C=Referral, H=Planned, L=High-hazard"),
       sort_by: z.string().optional().describe("Field to sort by: 'open_date' (default), 'close_case_date'"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -62,7 +62,7 @@ export const tools: Tool<any, any>[] = [
       standard: z.string().optional().describe("OSHA standard cited: '19100147' (control of hazardous energy)"),
       sort_by: z.string().optional().describe("Field to sort by: 'issuance_date' (default), 'current_penalty'"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -88,7 +88,7 @@ export const tools: Tool<any, any>[] = [
       event_keyword: z.string().optional().describe("Event keyword: 'fall', 'electrocution', 'struck', 'caught'"),
       sort_by: z.string().optional().describe("Field to sort by: 'event_date' (default)"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -112,7 +112,7 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       summary_nr: z.number().int().optional().describe("Accident summary number (links to specific accident)"),
       degree_of_inj: z.number().int().optional().describe("Degree of injury: 1=Fatality, 2=Hospitalized, 3=Non-hospitalized"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -139,7 +139,7 @@ export const tools: Tool<any, any>[] = [
       naics_code: z.string().optional().describe("NAICS industry code: '722511' (full-service restaurants)"),
       sort_by: z.string().optional().describe("Field to sort by: 'findings_end_date' (default), 'bw_atp_amt' (back wages)"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),
-      limit: z.number().int().max(100).optional().describe("Max results (default 25)"),
+      limit: z.number().int().max(100).default(25).describe("Max results (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
     }),
     execute: async (args) => {
@@ -160,7 +160,7 @@ export const tools: Tool<any, any>[] = [
       "Key economic indicator — spikes indicate labor market stress.",
     annotations: { title: "DOL: UI Claims National", readOnlyHint: true },
     parameters: z.object({
-      limit: z.number().int().max(200).optional().describe("Number of weekly records (default 25, use 52 for 1 year)"),
+      limit: z.number().int().max(200).default(25).describe("Number of weekly records (default 25, use 52 for 1 year)"),
       offset: z.number().int().optional().describe("Pagination offset"),
       sort_by: z.string().optional().describe("Field to sort by: 'rptdate' (default)"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),
@@ -183,7 +183,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "DOL: UI Claims by State", readOnlyHint: true },
     parameters: z.object({
       state: z.string().optional().describe("Two-letter state code: 'CA', 'TX', 'NY'. Omit for all states."),
-      limit: z.number().int().max(200).optional().describe("Number of records (default 25)"),
+      limit: z.number().int().max(200).default(25).describe("Number of records (default 25)"),
       offset: z.number().int().optional().describe("Pagination offset"),
       sort_by: z.string().optional().describe("Field to sort by: 'rptdate' (default)"),
       sort_order: z.enum(["desc", "asc"]).optional().describe("Sort direction (default: desc)"),

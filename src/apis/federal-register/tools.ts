@@ -41,7 +41,7 @@ export const tools: Tool<any, any>[] = [
       keyword: z.string().optional().describe("Search keyword in title/abstract, e.g. 'tariff', 'immigration', 'climate'"),
       president: z.string().optional().describe("President slug: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'"),
       year: z.number().int().optional().describe("Year to filter by, e.g. 2025"),
-      per_page: z.number().int().positive().max(100).optional().describe("Results per page (default: 20)"),
+      per_page: z.number().int().positive().max(100).default(20).describe("Results per page (default: 20)"),
       page: z.number().int().positive().optional().describe("Page number (default: 1)"),
     }),
     execute: async ({ keyword, president, year, per_page, page }) => {
@@ -68,7 +68,7 @@ export const tools: Tool<any, any>[] = [
       president: z.string().optional().describe("President slug: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'"),
       start_date: z.string().optional().describe("Start date YYYY-MM-DD"),
       end_date: z.string().optional().describe("End date YYYY-MM-DD"),
-      per_page: z.number().int().positive().max(100).optional().describe("Results per page (default: 20)"),
+      per_page: z.number().int().positive().max(100).default(20).describe("Results per page (default: 20)"),
     }),
     execute: async ({ keyword, doc_type, president, start_date, end_date, per_page }) => {
       const data = await searchPresidentialDocuments({ keyword, doc_type, president, start_date, end_date, per_page });
@@ -93,7 +93,7 @@ export const tools: Tool<any, any>[] = [
       agency: z.string().optional().describe("Agency slug, e.g. 'environmental-protection-agency', 'securities-and-exchange-commission'"),
       start_date: z.string().optional().describe("Start date YYYY-MM-DD"),
       end_date: z.string().optional().describe("End date YYYY-MM-DD"),
-      per_page: z.number().int().positive().max(100).optional().describe("Results per page (default: 20)"),
+      per_page: z.number().int().positive().max(100).default(20).describe("Results per page (default: 20)"),
       significant: z.boolean().optional().describe("Only show significant/major rules (true/false)"),
     }),
     execute: async ({ keyword, doc_type, agency, start_date, end_date, per_page, significant }) => {

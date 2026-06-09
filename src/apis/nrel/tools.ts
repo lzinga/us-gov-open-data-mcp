@@ -21,7 +21,7 @@ export const tools: Tool<any, any>[] = [
       zip: z.string().optional().describe("ZIP code to search near"),
       fuel_type: z.enum(keysEnum(FUEL_TYPES)).optional().describe(`Fuel type: ${describeEnum(FUEL_TYPES)}`),
       radius: z.number().optional().describe("Search radius in miles from zip (default 25)"),
-      limit: z.number().int().max(200).optional().describe("Max results (default 20)"),
+      limit: z.number().int().max(200).default(20).describe("Max results (default 20)"),
       status: z.enum(keysEnum(STATUS_CODES)).optional().describe(`Station status: ${describeEnum(STATUS_CODES)}`),
     }),
     execute: async ({ state, zip, fuel_type, radius, limit, status }) => {

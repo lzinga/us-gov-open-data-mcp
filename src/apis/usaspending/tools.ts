@@ -36,7 +36,7 @@ export const tools: Tool<any, any>[] = [
       end_date: z.string().optional().describe("End date YYYY-MM-DD (default: today)"),
       min_amount: z.number().optional().describe("Minimum award amount in dollars"),
       max_amount: z.number().optional().describe("Maximum award amount in dollars"),
-      limit: z.number().int().positive().max(100).optional().describe("Results per page (default: 25)"),
+      limit: z.number().int().positive().max(100).default(25).describe("Results per page (default: 25)"),
       page: z.number().int().positive().optional().describe("Page number (default: 1)"),
       sort_field: z.string().optional().describe("Sort by: 'Award Amount' (default), 'Recipient Name', 'Start Date', 'End Date'"),
     }),
@@ -66,7 +66,7 @@ export const tools: Tool<any, any>[] = [
       state: z.string().optional().describe("Two-letter state code, e.g. 'CA', 'TX'"),
       keyword: z.string().optional().describe("Keyword to filter spending"),
       award_type: z.enum(["contracts", "grants", "loans", "direct_payments"]).optional().describe("Award type filter"),
-      limit: z.number().int().positive().max(100).optional().describe("Number of agencies (default: 20)"),
+      limit: z.number().int().positive().max(100).default(20).describe("Number of agencies (default: 20)"),
     }),
     execute: async ({ fiscal_year, state, keyword, award_type, limit }) => {
       const fy = fiscal_year || currentFiscalYear();
@@ -118,7 +118,7 @@ export const tools: Tool<any, any>[] = [
       award_type: z.enum(["contracts", "grants", "loans", "direct_payments"]).optional().describe("Award type filter"),
       state: z.string().optional().describe("Two-letter state code, e.g. 'CA', 'TX'"),
       agency: z.string().optional().describe("Awarding agency name, e.g. 'Department of Energy'"),
-      limit: z.number().int().positive().max(100).optional().describe("Number of recipients (default: 25)"),
+      limit: z.number().int().positive().max(100).default(25).describe("Number of recipients (default: 25)"),
     }),
     execute: async ({ fiscal_year, award_type, state, agency, limit }) => {
       const fy = fiscal_year || currentFiscalYear();

@@ -114,13 +114,13 @@ export const tools: Tool<any, any>[] = [
           z.array(z.enum(keysEnum(TRIAL_STATUSES))),
         ])
         .optional()
-        .describe(`Trial status. Pipe-delimited for multiple: ${describeEnum(TRIAL_STATUSES, 5)}`),
+        .describe(`Trial status. Pass an array for multiple, e.g. ["RECRUITING","ACTIVE_NOT_RECRUITING"]. Valid: ${describeEnum(TRIAL_STATUSES, 5)}`),
       phase: z.enum(keysEnum(TRIAL_PHASES)).optional().describe(`Trial phase: ${describeEnum(TRIAL_PHASES)}`),
       study_type: z.enum(keysEnum(STUDY_TYPES)).optional().describe(`Study type: ${describeEnum(STUDY_TYPES)}`),
       filter_advanced: z.string().optional().describe("Essie expression filter: 'AREA[MinimumAge]RANGE[MIN,18 years]'"),
       agg_filters: z.string().optional().describe("Aggregation filters: 'results:with,sex:f,healthy:y'"),
       sort: z.string().optional().describe("Sort field: '@relevance', 'LastUpdatePostDate', 'EnrollmentCount:desc'"),
-      page_size: z.number().int().min(0).max(100).optional().describe("Results per page (default 10, max 100)"),
+      page_size: z.number().int().min(0).max(100).default(10).describe("Results per page (default 10, max 100)"),
       page_token: z.string().optional().describe("Pagination token from previous response"),
     }),
     execute: async (args) => {
@@ -364,7 +364,7 @@ export const tools: Tool<any, any>[] = [
       condition: z.string().optional().describe("Filter by condition: 'diabetes', 'breast cancer'"),
       intervention: z.string().optional().describe("Filter by intervention: 'pembrolizumab'"),
       status: z.enum(keysEnum(TRIAL_STATUSES)).optional().describe("Filter by status (default: RECRUITING)"),
-      page_size: z.number().int().min(1).max(50).optional().describe("Results per page (default 10)"),
+      page_size: z.number().int().min(1).max(50).default(10).describe("Results per page (default 10)"),
     }),
     execute: async (args) => {
       const dist = args.distance ?? "50mi";
