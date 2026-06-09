@@ -43,6 +43,7 @@ export * as nhtsa from "./nhtsa/sdk.js";
 export * as nih from "./nih/sdk.js";
 export * as noaa from "./noaa/sdk.js";
 export * as nrel from "./nrel/sdk.js";
+export * as nws from "./nws/sdk.js";
 export * as openPayments from "./open-payments/sdk.js";
 export * as regulations from "./regulations/sdk.js";
 export * as sec from "./sec/sdk.js";
