@@ -46,6 +46,40 @@ export interface FRSearchResult {
   results: FRDocument[];
 }
 
+/** Document on public inspection (approved but not yet officially published). */
+export interface FRPublicInspectionDoc {
+  document_number: string;
+  title: string;
+  type: string;
+  filing_type: string; // "regular" or "special" (expedited/emergency)
+  filed_at: string;
+  publication_date: string;
+  agency_names?: string[];
+  agencies?: { name?: string; raw_name?: string; id?: number }[];
+  docket_numbers?: string[];
+  num_pages?: number;
+  excerpts?: string;
+  html_url?: string;
+  pdf_url?: string;
+}
+
+/** Public inspection list result. */
+export interface FRPublicInspectionResult {
+  count: number;
+  results: FRPublicInspectionDoc[];
+}
+
+/** OFR-curated suggested search (topic bundle). */
+export interface FRSuggestedSearch {
+  title: string;
+  slug: string;
+  section: string;
+  description?: string;
+  documents_in_last_year?: number;
+  documents_with_open_comment_periods?: number;
+  search_conditions?: Record<string, unknown>;
+}
+
 // ─── Public API ──────────────────────────────────────────────────────
 
 /** Search for presidential executive orders. Filter by president, year, or keyword. */
@@ -142,6 +176,32 @@ export async function getDocumentDetail(documentNumber: string): Promise<FRDocum
  */
 export async function listAgencies(): Promise<Array<{ name: string; short_name?: string; slug: string; url: string; parent_id?: number; id: number; [key: string]: unknown }>> {
   return api.get("/agencies");
+}
+
+/**
+ * Get documents currently on public inspection — approved for publication but
+ * not yet officially published (i.e. appearing in the Federal Register tomorrow
+ * or, for "special" filings, imminently). The forward-looking complement to the
+ * published-documents search.
+ */
+export async function getCurrentPublicInspection(): Promise<FRPublicInspectionResult> {
+  return api.get<FRPublicInspectionResult>("/public-inspection-documents/current.json");
+}
+
+/**
+ * Get OFR-curated suggested searches — topical bundles (e.g. "Dodd-Frank",
+ * "Endangered Species") grouped by section, each with counts of documents in the
+ * last year and documents with open public comment periods. Optionally filter to
+ * a single section (e.g. "money", "environment", "health-and-public-welfare").
+ */
+export async function getSuggestedSearches(section?: string): Promise<FRSuggestedSearch[]> {
+  const data = await api.get<Record<string, FRSuggestedSearch[]>>("/suggested_searches.json");
+  const sections = section ? [section] : Object.keys(data);
+  const out: FRSuggestedSearch[] = [];
+  for (const s of sections) {
+    for (const entry of data[s] ?? []) out.push(entry);
+  }
+  return out;
 }
 
 /** Clear cached responses. */

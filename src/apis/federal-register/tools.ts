@@ -10,9 +10,11 @@ import {
   searchRules,
   getDocumentDetail,
   listAgencies,
+  getCurrentPublicInspection,
+  getSuggestedSearches,
   type FRDocument,
 } from "./sdk.js";
-import { listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
+import { listResponse, recordResponse, tableResponse, emptyResponse } from "../../shared/response.js";
 
 function summarizeDoc(d: FRDocument) {
   return {
@@ -153,4 +155,72 @@ export const tools: Tool<any, any>[] = [
         { items: top.map((a: any) => ({ name: a.name, shortName: a.short_name, slug: a.slug })), total: agencies.length },
       );
     },
-  },];
+  },
+
+  {
+    name: "fr_public_inspection",
+    description:
+      "List documents currently on public inspection — approved for publication but NOT yet officially published " +
+      "(appearing in the Federal Register tomorrow, or imminently for 'special' filings).\n" +
+      "This is the forward-looking view: 'what regulations are about to come out?' Special filings are expedited/emergency documents.",
+    annotations: { title: "Federal Register: Public Inspection", readOnlyHint: true },
+    parameters: z.object({
+      type: z.enum(["Rule", "Proposed Rule", "Notice", "Presidential Document"]).optional().describe("Filter by document type"),
+      special_only: z.boolean().default(false).describe("Only show 'special' (expedited/emergency) filings"),
+    }),
+    execute: async ({ type, special_only }) => {
+      const data = await getCurrentPublicInspection();
+      let docs = data.results ?? [];
+      if (type) docs = docs.filter(d => d.type === type);
+      if (special_only) docs = docs.filter(d => d.filing_type === "special");
+      if (!docs.length) return emptyResponse("No documents currently on public inspection match the filter.");
+      return tableResponse(
+        `${docs.length} document(s) on public inspection${special_only ? " (special filings)" : ""}`,
+        {
+          rows: docs.map(d => ({
+            title: d.title,
+            type: d.type,
+            filing: d.filing_type,
+            filedAt: d.filed_at,
+            publicationDate: d.publication_date,
+            agencies: (d.agency_names ?? d.agencies?.map(a => a.name ?? a.raw_name).filter(Boolean) ?? []).join("; "),
+            documentNumber: d.document_number,
+          })),
+          total: data.count,
+        },
+      );
+    },
+  },
+
+  {
+    name: "fr_suggested_searches",
+    description:
+      "List the Office of the Federal Register's curated topic bundles (e.g. 'Dodd-Frank', 'Endangered Species').\n" +
+      "Each topic shows how many documents appeared in the last year and how many currently have OPEN public comment periods — " +
+      "useful for discovering active regulatory topics and where the public can still weigh in.\n" +
+      "Sections: money, environment, world, science-and-technology, business-and-industry, health-and-public-welfare.",
+    annotations: { title: "Federal Register: Suggested Searches", readOnlyHint: true },
+    parameters: z.object({
+      section: z.enum(["money", "environment", "world", "science-and-technology", "business-and-industry", "health-and-public-welfare"]).optional().describe("Filter to a single topic section"),
+      open_comments_only: z.boolean().default(false).describe("Only show topics that currently have documents with open comment periods"),
+    }),
+    execute: async ({ section, open_comments_only }) => {
+      let topics = await getSuggestedSearches(section);
+      if (open_comments_only) topics = topics.filter(t => (t.documents_with_open_comment_periods ?? 0) > 0);
+      if (!topics.length) return emptyResponse("No suggested searches match the filter.");
+      topics.sort((a, b) => (b.documents_with_open_comment_periods ?? 0) - (a.documents_with_open_comment_periods ?? 0));
+      return tableResponse(
+        `${topics.length} curated topic(s)${section ? ` in ${section}` : ""}`,
+        {
+          rows: topics.map(t => ({
+            topic: t.title,
+            section: t.section,
+            slug: t.slug,
+            docsLastYear: t.documents_in_last_year ?? 0,
+            openComments: t.documents_with_open_comment_periods ?? 0,
+          })),
+        },
+      );
+    },
+  },
+];
