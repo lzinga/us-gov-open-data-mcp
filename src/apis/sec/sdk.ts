@@ -105,6 +105,42 @@ export interface SecSearchResult {
   }[];
 }
 
+/** A single XBRL concept's full time series for one company (companyconcept API). */
+export interface SecCompanyConcept {
+  cik: number;
+  entityName: string;
+  taxonomy: string;
+  tag: string;
+  label: string;
+  description: string;
+  unit: string;
+  annual: SecXbrlObservation[];
+  quarterly: SecXbrlObservation[];
+}
+
+/** One company's value for a concept in a reporting frame (frames API). */
+export interface SecFrameDatum {
+  accn: string;
+  cik: number;
+  entityName: string;
+  loc: string | null;
+  start?: string;
+  end: string;
+  val: number;
+}
+
+/** One XBRL concept across all reporting companies for a single period (frames API). */
+export interface SecFrame {
+  taxonomy: string;
+  tag: string;
+  label: string;
+  description: string;
+  unit: string;
+  period: string; // ccp, e.g. "CY2023" or "CY2023Q1I"
+  count: number;
+  data: SecFrameDatum[];
+}
+
 // ─── Reference data ──────────────────────────────────────────────────
 
 /** SEC XBRL financial concept codes to human-readable labels. */
@@ -243,6 +279,77 @@ export function summarizeFinancials(facts: SecCompanyFacts): {
     entityName: facts.entityName,
     totalMetrics: Object.keys(usgaap).length,
     keyMetrics,
+  };
+}
+
+/**
+ * Get the full reported time series of a single XBRL concept for one company
+ * (companyconcept API). Smaller and faster than getCompanyFacts when you only
+ * need one metric, and includes the `frame` field linking to the frames API.
+ */
+export async function getCompanyConcept(
+  cik: string,
+  tag: string,
+  taxonomy = "us-gaap",
+): Promise<SecCompanyConcept | null> {
+  const raw = await dataApi.get<{
+    cik: number; entityName: string; taxonomy?: string; tag?: string;
+    label?: string; description?: string; units: Record<string, SecXbrlObservation[]>;
+  }>(`/api/xbrl/companyconcept/CIK${padCik(cik)}/${taxonomy}/${tag}.json`);
+  if (!raw || !raw.units) return null;
+  // Prefer USD when a concept reports multiple units (e.g. EPS); else first available.
+  const unit = raw.units["USD"] ? "USD" : Object.keys(raw.units)[0];
+  if (!unit) return null;
+  const obs = raw.units[unit] ?? [];
+  // Annual: 10-K (domestic), 20-F/40-F (foreign filers), plus amendments (e.g. 10-K/A).
+  const isAnnual = (f: string) => /^(10-K|20-F|40-F)/.test(f);
+  const isQuarterly = (f: string) => /^10-Q/.test(f);
+  return {
+    cik: raw.cik,
+    entityName: raw.entityName,
+    taxonomy: raw.taxonomy ?? taxonomy,
+    tag: raw.tag ?? tag,
+    label: raw.label ?? tag,
+    description: raw.description ?? "",
+    unit,
+    annual: obs.filter(d => isAnnual(d.form)).slice(-20),
+    quarterly: obs.filter(d => isQuarterly(d.form)).slice(-12),
+  };
+}
+
+/**
+ * Get a single XBRL concept reported by every company for one calendar period
+ * (frames API) — the basis for cross-company comparison and screening.
+ *
+ * Period formats:
+ *   - "CY2023"      annual (calendar year, duration concept like Revenues)
+ *   - "CY2023Q1"    quarterly duration
+ *   - "CY2023Q1I"   instantaneous / point-in-time (balance-sheet concepts like Assets)
+ *
+ * Units: "USD" (default), "shares", "USD-per-shares" (e.g. EarningsPerShareBasic).
+ */
+export async function getFrame(opts: {
+  tag: string;
+  period: string;
+  taxonomy?: string;
+  unit?: string;
+}): Promise<SecFrame> {
+  const taxonomy = opts.taxonomy ?? "us-gaap";
+  const unit = opts.unit ?? "USD";
+  const raw = await dataApi.get<{
+    taxonomy: string; tag: string; label?: string; description?: string;
+    ccp: string; uom: string; pts?: number; data: SecFrameDatum[];
+  }>(`/api/xbrl/frames/${taxonomy}/${opts.tag}/${unit}/${opts.period}.json`);
+  const data = raw.data ?? [];
+  return {
+    taxonomy: raw.taxonomy ?? taxonomy,
+    tag: raw.tag ?? opts.tag,
+    label: raw.label ?? opts.tag,
+    description: raw.description ?? "",
+    unit: raw.uom ?? unit,
+    period: raw.ccp ?? opts.period,
+    count: raw.pts ?? data.length,
+    data,
   };
 }
 

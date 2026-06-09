@@ -10,6 +10,8 @@ import {
   searchEdgar,
   extractConceptData,
   summarizeFinancials,
+  getCompanyConcept,
+  getFrame,
   xbrlConcepts,
   type SecFiling,
 } from "./sdk.js";
@@ -168,6 +170,93 @@ export const tools: Tool<any, any>[] = [
       return listResponse(
         `SEC filing search "${query}": ${result.total} results, showing ${filings.length}`,
         { items: filings, total: result.total },
+      );
+    },
+  },
+
+  {
+    name: "sec_company_concept",
+    description:
+      "Get the full reported history of a single XBRL financial concept for one company.\n" +
+      "Faster and smaller than sec_company_financials when you only need one metric's time series " +
+      "(e.g. quarterly revenue for 10 years).\n\n" +
+      "Common concepts: Revenues, NetIncomeLoss, Assets, Liabilities, StockholdersEquity, " +
+      "EarningsPerShareBasic, CashAndCashEquivalentsAtCarryingValue.",
+    annotations: { title: "SEC: Company Concept Time Series", readOnlyHint: true },
+    parameters: z.object({
+      cik: z.string().describe("10-digit CIK number (e.g. '0000320193' for Apple). Leading zeros optional."),
+      concept: z.string().describe("XBRL concept tag, e.g. 'Revenues', 'NetIncomeLoss', 'Assets'"),
+      taxonomy: z.enum(["us-gaap", "ifrs-full", "dei", "srt"]).default("us-gaap").describe("XBRL taxonomy (default us-gaap)"),
+    }),
+    execute: async ({ cik, concept, taxonomy }) => {
+      let data;
+      try {
+        data = await getCompanyConcept(cik, concept, taxonomy);
+      } catch (e) {
+        if (e instanceof Error && /HTTP 404/.test(e.message)) {
+          return emptyResponse(`Concept "${concept}" not reported by CIK ${cik} in taxonomy ${taxonomy}.`);
+        }
+        throw e;
+      }
+      if (!data) return emptyResponse(`No data for concept "${concept}" (CIK ${cik}).`);
+      return recordResponse(
+        `${data.entityName} — ${data.tag} (${data.label}): ${data.annual.length} annual + ${data.quarterly.length} quarterly observations [${data.unit}]`,
+        {
+          entityName: data.entityName,
+          concept: data.tag,
+          label: data.label,
+          unit: data.unit,
+          annual: data.annual.map(d => ({ period: d.end, value: d.val, fy: d.fy, filed: d.filed })),
+          quarterly: data.quarterly.map(d => ({ period: d.end, value: d.val, fy: d.fy, fp: d.fp, filed: d.filed })),
+        },
+      );
+    },
+  },
+
+  {
+    name: "sec_concept_across_companies",
+    description:
+      "Compare a single XBRL financial concept across ALL reporting companies for one period (SEC frames API).\n" +
+      "The most powerful cross-company tool: rank every filer by revenue, net income, assets, etc. in one call.\n\n" +
+      "PERIOD FORMAT:\n" +
+      "- 'CY2023' — full calendar year (use for flow concepts: Revenues, NetIncomeLoss)\n" +
+      "- 'CY2023Q1' — single quarter (duration)\n" +
+      "- 'CY2023Q4I' — instantaneous / point-in-time (use for balance-sheet concepts: Assets, Liabilities, StockholdersEquity)\n\n" +
+      "UNITS: 'USD' (default), 'shares', 'USD-per-shares' (for EarningsPerShareBasic).",
+    annotations: { title: "SEC: Concept Across Companies", readOnlyHint: true },
+    parameters: z.object({
+      concept: z.string().describe("XBRL concept tag, e.g. 'Revenues', 'NetIncomeLoss', 'Assets'"),
+      period: z.string().regex(/^CY\d{4}(Q[1-4]I?)?$/, "Use CY2023, CY2023Q1, or CY2023Q4I").describe("Calendar period: 'CY2023', 'CY2023Q1', or instantaneous 'CY2023Q4I'"),
+      taxonomy: z.enum(["us-gaap", "ifrs-full", "dei", "srt"]).default("us-gaap").describe("XBRL taxonomy (default us-gaap)"),
+      unit: z.string().default("USD").describe("Unit of measure: USD, shares, USD-per-shares"),
+      order: z.enum(["desc", "asc"]).default("desc").describe("Sort by value: desc (largest first) or asc"),
+      limit: z.number().int().min(1).max(200).default(25).describe("Max companies to return (default 25)"),
+    }),
+    execute: async ({ concept, period, taxonomy, unit, order, limit }) => {
+      let frame;
+      try {
+        frame = await getFrame({ tag: concept, period, taxonomy, unit });
+      } catch (e) {
+        if (e instanceof Error && /HTTP 404/.test(e.message)) {
+          return emptyResponse(`No frame data for ${taxonomy}/${concept} (${unit}) in ${period}. Check the concept tag, unit, and whether the period needs the instantaneous 'I' suffix.`);
+        }
+        throw e;
+      }
+      const sorted = [...frame.data].sort((a, b) => order === "asc" ? a.val - b.val : b.val - a.val);
+      const top = sorted.slice(0, limit);
+      return tableResponse(
+        `${frame.label} (${frame.tag}) ${frame.period} [${frame.unit}]: ${frame.count} companies reported, showing ${order === "asc" ? "lowest" : "highest"} ${top.length}`,
+        {
+          rows: top.map(d => ({
+            company: d.entityName,
+            cik: d.cik,
+            value: d.val,
+            location: d.loc,
+            periodEnd: d.end,
+          })),
+          total: frame.count,
+          meta: { concept: frame.tag, period: frame.period, unit: frame.unit },
+        },
       );
     },
   },
