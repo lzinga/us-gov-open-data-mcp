@@ -199,7 +199,7 @@ export const tools: Tool<any, any>[] = [
       offset: z.number().int().optional().describe("Results offset for pagination (default: 0)"),
       fromDateTime: z.string().optional().describe("Filter by update date from this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
-      sort: z.string().optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc (default: updateDate+desc)"),
+      sort: z.enum(["updateDate+asc", "updateDate+desc"]).optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc (default: updateDate+desc)"),
     }),
     execute: async ({ query, congress, bill_type, limit, offset, fromDateTime, toDateTime, sort }) => {
       const data = await searchBills({ query, congress, bill_type, limit, offset, fromDateTime, toDateTime, sort });
@@ -729,7 +729,7 @@ export const tools: Tool<any, any>[] = [
       bill_type: z.enum(keysEnum(BILL_TYPES)).describe("Bill type"),
       bill_number: z.number().int().describe("Bill number"),
       limit: z.number().int().positive().max(250).default(250).describe("Max results (default: 250)"),
-      sort: z.string().optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc"),
+      sort: z.enum(["updateDate+asc", "updateDate+desc"]).optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc"),
     }),
     execute: async ({ congress, bill_type, bill_number, limit, sort }) => {
       const data = await getBillCosponsors(congress, bill_type, bill_number, { limit, sort });
@@ -1181,7 +1181,7 @@ export const tools: Tool<any, any>[] = [
       limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
       fromDateTime: z.string().optional().describe("Filter by update date from. Format: YYYY-MM-DDT00:00:00Z"),
       toDateTime: z.string().optional().describe("Filter by update date to. Format: YYYY-MM-DDT00:00:00Z"),
-      sort: z.string().optional().describe("Sort order: updateDate+asc or updateDate+desc"),
+      sort: z.enum(["updateDate+asc", "updateDate+desc"]).optional().describe("Sort order: updateDate+asc or updateDate+desc"),
     }),
     execute: async ({ congress, bill_type, limit, fromDateTime, toDateTime, sort }) => {
       const data = await searchSummaries({ congress, billType: bill_type, limit, fromDateTime, toDateTime, sort });

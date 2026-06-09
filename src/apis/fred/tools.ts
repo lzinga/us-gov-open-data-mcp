@@ -54,7 +54,7 @@ export const tools: Tool<any, any>[] = [
       series_id: z.string().describe("Series ID"),
       limit: z.number().int().max(100000).default(1000).describe("Max obs (default 1000)"),
       sort_order: z.enum(["asc", "desc"]).optional().describe("default: desc"),
-      frequency: z.string().optional().describe("d, w, bw, m, q, sa, a"),
+      frequency: z.enum(["d", "w", "bw", "m", "q", "sa", "a"]).optional().describe("d=daily, w=weekly, bw=biweekly, m=monthly, q=quarterly, sa=semiannual, a=annual"),
       start_date: z.string().optional().describe("YYYY-MM-DD"),
       end_date: z.string().optional().describe("YYYY-MM-DD"),
     }),
