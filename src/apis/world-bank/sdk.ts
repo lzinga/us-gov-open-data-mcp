@@ -85,17 +85,48 @@ export async function compareCountries(indicatorId: string, countries: string[],
   });
 }
 
-/** Search for indicators by keyword. */
-export async function searchIndicators(query: string, perPage = 50): Promise<WBIndicatorInfo[]> {
-  const data = await api.get<WBResponse<WBIndicatorInfo>>(
-    `/indicator`, { format: "json", per_page: perPage }
-  );
-  if (!Array.isArray(data) || data.length < 2 || !data[1]) return [];
+/**
+ * Search for indicators by keyword.
+ *
+ * The World Bank API has no server-side text search, so we fetch the indicator
+ * catalog and filter client-side over the full ≈29,000-indicator catalog
+ * (2 requests, cached 24h). Pass `source` to scope to a single source database
+ * (e.g. 2 = World Development Indicators) for tighter, faster results.
+ */
+export async function searchIndicators(query: string, opts: {
+  limit?: number;
+  source?: string | number; // restrict to a single source database (e.g. 2 = WDI)
+} = {}): Promise<WBIndicatorInfo[]> {
+  const limit = opts.limit ?? 30;
   const q = query.toLowerCase();
-  return data[1].filter(i =>
-    i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q) ||
-    i.sourceNote?.toLowerCase().includes(q)
-  ).slice(0, perPage);
+  const matches: WBIndicatorInfo[] = [];
+
+  const baseParams: Record<string, string | number | undefined> = {
+    format: "json",
+    per_page: 20000,
+    source: opts.source,
+  };
+
+  let page = 1;
+  let pages = 1;
+  do {
+    const data = await api.get<WBResponse<WBIndicatorInfo>>("/indicator", { ...baseParams, page });
+    if (!Array.isArray(data) || data.length < 2 || !data[1]) break;
+    pages = data[0].pages;
+    for (const i of data[1]) {
+      if (
+        i.name?.toLowerCase().includes(q) ||
+        i.id?.toLowerCase().includes(q) ||
+        i.sourceNote?.toLowerCase().includes(q)
+      ) {
+        matches.push(i);
+      }
+    }
+    if (matches.length >= limit) break; // stop early once we have enough
+    page++;
+  } while (page <= pages);
+
+  return matches.slice(0, limit);
 }
 
 /** List countries with metadata. */

@@ -72,13 +72,14 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "wb_search",
-    description: "Search World Bank indicators by keyword.\nExamples: 'GDP', 'health expenditure', 'life expectancy', 'CO2 emissions'",
+    description: "Search World Bank indicators by keyword across the full ~29,000-indicator catalog.\nExamples: 'GDP', 'health expenditure', 'life expectancy', 'CO2 emissions'.",
     annotations: { title: "World Bank: Search Indicators", readOnlyHint: true },
     parameters: z.object({
       query: z.string().describe("Keywords to search for"),
+      limit: z.number().int().min(1).max(100).default(30).describe("Max indicators to return"),
     }),
-    execute: async ({ query }) => {
-      const results = await searchIndicators(query, 30);
+    execute: async ({ query, limit }) => {
+      const results = await searchIndicators(query, { limit });
       if (!results.length) return emptyResponse(`No indicators found for "${query}".`);
       return listResponse(
         `${results.length} indicators matching "${query}"`,
