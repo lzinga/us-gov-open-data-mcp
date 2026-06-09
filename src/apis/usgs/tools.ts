@@ -11,6 +11,7 @@ import {
   getWaterData,
   getDailyWaterData,
   searchWaterSites,
+  getWaterStatistics,
   WATER_PARAMS,
   ALERT_LEVELS,
   clearCache as sdkClearCache,
@@ -232,6 +233,56 @@ export const tools: Tool<any, any>[] = [
         };
       });
       return listResponse(`${series.length} daily water time series found`, { items, total: series.length });
+    },
+  },
+
+  {
+    name: "usgs_water_statistics",
+    description:
+      "Get period-of-record streamflow statistics for a USGS site — for each day of the year, the min/mean/max and p05–p95 percentiles across ALL years on record.\n" +
+      "Answers 'is the current flow historically high or low for this date?' — far more analytically useful than raw readings for drought/flood context.\n" +
+      "Parameter codes: 00060=discharge (cfs, default), 00065=gage height (ft). Optionally filter to a specific month/day.",
+    annotations: { title: "USGS: Water Statistics", readOnlyHint: true },
+    parameters: z.object({
+      sites: z.string().describe("USGS site number(s), comma-separated: '01646500'"),
+      parameter_cd: z.string().optional().describe("Parameter code: '00060' (discharge, default), '00065' (gage height)"),
+      stat_report_type: z.enum(["daily", "monthly", "annual"]).default("daily").describe("Statistic granularity (default daily = per day-of-year)"),
+      month: z.number().int().min(1).max(12).optional().describe("Filter to a specific month (1-12)"),
+      day: z.number().int().min(1).max(31).optional().describe("Filter to a specific day of month (requires month; daily report only)"),
+    }),
+    execute: async ({ sites, parameter_cd, stat_report_type, month, day }) => {
+      const text = await getWaterStatistics({ sites, parameterCd: parameter_cd, statReportType: stat_report_type });
+      const lines = text.split("\n").filter((l: string) => l && !l.startsWith("#"));
+      const header = lines[0]?.split("\t") ?? [];
+      let rows = lines.slice(2).map((line: string) => {
+        const vals = line.split("\t");
+        const obj: Record<string, string> = {};
+        header.forEach((h: string, i: number) => { if (h) obj[h] = vals[i] ?? ""; });
+        return obj;
+      }).filter((r) => r.site_no);
+      if (month !== undefined) rows = rows.filter(r => Number(r.month_nu) === month);
+      if (day !== undefined) rows = rows.filter(r => Number(r.day_nu) === day);
+      if (!rows.length) return emptyResponse(`No statistics found for site ${sites}${month ? ` (month ${month}${day ? `, day ${day}` : ""})` : ""}.`);
+      return tableResponse(
+        `${stat_report_type ?? "daily"} streamflow statistics for site ${sites}: ${rows.length} row(s)`,
+        {
+          rows: rows.map(r => ({
+            month: r.month_nu ?? null,
+            day: r.day_nu ?? null,
+            yearsOfRecord: r.count_nu ?? null,
+            min: r.min_va ?? null,
+            p05: r.p05_va ?? null,
+            p25: r.p25_va ?? null,
+            median_p50: r.p50_va ?? null,
+            mean: r.mean_va ?? null,
+            p75: r.p75_va ?? null,
+            p95: r.p95_va ?? null,
+            max: r.max_va ?? null,
+          })),
+          total: rows.length,
+          meta: { site: sites, parameter: parameter_cd ?? "00060" },
+        },
+      );
     },
   },
 ];

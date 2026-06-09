@@ -93,6 +93,8 @@ export function qp(
 
 export interface ApiClient {
   get<T = unknown>(path: string, params?: Params): Promise<T>;
+  /** GET returning the raw response body as text (for non-JSON endpoints like USGS RDB). */
+  getText(path: string, params?: Params): Promise<string>;
   post<T = unknown>(path: string, body?: Record<string, unknown>, params?: Params): Promise<T>;
   clearCache(): void;
 }
@@ -541,9 +543,9 @@ export function createClient(config: ClientConfig): ApiClient {
     return h;
   }
 
-  async function request<T>(url: string, init?: RequestInit): Promise<T> {
-    // Check cache
-    const cacheKey = init?.body ? `${url}|${init.body}` : url;
+  async function request<T>(url: string, init?: RequestInit, responseType: "json" | "text" = "json"): Promise<T> {
+    // Check cache (keyed by URL + body + response type so JSON and text never collide)
+    const cacheKey = `${url}|${init?.body ?? ""}|${responseType}`;
     const cached = cache.get(cacheKey);
     if (cached !== undefined) return cached as T;
 
@@ -564,6 +566,12 @@ export function createClient(config: ClientConfig): ApiClient {
       throw new Error(`${name}: HTTP ${res.status} — ${truncateBody(body || res.statusText)}`);
     }
 
+    if (responseType === "text") {
+      const text = await res.text();
+      cache.set(cacheKey, text);
+      return text as T;
+    }
+
     const data = await res.json();
 
     // Check for API-level errors in body
@@ -581,6 +589,12 @@ export function createClient(config: ClientConfig): ApiClient {
       const url = buildUrl(path, params);
       const headers = buildHeaders();
       return request<T>(url, Object.keys(headers).length ? { headers } : undefined);
+    },
+
+    async getText(path: string, params?: Params): Promise<string> {
+      const url = buildUrl(path, params);
+      const headers = buildHeaders();
+      return request<string>(url, Object.keys(headers).length ? { headers } : undefined, "text");
     },
 
     async post<T = unknown>(

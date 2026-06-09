@@ -290,7 +290,7 @@ export async function searchWaterSites(opts: {
   siteType?: string;
   siteStatus?: "all" | "active" | "inactive";
   hasDataTypeCd?: string;
-}): Promise<unknown> {
+}): Promise<string> {
   const params: Record<string, string | number | undefined> = {
     format: "rdb",
     stateCd: opts.stateCd,
@@ -302,7 +302,7 @@ export async function searchWaterSites(opts: {
     siteOutput: "expanded",
   };
   // RDB is tab-delimited but easier to parse than the alternatives
-  return waterApi.get("/site/", params);
+  return waterApi.getText("/site/", params);
 }
 
 /**
@@ -342,6 +342,32 @@ export async function getDailyWaterData(opts: {
   };
   if (opts.startDT || opts.endDT) delete params.period;
   return waterApi.get<WaterResponse>("/dv/", params);
+}
+
+/**
+ * Get USGS streamflow/water statistics (period-of-record percentiles) for a site
+ * and parameter. Returns raw RDB (tab-delimited) text. For statReportType="daily"
+ * each row is a day-of-year with min/mean/max and p05–p95 percentiles across all
+ * years on record — the basis for "is today's flow historically high or low?".
+ *
+ * Docs: https://waterservices.usgs.gov/docs/statistics/
+ */
+export async function getWaterStatistics(opts: {
+  sites?: string;
+  stateCd?: string;
+  parameterCd?: string;
+  statReportType?: "daily" | "monthly" | "annual";
+  statTypeCd?: string; // "all", "mean", "min", "max", "median", etc.
+}): Promise<string> {
+  const params: Record<string, string | number | undefined> = {
+    format: "rdb",
+    sites: opts.sites,
+    stateCd: opts.stateCd,
+    parameterCd: opts.parameterCd ?? "00060",
+    statReportType: opts.statReportType ?? "daily",
+    statTypeCd: opts.statTypeCd ?? "all",
+  };
+  return waterApi.getText("/stat/", params);
 }
 
 /** Clear all USGS caches. */
