@@ -104,6 +104,25 @@
     "node": ">=18.0.0"
   },
   "type": "module",
+  "overridesNotes": {
+    "_purpose": "Security pins for transitive deps in the vitepress 1.x docs toolchain. npm ignores unknown top-level fields; this block exists purely as documentation for the sibling 'overrides' block.",
+    "esbuild": {
+      "advisory": "GHSA-67mh-4wv8-2f99",
+      "summary": "esbuild dev server enables any website to send requests and read responses (dev-only).",
+      "reason": "vite 5.4.21 (pulled in by vitepress 1.6.4) pins esbuild ^0.21.3, which has no patched release in the 0.21 line. Forcing ^0.25.0 picks up the fix.",
+      "removeWhen": "vitepress upgrades to vite >= 6 natively (vitepress 2.x), at which point this override becomes a no-op and can be deleted."
+    },
+    "vite": {
+      "advisory": "GHSA-4w7w-66w2-5vf9",
+      "summary": "Vite path traversal via optimized deps `.map` handling (dev server).",
+      "reason": "Fixed in vite >= 6.4.2. vitepress 1.6.4 depends on vite ^5.4.14 which is unpatched; vitest already uses vite 6.4.3 on its own chain.",
+      "removeWhen": "vitepress-plugin-mermaid publishes a release whose peer dependency allows vitepress 2.x (which uses vite 7+), then bump vitepress and drop this override."
+    }
+  },
+  "overrides": {
+    "esbuild": "^0.25.0",
+    "vite": "^6.4.2"
+  },
   "dependencies": {
     "dotenv": "^17.3.1",
     "fast-xml-parser": "^5.5.11",
