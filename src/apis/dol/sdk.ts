@@ -258,6 +258,11 @@ export const DATASETS = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
+/** DOL wraps result rows in a {"data": [...]} envelope. */
+interface DolEnvelope<T> {
+  data?: T[];
+}
+
 /** DOL filter condition: {field, operator, value}. */
 interface DolFilterCondition {
   field: string;
@@ -311,7 +316,15 @@ async function queryDol<T>(
     params.filter_object = buildFilterObject(opts.filter);
   }
 
-  return client.get<T[]>(`/${agencyEndpoint}/json`, params);
+  // DOL wraps rows in {"data": [...]}. Typing this as T[] made every tool see a
+  // non-array and report "no results" — the API was returning rows the whole
+  // time. Tolerate a bare array too, in case an endpoint ever returns one.
+  const res = await client.get<DolEnvelope<T> | T[] | null>(
+    `/${agencyEndpoint}/json`,
+    params,
+  );
+  if (!res) return [];
+  return Array.isArray(res) ? res : (res.data ?? []);
 }
 
 // ─── Public API ──────────────────────────────────────────────────────

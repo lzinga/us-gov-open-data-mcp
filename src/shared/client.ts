@@ -572,7 +572,16 @@ export function createClient(config: ClientConfig): ApiClient {
       return text as T;
     }
 
-    const data = await res.json();
+    // 204 No Content, or any success with an empty body, is "no rows" rather
+    // than a failure. DOL returns a bare 204 when a filter matches nothing;
+    // res.json() on that throws "Unexpected end of JSON input", which surfaces
+    // to the caller as a crash instead of an empty result.
+    const raw = await res.text();
+    if (res.status === 204 || raw.trim() === "") {
+      cache.set(cacheKey, null);
+      return null as T;
+    }
+    const data = JSON.parse(raw);
 
     // Check for API-level errors in body
     if (checkError) {
