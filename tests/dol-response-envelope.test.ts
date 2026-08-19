@@ -12,6 +12,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { createClient } from "../src/shared/client.js";
 
+/** Pull the decoded filter_object out of the URL fetch was called with. */
+function capturedFilter(fn: ReturnType<typeof vi.fn>): unknown {
+  const url = new URL(fn.mock.calls[0][0] as string);
+  const raw = url.searchParams.get("filter_object");
+  return raw ? JSON.parse(raw) : undefined;
+}
+
 /** Stub global fetch with a single canned response. */
 function stubFetch(body: string, status = 200) {
   const fn = vi.fn(async () =>
@@ -83,5 +90,91 @@ describe("dol sdk: {data: [...]} envelope unwrapping", () => {
     stubFetch('{"meta":{"count":0}}');
     const { getOshaAccidents } = await import("../src/apis/dol/sdk.js");
     await expect(getOshaAccidents({ state: "LA" })).resolves.toEqual([]);
+  });
+});
+
+describe("dol sdk: name search (like + case variants)", () => {
+  it("wraps a name in % wildcards and ORs the case variants", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getOshaInspections } = await import("../src/apis/dol/sdk.js");
+    await getOshaInspections({ estab_name: "Amazon" });
+
+    // DOL "like" is case-sensitive with no implicit wildcards, and OSHA stores
+    // names uppercase — so "Amazon" alone matches nothing without this.
+    expect(capturedFilter(fn)).toEqual({
+      or: [
+        { field: "estab_name", operator: "like", value: "%Amazon%" },
+        { field: "estab_name", operator: "like", value: "%AMAZON%" },
+      ],
+    });
+  });
+
+  it("collapses to a single condition when the term is already uppercase", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getWhdEnforcement } = await import("../src/apis/dol/sdk.js");
+    await getWhdEnforcement({ trade_nm: "MCDONALD'S" });
+
+    expect(capturedFilter(fn)).toEqual({
+      field: "trade_nm",
+      operator: "like",
+      value: "%MCDONALD'S%",
+    });
+  });
+
+  it("does not double-wrap a caller's own wildcards", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getOshaInspections } = await import("../src/apis/dol/sdk.js");
+    await getOshaInspections({ estab_name: "Geo%" });
+
+    // "%" present, so the term is used as given — only the case variant is added.
+    expect(capturedFilter(fn)).toEqual({
+      or: [
+        { field: "estab_name", operator: "like", value: "Geo%" },
+        { field: "estab_name", operator: "like", value: "GEO%" },
+      ],
+    });
+  });
+
+  it("emits a bare condition when the case variants collapse", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getOshaInspections } = await import("../src/apis/dol/sdk.js");
+    await getOshaInspections({ estab_name: "GEO%" });
+
+    // Uppercase already, and wildcarded — one variant, so no pointless or-group.
+    expect(capturedFilter(fn)).toEqual({
+      field: "estab_name",
+      operator: "like",
+      value: "GEO%",
+    });
+  });
+
+  it("nests the or-group inside an and when other filters are present", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getWhdEnforcement } = await import("../src/apis/dol/sdk.js");
+    await getWhdEnforcement({ state: "tx", trade_nm: "McDonald" });
+
+    expect(capturedFilter(fn)).toEqual({
+      and: [
+        { field: "st_cd", operator: "eq", value: "TX" },
+        {
+          or: [
+            { field: "trade_nm", operator: "like", value: "%McDonald%" },
+            { field: "trade_nm", operator: "like", value: "%MCDONALD%" },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("still uses eq for non-name fields", async () => {
+    const fn = stubFetch('{"data":[]}');
+    const { getOshaViolations } = await import("../src/apis/dol/sdk.js");
+    await getOshaViolations({ activity_nr: 12345 });
+
+    expect(capturedFilter(fn)).toEqual({
+      field: "activity_nr",
+      operator: "eq",
+      value: 12345,
+    });
   });
 });

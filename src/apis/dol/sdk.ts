@@ -270,32 +270,76 @@ interface DolFilterCondition {
   value: string | number | string[];
 }
 
-/** Build a DOL filter_object from simple field=value pairs (uses "eq" operator). */
+/** A group of conditions combined with a boolean operator. */
+interface DolFilterGroup {
+  and?: DolFilterNode[];
+  or?: DolFilterNode[];
+}
+
+type DolFilterNode = DolFilterCondition | DolFilterGroup;
+
+/**
+ * A filter value: either a literal (matched with "eq") or a name search.
+ *
+ * Name searches exist because DOL's "eq" is exact and case-sensitive, so the
+ * documented examples (estab_name: "Amazon") match nothing — OSHA stores
+ * establishment names uppercase ("AMAZON.COM SERVICES LLC"). See nameSearch().
+ */
+type FilterValue = string | number | { nameSearch: string };
+
+/** Marks a value for substring, case-tolerant matching rather than "eq". */
+function nameSearch(value: string): FilterValue {
+  return { nameSearch: value };
+}
+
+/**
+ * Build the condition(s) for a name search.
+ *
+ * DOL has no case-insensitive operator — "ilike" and "contains" both 500 — and
+ * "like" is case-sensitive with no implicit wildcards. So wrap the term in %
+ * for substring matching and OR together the case variants that actually occur
+ * in the data: the term as the caller typed it, and its uppercase form.
+ *
+ * That covers both storage conventions in one query. OSHA estab_name is
+ * uppercase throughout, while WHD trade_nm holds both ("MCDONALD'S" and
+ * "McDonald Construction" are both real rows), so neither passing the term
+ * through nor uppercasing it is correct on its own.
+ *
+ * A caller who supplies their own % wildcards is taken at their word and only
+ * the case variants are applied.
+ */
+function nameSearchNode(field: string, term: string): DolFilterNode {
+  const wrap = (v: string) => (v.includes("%") ? v : `%${v}%`);
+  const variants = [...new Set([wrap(term), wrap(term.toUpperCase())])];
+
+  const conditions: DolFilterCondition[] = variants.map((value) => ({
+    field,
+    operator: "like" as const,
+    value,
+  }));
+  return conditions.length === 1 ? conditions[0] : { or: conditions };
+}
+
+/** Build a DOL filter_object from field=value pairs. */
 function buildFilterObject(
-  filters: Record<string, string | number>,
+  filters: Record<string, FilterValue>,
 ): string | undefined {
   const entries = Object.entries(filters).filter(([, v]) => v !== undefined);
   if (!entries.length) return undefined;
 
-  if (entries.length === 1) {
-    const [field, value] = entries[0];
-    const cond: DolFilterCondition = { field, operator: "eq", value };
-    return JSON.stringify(cond);
-  }
+  const nodes: DolFilterNode[] = entries.map(([field, value]) =>
+    typeof value === "object" && "nameSearch" in value
+      ? nameSearchNode(field, value.nameSearch)
+      : ({ field, operator: "eq", value } as DolFilterCondition),
+  );
 
-  // Multiple filters → combine with "and"
-  const conditions: DolFilterCondition[] = entries.map(([field, value]) => ({
-    field,
-    operator: "eq" as const,
-    value,
-  }));
-  return JSON.stringify({ and: conditions });
+  return JSON.stringify(nodes.length === 1 ? nodes[0] : { and: nodes });
 }
 
 async function queryDol<T>(
   agencyEndpoint: string,
   opts: {
-    filter?: Record<string, string | number>;
+    filter?: Record<string, FilterValue>;
     limit?: number;
     offset?: number;
     sort_by?: string;
@@ -347,9 +391,9 @@ export async function getOshaInspections(opts: {
   sort_by?: string;
   sort_order?: string;
 } = {}): Promise<OshaInspection[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.state) filter.site_state = opts.state.toUpperCase();
-  if (opts.estab_name) filter.estab_name = opts.estab_name;
+  if (opts.estab_name) filter.estab_name = nameSearch(opts.estab_name);
   if (opts.sic_code) filter.sic_code = opts.sic_code;
   if (opts.naics_code) filter.naics_code = opts.naics_code;
   if (opts.insp_type) filter.insp_type = opts.insp_type;
@@ -379,7 +423,7 @@ export async function getOshaViolations(opts: {
   sort_by?: string;
   sort_order?: string;
 } = {}): Promise<OshaViolation[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.activity_nr) filter.activity_nr = opts.activity_nr;
   if (opts.viol_type) filter.viol_type = opts.viol_type;
   if (opts.standard) filter.standard = opts.standard;
@@ -408,10 +452,10 @@ export async function getOshaAccidents(opts: {
   sort_by?: string;
   sort_order?: string;
 } = {}): Promise<OshaAccident[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.state) filter.sitestate = opts.state.toUpperCase();
   if (opts.sic_code) filter.sic_list = opts.sic_code;
-  if (opts.event_keyword) filter.event_keyword = opts.event_keyword;
+  if (opts.event_keyword) filter.event_keyword = nameSearch(opts.event_keyword);
 
   return queryDol<OshaAccident>("OSHA/accident", {
     filter,
@@ -434,7 +478,7 @@ export async function getOshaAccidentInjuries(opts: {
   limit?: number;
   offset?: number;
 } = {}): Promise<OshaAccidentInjury[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.summary_nr) filter.summary_nr = opts.summary_nr;
   if (opts.degree_of_inj) filter.degree_of_inj = opts.degree_of_inj;
 
@@ -462,9 +506,9 @@ export async function getWhdEnforcement(opts: {
   sort_by?: string;
   sort_order?: string;
 } = {}): Promise<WhdEnforcement[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.state) filter.st_cd = opts.state.toUpperCase();
-  if (opts.trade_nm) filter.trade_nm = opts.trade_nm;
+  if (opts.trade_nm) filter.trade_nm = nameSearch(opts.trade_nm);
   if (opts.naics_code) filter.naic_cd = opts.naics_code;
 
   return queryDol<WhdEnforcement>("WHD/enforcement", {
@@ -509,7 +553,7 @@ export async function getUiClaimsState(opts: {
   sort_by?: string;
   sort_order?: string;
 } = {}): Promise<UiClaimsState[]> {
-  const filter: Record<string, string | number> = {};
+  const filter: Record<string, FilterValue> = {};
   if (opts.state) filter.st = opts.state.toUpperCase();
 
   return queryDol<UiClaimsState>("ETA/ui_claims_state", {
