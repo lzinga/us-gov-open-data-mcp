@@ -9,8 +9,9 @@
  *    reached the caller as a crash rather than an empty result.
  */
 
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createClient } from "../src/shared/client.js";
+import { clearCache as clearDolCache } from "../src/apis/dol/sdk.js";
 
 /** Pull the decoded filter_object out of the URL fetch was called with. */
 function capturedFilter(fn: ReturnType<typeof vi.fn>): unknown {
@@ -31,33 +32,57 @@ function stubFetch(body: string, status = 200) {
   return fn;
 }
 
+function createTestClient(name: string) {
+  return createClient({
+    baseUrl: "https://example.test",
+    name,
+    cacheTtlMs: 0,
+    emptyBodyAsNull: true,
+  });
+}
+
+beforeEach(() => {
+  clearDolCache();
+});
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  clearDolCache();
 });
 
 describe("client: empty and 204 responses", () => {
   it("returns null for a 204 with no body instead of throwing", async () => {
     stubFetch("", 204);
-    const client = createClient({ baseUrl: "https://example.test", name: "t204" });
+    const client = createTestClient("t204");
     await expect(client.get("/a")).resolves.toBeNull();
   });
 
   it("returns null for a 200 with an empty body", async () => {
     stubFetch("", 200);
-    const client = createClient({ baseUrl: "https://example.test", name: "tempty" });
+    const client = createTestClient("tempty");
     await expect(client.get("/b")).resolves.toBeNull();
   });
 
   it("still parses a normal JSON body", async () => {
     stubFetch('{"data":[{"id":1}]}');
-    const client = createClient({ baseUrl: "https://example.test", name: "tjson" });
+    const client = createTestClient("tjson");
     await expect(client.get("/c")).resolves.toEqual({ data: [{ id: 1 }] });
   });
 
   it("surfaces a whitespace-only body as null rather than a parse error", async () => {
     stubFetch("   \n");
-    const client = createClient({ baseUrl: "https://example.test", name: "tws" });
+    const client = createTestClient("tws");
     await expect(client.get("/d")).resolves.toBeNull();
+  });
+
+  it("keeps the default client behavior for empty bodies", async () => {
+    stubFetch("", 200);
+    const client = createClient({
+      baseUrl: "https://example.test",
+      name: "tdefault",
+      cacheTtlMs: 0,
+    });
+    await expect(client.get("/e")).rejects.toThrow("Unexpected end of JSON input");
   });
 });
 

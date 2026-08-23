@@ -28,6 +28,7 @@ const client = createClient({
   },
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour
+  emptyBodyAsNull: true,
 });
 
 // ─── Types ───────────────────────────────────────────────────────────
