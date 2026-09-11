@@ -62,6 +62,9 @@ export interface ClientConfig {
 
   /** Custom error detector — some APIs return 200 OK with errors in the body */
   checkError?: (data: unknown) => string | null;
+
+  /** Treat successful empty/204 bodies as null instead of a JSON parse error. */
+  emptyBodyAsNull?: boolean;
 }
 
 /** Param values: string, number, string[] (for repeated keys like facets[series][]), or undefined to skip */
@@ -478,6 +481,7 @@ export function createClient(config: ClientConfig): ApiClient {
     timeoutMs = 30_000,
     maxRetries: configMaxRetries = 2,
     checkError,
+    emptyBodyAsNull = false,
   } = config;
 
   const rl = config.rateLimit ?? { perSecond: 5, burst: 10 };
@@ -544,8 +548,11 @@ export function createClient(config: ClientConfig): ApiClient {
   }
 
   async function request<T>(url: string, init?: RequestInit, responseType: "json" | "text" = "json"): Promise<T> {
-    // Check cache (keyed by URL + body + response type so JSON and text never collide)
-    const cacheKey = `${url}|${init?.body ?? ""}|${responseType}`;
+    // Keep response formats and JSON empty-body policies in separate cache entries.
+    const cacheResponseType = responseType === "json"
+      ? `json:${emptyBodyAsNull ? "empty-as-null" : "strict"}`
+      : responseType;
+    const cacheKey = `${url}|${init?.body ?? ""}|${cacheResponseType}`;
     const cached = cache.get(cacheKey);
     if (cached !== undefined) return cached as T;
 
@@ -572,7 +579,15 @@ export function createClient(config: ClientConfig): ApiClient {
       return text as T;
     }
 
-    const data = await res.json();
+    let data: unknown;
+    if (emptyBodyAsNull) {
+      // DOL returns a bare 204 when a filter matches nothing. Treat that, or
+      // any successful empty body, as no rows rather than a JSON parse error.
+      const raw = await res.text();
+      data = res.status === 204 || raw.trim() === "" ? null : JSON.parse(raw);
+    } else {
+      data = await res.json();
+    }
 
     // Check for API-level errors in body
     if (checkError) {
