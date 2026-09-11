@@ -9,9 +9,19 @@
  *    reached the caller as a crash rather than an empty result.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createClient } from "../src/shared/client.js";
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
+import { createClient, type ClientConfig } from "../src/shared/client.js";
 import { clearCache as clearDolCache } from "../src/apis/dol/sdk.js";
+
+// The cache directory is captured during module import, before beforeEach runs.
+const { cleanupCache } = await vi.hoisted(async () => {
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const cacheHome = mkdtempSync(join(tmpdir(), "dol-response-test-"));
+  vi.stubEnv("XDG_CACHE_HOME", cacheHome);
+  return { cleanupCache: () => rmSync(cacheHome, { recursive: true, force: true }) };
+});
 
 /** Pull the decoded filter_object out of the URL fetch was called with. */
 function capturedFilter(fn: ReturnType<typeof vi.fn>): unknown {
@@ -32,14 +42,24 @@ function stubFetch(body: string, status = 200) {
   return fn;
 }
 
-function createTestClient(name: string) {
+function createTestClient(
+  name: string,
+  options: Pick<ClientConfig, "cacheTtlMs" | "emptyBodyAsNull" | "checkError"> = {},
+) {
   return createClient({
     baseUrl: "https://example.test",
     name,
     cacheTtlMs: 0,
     emptyBodyAsNull: true,
+    ...options,
   });
 }
+
+const emptyResponses = [
+  { label: "HTTP 204", body: "", status: 204 },
+  { label: "empty HTTP 200", body: "", status: 200 },
+  { label: "whitespace HTTP 200", body: "   \n\t", status: 200 },
+];
 
 beforeEach(() => {
   clearDolCache();
@@ -48,6 +68,11 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   clearDolCache();
+});
+
+afterAll(() => {
+  vi.unstubAllEnvs();
+  cleanupCache();
 });
 
 describe("client: empty and 204 responses", () => {
@@ -83,6 +108,42 @@ describe("client: empty and 204 responses", () => {
       cacheTtlMs: 0,
     });
     await expect(client.get("/e")).rejects.toThrow("Unexpected end of JSON input");
+  });
+
+  it.each(emptyResponses)("does not serve cached $label to a strict client", async ({ label, body, status }) => {
+    const fn = stubFetch(body, status);
+    const name = `policy-${label}`;
+    const tolerant = createTestClient(name, { cacheTtlMs: 60_000 });
+    const strict = createTestClient(name, { cacheTtlMs: 60_000, emptyBodyAsNull: false });
+
+    await expect(tolerant.get("/cached")).resolves.toBeNull();
+    await expect(tolerant.get("/cached")).resolves.toBeNull();
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    await expect(strict.get("/cached")).rejects.toBeInstanceOf(SyntaxError);
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(emptyResponses)("runs checkError before caching $label", async ({ label, body, status }) => {
+    const fn = stubFetch(body, status);
+    const checkError = vi.fn((data: unknown) => data === null ? "empty response rejected" : null);
+    const client = createTestClient(`detector-${label}`, { cacheTtlMs: 60_000, checkError });
+
+    await expect(client.get("/rejected")).rejects.toThrow("empty response rejected");
+    await expect(client.get("/rejected")).rejects.toThrow("empty response rejected");
+    expect(checkError).toHaveBeenCalledTimes(2);
+    expect(checkError).toHaveBeenCalledWith(null);
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares cached text responses regardless of the JSON empty-body policy", async () => {
+    const fn = stubFetch("plain text");
+    const tolerant = createTestClient("text-policy", { cacheTtlMs: 60_000 });
+    const strict = createTestClient("text-policy", { cacheTtlMs: 60_000, emptyBodyAsNull: false });
+
+    await expect(tolerant.getText("/text")).resolves.toBe("plain text");
+    await expect(strict.getText("/text")).resolves.toBe("plain text");
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
 
