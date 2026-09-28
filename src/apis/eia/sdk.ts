@@ -121,6 +121,83 @@ export async function queryEia(
   return api.get<EiaResponse>(`${normalizedRoute}`, params);
 }
 
+// ─── Route browser and generic query (the whole v2 route tree) ───────
+
+/** "/electricity/retail-sales/data/" → "electricity/retail-sales". */
+export function normalizeRoute(route: string): string {
+  return route.trim().replace(/^\/+|\/+$/g, "").replace(/\/data$/, "");
+}
+
+/** What a route offers: child routes, or (at a leaf) its facets, data columns and frequencies. */
+export interface EiaRouteInfo {
+  route: string;
+  name: string | null;
+  description: string | null;
+  routes?: { id: string; name: string | null; description: string | null }[];
+  frequencies?: { id: string; description: string | null }[];
+  facets?: { id: string; description: string | null }[];
+  data?: { id: string; units: string | null }[];
+  startPeriod?: string | null;
+  endPeriod?: string | null;
+  defaultFrequency?: string | null;
+}
+
+/** Metadata for a route in the EIA v2 tree (the root when empty). */
+export async function getRouteInfo(route = ""): Promise<EiaRouteInfo> {
+  const r = normalizeRoute(route);
+  const res = await api.get<{ response?: Record<string, any> }>(r ? `/${r}/` : "/");
+  const m = res.response ?? {};
+  const info: EiaRouteInfo = { route: r, name: m.name ?? null, description: m.description ?? null };
+  if (Array.isArray(m.routes)) {
+    info.routes = m.routes.map((c: Record<string, string>) => ({ id: r ? `${r}/${c.id}` : c.id, name: c.name ?? null, description: c.description ?? null }));
+  }
+  if (Array.isArray(m.frequency)) info.frequencies = m.frequency.map((f: Record<string, string>) => ({ id: f.id, description: f.description ?? null }));
+  if (Array.isArray(m.facets)) info.facets = m.facets.map((f: Record<string, string>) => ({ id: f.id, description: f.description ?? null }));
+  if (m.data && typeof m.data === "object") {
+    info.data = Object.entries(m.data as Record<string, { units?: string }>).map(([id, d]) => ({ id, units: d?.units ?? null }));
+  }
+  if (m.startPeriod !== undefined) {
+    info.startPeriod = m.startPeriod ?? null;
+    info.endPeriod = m.endPeriod ?? null;
+    info.defaultFrequency = m.defaultFrequency ?? null;
+  }
+  return info;
+}
+
+/** Values a facet can take on a route (e.g. stateid → CA, TX, …). */
+export async function getFacetValues(route: string, facet: string): Promise<{ id: string; name: string | null }[]> {
+  const res = await api.get<{ response?: { facets?: { id: string; name?: string }[] } }>(`/${normalizeRoute(route)}/facet/${encodeURIComponent(facet)}/`);
+  return (res.response?.facets ?? []).map(f => ({ id: f.id, name: f.name ?? null }));
+}
+
+/**
+ * Data from any EIA v2 leaf route, newest first unless sorted otherwise.
+ * Facet filters map to `facets[<id>][]` and data columns to `data[]`.
+ */
+export async function queryRoute(route: string, opts: {
+  data?: string[];
+  facets?: Record<string, string[]>;
+  frequency?: string;
+  start?: string;
+  end?: string;
+  length?: number;
+  offset?: number;
+  sortAscending?: boolean;
+} = {}): Promise<EiaResponse> {
+  const params: Record<string, string | number | string[] | undefined> = {
+    "data[]": opts.data?.length ? opts.data : ["value"],
+    frequency: opts.frequency,
+    start: opts.start,
+    end: opts.end,
+    "sort[0][column]": "period",
+    "sort[0][direction]": opts.sortAscending ? "asc" : "desc",
+    length: opts.length ?? 100,
+    offset: opts.offset,
+  };
+  for (const [facet, values] of Object.entries(opts.facets ?? {})) params[`facets[${facet}][]`] = values;
+  return api.get<EiaResponse>(`/${normalizeRoute(route)}/data/`, params);
+}
+
 /** Get petroleum data (spot prices, gasoline, diesel). */
 export async function getPetroleum(opts: {
   product?: string;

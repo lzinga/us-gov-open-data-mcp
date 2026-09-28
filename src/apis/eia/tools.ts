@@ -3,18 +3,22 @@
  */
 
 import { z } from "zod";
-import type { Tool } from "fastmcp";
+import { UserError, type Tool } from "fastmcp";
 import {
   getPetroleum,
   getElectricity,
   getNaturalGas,
   getStateEnergy,
   getTotalEnergy,
+  getRouteInfo,
+  getFacetValues,
+  queryRoute,
+  normalizeRoute,
   sedsMsnCodes,
   routes,
   type EiaObservation,
 } from "./sdk.js";
-import { timeseriesResponse, emptyResponse } from "../../shared/response.js";
+import { timeseriesResponse, emptyResponse, recordResponse, tableResponse } from "../../shared/response.js";
 import { stateAs } from "../../shared/geo.js";
 
 function formatObservations(data: EiaObservation[], limit?: number) {
@@ -259,6 +263,82 @@ export const tools: Tool<any, any>[] = [
           extraFields: ["units", "series"],
           seriesKeys: ["series", "state", "sector"],
           meta: { frequency: frequency || "monthly" },
+        },
+      );
+    },
+  },
+
+  {
+    name: "eia_browse",
+    description:
+      "Explore the full EIA API v2 catalog (beyond the shortcut tools). Without a route, lists the top-level datasets " +
+      "(electricity, petroleum, natural-gas, coal, seds, steo, international, co2-emissions, …). With a route, lists its " +
+      "sub-routes, or for a data route its facets, data columns, frequencies and date range. With route + facet, lists the " +
+      "facet's values (e.g. every stateid). Then fetch data with eia_query.",
+    annotations: { title: "EIA: Browse Datasets", readOnlyHint: true },
+    parameters: z.object({
+      route: z.string().optional().describe("Route path, e.g. 'electricity' or 'electricity/retail-sales'"),
+      facet: z.string().optional().describe("Facet id to list values for, e.g. 'sectorid' (needs route)"),
+    }),
+    execute: async ({ route, facet }) => {
+      if (facet) {
+        if (!route) throw new UserError("facet needs a route.");
+        const values = await getFacetValues(route, facet);
+        if (!values.length) return emptyResponse(`No values for facet "${facet}" on ${normalizeRoute(route)}.`);
+        return tableResponse(`${values.length} value(s) for facet ${facet} on ${normalizeRoute(route)}`, { rows: values.slice(0, 1000), total: values.length });
+      }
+      const info = await getRouteInfo(route);
+      const what = info.routes?.length
+        ? `${info.routes.length} sub-route(s)`
+        : `data route: ${info.data?.length ?? 0} data column(s), ${info.facets?.length ?? 0} facet(s), ${info.startPeriod ?? "?"} to ${info.endPeriod ?? "?"}`;
+      return recordResponse(`EIA ${info.route || "(root)"}: ${what}`, info as unknown as Record<string, unknown>);
+    },
+  },
+
+  {
+    name: "eia_query",
+    description:
+      "Fetch data from any EIA API v2 data route (find routes, facets and columns with eia_browse). Newest first.\n" +
+      "facets narrow the series: 'stateid=CA,TX; sectorid=RES'. data picks value columns, e.g. 'price' or 'sales,revenue'.",
+    annotations: { title: "EIA: Query Any Route", readOnlyHint: true },
+    parameters: z.object({
+      route: z.string().describe("Data route, e.g. 'electricity/retail-sales' or 'petroleum/pri/spt'"),
+      data: z.string().optional().describe("Data columns, comma-separated (default 'value'); see eia_browse"),
+      facets: z.string().optional().describe("Facet filters: 'stateid=CA,TX; sectorid=RES'"),
+      frequency: z.string().optional().describe("e.g. 'monthly', 'annual', 'weekly' (see eia_browse)"),
+      start: z.string().optional().describe("Start period, in the route's format: '2024-01', '2024'"),
+      end: z.string().optional().describe("End period"),
+      length: z.number().int().min(1).max(5000).default(100).describe("Max rows (default 100, max 5000)"),
+      offset: z.number().int().min(0).optional().describe("Rows to skip (paging)"),
+    }),
+    execute: async ({ route, data, facets, frequency, start, end, length, offset }) => {
+      const columns: string[] = String(data ?? "value").split(",").map((s: string) => s.trim()).filter(Boolean);
+      const facetFilters: Record<string, string[]> = {};
+      for (const part of String(facets ?? "").split(";").map((s: string) => s.trim()).filter(Boolean)) {
+        const [id, values] = part.split("=").map((s: string) => s?.trim());
+        if (!id || !values) throw new UserError(`Bad facet filter "${part}": use 'facet=value1,value2', e.g. 'stateid=CA,TX'.`);
+        facetFilters[id] = values.split(",").map((v: string) => v.trim()).filter(Boolean);
+      }
+      const res = await queryRoute(route, { data: columns, facets: facetFilters, frequency, start, end, length, offset });
+      const rows = res.response?.data ?? [];
+      if (!rows.length) return emptyResponse(`No EIA data for ${normalizeRoute(route)} with these filters.`);
+      // Values arrive as strings; make the data columns numeric.
+      const numeric = rows.map(r => {
+        const out: Record<string, unknown> = { ...r };
+        for (const c of columns) if (out[c] !== undefined && out[c] !== null && out[c] !== "") out[c] = Number(out[c]);
+        return out;
+      });
+      const facetColumns = Object.keys(numeric[0]).filter(k => k !== "period" && !columns.includes(k) && !/-units$|units$/i.test(k) && !/(Description|Name|name)$/.test(k));
+      return timeseriesResponse(
+        `EIA ${normalizeRoute(route)}: ${rows.length} of ${res.response.total} rows${frequency ? ` (${frequency})` : ""}`,
+        {
+          rows: numeric,
+          dateKey: "period",
+          valueKey: columns[0],
+          extraFields: [...columns.slice(1), ...Object.keys(numeric[0]).filter(k => k !== "period" && !columns.includes(k))],
+          seriesKeys: facetColumns,
+          total: Number(res.response.total) || rows.length,
+          meta: { route: normalizeRoute(route), data: columns, facets: facetFilters },
         },
       );
     },
