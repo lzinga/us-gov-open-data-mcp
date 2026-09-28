@@ -298,10 +298,15 @@ server.addTool({
     await reportProgress({ progress: 1, total: 2 });
 
     // Execute script in sandbox
-    const { stdout, beforeBytes, afterBytes, reductionPct, error } =
+    const { stdout, beforeBytes, afterBytes, reductionPct, error, outputLimitExceeded } =
       await executeInSandbox(rawResult, code);
 
     await reportProgress({ progress: 2, total: 2 });
+
+    if (outputLimitExceeded) {
+      const preview = stdout.length > 1000 ? stdout.slice(0, 1000) + "…" : stdout;
+      throw new UserError(`${error}\n\nFirst ${Math.min(1000, stdout.length)} chars of output:\n${preview}`);
+    }
 
     if (error) {
       const previewLen = Math.min(200, rawResult.length);

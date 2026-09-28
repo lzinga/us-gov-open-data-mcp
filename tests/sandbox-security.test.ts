@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { executeInSandbox } from "../src/shared/sandbox.js";
+import { executeInSandbox, MAX_OUTPUT_CHARS } from "../src/shared/sandbox.js";
 
 const SAMPLE_DATA = JSON.stringify({ value: 42 });
 
@@ -157,6 +157,46 @@ describe("Output control", () => {
     const result = await executeInSandbox(SAMPLE_DATA, `console.log("visible"); "invisible";`);
     expect(result.stdout).toBe("visible");
     expect(result.stdout).not.toContain("invisible");
+  });
+
+  it("formats non-string values like JSON", async () => {
+    const result = await executeInSandbox(
+      SAMPLE_DATA,
+      `console.log(1, true, null, undefined, {a: [1, "x"]}, "s");`,
+    );
+    expect(result.stdout).toBe(`1 true null undefined {"a":[1,"x"]} s`);
+  });
+
+  it("stops a runaway logging loop at the output limit, well before the timeout", async () => {
+    const big = JSON.stringify({ blob: "x".repeat(1024 * 1024) });
+    const started = Date.now();
+    const result = await executeInSandbox(big, `for (;;) console.log(DATA);`);
+    const elapsed = Date.now() - started;
+
+    expect(result.outputLimitExceeded).toBe(true);
+    expect(result.error).toContain("Output limit exceeded");
+    expect(result.stdout.length).toBeLessThanOrEqual(MAX_OUTPUT_CHARS);
+    expect(elapsed).toBeLessThan(5_000);
+  }, 15_000);
+
+  it("stops many small writes at the output limit", async () => {
+    const result = await executeInSandbox(SAMPLE_DATA, `for (let i = 0; ; i++) console.log("line " + i);`);
+    expect(result.outputLimitExceeded).toBe(true);
+    expect(result.stdout.length).toBeLessThanOrEqual(MAX_OUTPUT_CHARS);
+    expect(result.stdout.startsWith("line 0\nline 1\n")).toBe(true);
+  }, 15_000);
+
+  it("truncates one oversized value inside the VM", async () => {
+    const big = JSON.stringify({ items: Array.from({ length: 50_000 }, (_, i) => ({ id: i, name: "item" + i })) });
+    const result = await executeInSandbox(big, `console.log(JSON.parse(DATA));`);
+    expect(result.outputLimitExceeded).toBe(true);
+    expect(result.stdout.length).toBeLessThanOrEqual(MAX_OUTPUT_CHARS);
+    expect(result.stdout.startsWith('{"items":[{"id":0')).toBe(true);
+  }, 15_000);
+
+  it("user code cannot reach the host output hooks", async () => {
+    const result = await executeInSandbox(SAMPLE_DATA, `console.log(typeof __emit, typeof __room, typeof __overflow);`);
+    expect(result.stdout).toBe("undefined undefined undefined");
   });
 });
 
