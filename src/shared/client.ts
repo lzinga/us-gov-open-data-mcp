@@ -191,18 +191,23 @@ export class TokenBucket {
 // ─── Disk-backed TTL Cache ────────────────────────────────────────────
 //
 // One file per response under the user's private cache directory; see
-// disk-cache.ts. Shared by every client in the process.
+// disk-cache.ts. Shared by every client in the process, and created on
+// first use so that importing the SDK touches no files.
 
-const cacheStore = new CacheStore({ root: resolveCacheRoot() });
+let sharedStore: CacheStore | undefined;
+
+function cacheStore(): CacheStore {
+  return (sharedStore ??= new CacheStore({ root: resolveCacheRoot() }));
+}
 
 /** Wait for background cache maintenance (the size scan and LRU sweeps) to finish. */
 export async function flushDiskCache(): Promise<void> {
-  await cacheStore.idle();
+  await sharedStore?.idle();
 }
 
 /** Directory holding the cache entries, or null when the disk cache is disabled. */
 export function diskCachePath(): string | null {
-  return cacheStore.root;
+  return cacheStore().root;
 }
 
 // ─── Timeouts and retry logic ────────────────────────────────────────
