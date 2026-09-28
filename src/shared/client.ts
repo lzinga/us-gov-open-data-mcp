@@ -53,8 +53,15 @@ export interface ClientConfig {
    *  higher for infrequent data: 1 hour = 3_600_000, 1 day = 86_400_000. Set 0 to disable. */
   cacheTtlMs?: number;
 
-  /** Timeout in ms (default: 30000) */
+  /** Timeout in ms for one attempt, including reading the body (default: 30000) */
   timeoutMs?: number;
+
+  /**
+   * Overall deadline in ms for one request across all retries and backoff
+   * (default: max(45000, timeoutMs)). Keeps tool calls inside typical MCP
+   * client request timeouts.
+   */
+  deadlineMs?: number;
 
   /** Max retries for transient errors (429, 502, 503, 504). Default: 2.
    *  Increase for notoriously flaky upstream APIs (e.g. FBI CDE). */
@@ -399,21 +406,23 @@ class DiskCache {
   }
 }
 
-// ─── Fetch with timeout ──────────────────────────────────────────────
-
-async function fetchTimeout(url: string, init: RequestInit | undefined, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ─── Retry logic ─────────────────────────────────────────────────────
+// ─── Timeouts and retry logic ────────────────────────────────────────
+//
+// Each attempt gets an AbortSignal.timeout() that stays armed while the
+// response body is read, so a stalled body can't hang a tool call. All
+// attempts (plus backoff sleeps) share an overall deadline so retries can't
+// outlast a typical MCP client's request timeout (~60s).
 
 const RETRYABLE = [429, 502, 503, 504];
+
+/** Longest Retry-After we'll wait inside a tool call; beyond this we fail fast. */
+export const MAX_RETRY_AFTER_MS = 20_000;
+
+/** Default overall deadline for one client request, across all retries. */
+export const DEFAULT_DEADLINE_MS = 45_000;
+
+/** An error that must not be retried (e.g. an excessive Retry-After). */
+class FatalRequestError extends Error {}
 
 /**
  * Parse a `Retry-After` header value.
@@ -441,6 +450,12 @@ function backoffDelay(attempt: number): number {
   return Math.floor(base * (0.5 + Math.random() * 0.5));
 }
 
+function isTimeoutError(e: unknown): boolean {
+  return e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 async function fetchRetry(
   url: string,
   init: RequestInit | undefined,
@@ -448,31 +463,63 @@ async function fetchRetry(
   limiter: TokenBucket,
   name: string,
   maxRetries = 2,
+  deadlineMs = DEFAULT_DEADLINE_MS,
 ): Promise<Response> {
+  const started = Date.now();
+  const remaining = () => deadlineMs - (Date.now() - started);
   let lastErr: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     await limiter.acquire();
+    const budget = Math.min(timeoutMs, remaining());
+    if (budget <= 0) break;
     try {
-      const res = await fetchTimeout(url, init, timeoutMs);
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(budget) });
       if (RETRYABLE.includes(res.status) && attempt < maxRetries) {
         const retryAfterMs = parseRetryAfter(res.headers.get("Retry-After"));
+        if (retryAfterMs !== null && retryAfterMs > MAX_RETRY_AFTER_MS) {
+          await res.body?.cancel().catch(() => {});
+          throw new FatalRequestError(
+            `${name}: HTTP ${res.status} — the API asked to retry after ${Math.ceil(retryAfterMs / 1000)}s ` +
+            `(rate limited). Try again later.`,
+          );
+        }
         const delay = retryAfterMs ?? backoffDelay(attempt);
+        // Not enough time left for another attempt: surface this response.
+        if (delay >= remaining() - 1000) return res;
+        await res.body?.cancel().catch(() => {});
         console.error(`${name}: HTTP ${res.status}, retry in ${delay}ms (${attempt + 1}/${maxRetries})`);
-        await new Promise(r => setTimeout(r, delay));
+        await sleep(delay);
         continue;
       }
       return res;
     } catch (e) {
-      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (e instanceof FatalRequestError) throw e;
+      lastErr = isTimeoutError(e)
+        ? new Error(`${name}: request timed out after ${Math.round(budget / 1000)}s`)
+        : e instanceof Error ? e : new Error(String(e));
       if (attempt < maxRetries) {
         const delay = backoffDelay(attempt);
+        if (delay >= remaining() - 1000) break;
         console.error(`${name}: ${lastErr.message}, retry in ${delay}ms (${attempt + 1}/${maxRetries})`);
-        await new Promise(r => setTimeout(r, delay));
+        await sleep(delay);
       }
     }
   }
-  throw lastErr ?? new Error("Request failed");
+  throw lastErr ?? new Error(`${name}: request exceeded the ${Math.round(deadlineMs / 1000)}s deadline`);
+}
+
+/** Read a response body, turning a mid-body timeout into a clear error. */
+async function readBody(res: Response, kind: "text" | "json", name: string): Promise<unknown> {
+  try {
+    return kind === "json" ? await res.json() : await res.text();
+  } catch (e) {
+    if (isTimeoutError(e)) throw new Error(`${name}: timed out while reading the response body`);
+    if (kind === "json" && e instanceof SyntaxError) {
+      throw new SyntaxError(`${name}: invalid JSON in response (HTTP ${res.status}): ${e.message}`);
+    }
+    throw e;
+  }
 }
 
 /** Truncate body text to a manageable size for inclusion in error messages. */
@@ -492,6 +539,7 @@ export function createClient(config: ClientConfig): ApiClient {
     checkError,
     emptyBodyAsNull = false,
   } = config;
+  const deadlineMs = config.deadlineMs ?? Math.max(DEFAULT_DEADLINE_MS, timeoutMs);
 
   const rl = config.rateLimit ?? { perSecond: 5, burst: 10 };
   const limiter = new TokenBucket(rl.burst, rl.perSecond);
@@ -582,10 +630,10 @@ export function createClient(config: ClientConfig): ApiClient {
     const cached = cache.get(cacheKey);
     if (cached !== undefined) return cached as T;
 
-    const res = await fetchRetry(url, init, timeoutMs, limiter, name, configMaxRetries);
+    const res = await fetchRetry(url, init, timeoutMs, limiter, name, configMaxRetries, deadlineMs);
 
     if (!res.ok) {
-      const body = await res.text();
+      const body = String(await readBody(res, "text", name).catch(() => ""));
 
       // Friendly error for auth failures when no credentials are configured
       if ((res.status === 401 || res.status === 403) && auth && !hasAuth()) {
@@ -600,7 +648,7 @@ export function createClient(config: ClientConfig): ApiClient {
     }
 
     if (responseType === "text") {
-      const text = await res.text();
+      const text = (await readBody(res, "text", name)) as string;
       cache.set(cacheKey, text);
       return text as T;
     }
@@ -609,10 +657,18 @@ export function createClient(config: ClientConfig): ApiClient {
     if (emptyBodyAsNull) {
       // DOL returns a bare 204 when a filter matches nothing. Treat that, or
       // any successful empty body, as no rows rather than a JSON parse error.
-      const raw = await res.text();
-      data = res.status === 204 || raw.trim() === "" ? null : JSON.parse(raw);
+      const raw = (await readBody(res, "text", name)) as string;
+      if (res.status === 204 || raw.trim() === "") {
+        data = null;
+      } else {
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          throw new SyntaxError(`${name}: invalid JSON in response (HTTP ${res.status}): ${(e as Error).message}`);
+        }
+      }
     } else {
-      data = await res.json();
+      data = await readBody(res, "json", name);
     }
 
     // Check for API-level errors in body
