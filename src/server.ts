@@ -34,7 +34,7 @@ import { createServerLogger } from "./server/logger.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
-import { DOMAINS, type ApiModule } from "./shared/types.js";
+import { DOMAINS, authEnvVars, requiresKey, type ApiModule } from "./shared/types.js";
 
 const logger = createServerLogger();
 
@@ -84,8 +84,9 @@ if (listModules) {
       name: m.name,
       displayName: m.displayName,
       toolCount: m.tools.length,
-      requiresApiKey: !!m.auth,
-      envVars: m.auth ? (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]) : null,
+      requiresApiKey: requiresKey(m),
+      optionalApiKey: !!m.auth?.optional,
+      envVars: m.auth ? authEnvVars(m.auth) : null,
       signupUrl: m.auth?.signup ?? null,
       domains: m.domains,
     }));
@@ -109,8 +110,9 @@ if (listModules) {
     console.log(`\n${domain.charAt(0).toUpperCase() + domain.slice(1)}`);
     for (const m of mods) {
       const toolsStr = `${m.tools.length} tools`.padEnd(maxToolsLen);
-      const envVars = m.auth ? (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]) : null;
-      const authNote = envVars ? `  [${envVars.join(", ")}]  ${m.auth!.signup}` : "";
+      const authNote = m.auth
+        ? `  [${authEnvVars(m.auth).join(", ")}${m.auth.optional ? " (optional)" : ""}]  ${m.auth.signup}`
+        : "";
       console.log(`  ${m.name.padEnd(maxNameLen)}  ${m.displayName.padEnd(maxDisplayLen)}  ${toolsStr}${authNote}`);
     }
   }
@@ -141,16 +143,15 @@ if (modulesFilter) {
 // ─── Startup validation ──────────────────────────────────────────────
 
 for (const mod of activeModules) {
-  if (mod.auth) {
-    const vars = Array.isArray(mod.auth.envVar) ? mod.auth.envVar : [mod.auth.envVar];
-    const missing = vars.filter(v => !process.env[v]);
-    if (missing.length > 0) {
-      // IMPORTANT: for MCP stdio transport, stdout must be reserved for JSON-RPC only.
-      // VS Code treats stderr output as warnings; keep it minimal and only log actionable issues.
-      console.warn(
-        `\u26A0 ${mod.displayName}: ${missing.join(", ")} not set \u2014 tools will fail. Get key: ${mod.auth.signup}`,
-      );
-    }
+  // Optional keys only raise rate limits; don't warn when they're absent.
+  if (!mod.auth || !requiresKey(mod)) continue;
+  const missing = authEnvVars(mod.auth).filter(v => !process.env[v]);
+  if (missing.length > 0) {
+    // IMPORTANT: for MCP stdio transport, stdout must be reserved for JSON-RPC only.
+    // VS Code treats stderr output as warnings; keep it minimal and only log actionable issues.
+    console.warn(
+      `\u26A0 ${mod.displayName}: ${missing.join(", ")} not set \u2014 tools will fail. Get key: ${mod.auth.signup}`,
+    );
   }
 }
 
@@ -332,34 +333,45 @@ server.addResource({
   name: "API Reference",
   mimeType: "text/markdown",
   load: async () => {
-    const noKey = activeModules.filter(m => !m.auth);
+    // Modules usable without any key: keyless ones plus optional-key ones.
+    const noKey = activeModules.filter(m => !requiresKey(m));
     const withKey = activeModules.filter(m => m.auth);
 
-    // Group keyed APIs by env var
-    const keyGroups: Record<string, { envVar: string; signup: string; apis: string[] }> = {};
+    // Group keyed APIs by env var. A key is "required" if any module needs it.
+    const keyGroups: Record<string, { envVar: string; signup: string; apis: string[]; required: boolean }> = {};
     for (const m of withKey) {
-      const vars = Array.isArray(m.auth!.envVar) ? m.auth!.envVar : [m.auth!.envVar];
-      for (const v of vars) {
-        if (!keyGroups[v]) keyGroups[v] = { envVar: v, signup: m.auth!.signup, apis: [] };
-        keyGroups[v].apis.push(m.displayName);
+      for (const v of authEnvVars(m.auth)) {
+        if (!keyGroups[v]) keyGroups[v] = { envVar: v, signup: m.auth!.signup, apis: [], required: false };
+        keyGroups[v].apis.push(m.auth!.optional ? `${m.displayName} (optional)` : m.displayName);
+        if (requiresKey(m)) keyGroups[v].required = true;
       }
     }
 
     // Check which keys are actually configured
     const configuredKeys = Object.keys(keyGroups).filter(k => !!process.env[k]);
-    const missingKeys = Object.keys(keyGroups).filter(k => !process.env[k]);
+    const missingRequired = Object.keys(keyGroups).filter(k => !process.env[k] && keyGroups[k].required);
+    const missingOptional = Object.keys(keyGroups).filter(k => !process.env[k] && !keyGroups[k].required);
 
     let md = `# US Government Open Data — API Reference\n\n`;
-    md += `**${activeModules.length} APIs loaded** · ${noKey.length} require no key · ${configuredKeys.length}/${Object.keys(keyGroups).length} API keys configured\n\n`;
+    md += `**${activeModules.length} APIs loaded** · ${noKey.length} work without a key · ${configuredKeys.length}/${Object.keys(keyGroups).length} API keys configured\n\n`;
 
     // Status section
-    if (missingKeys.length) {
+    if (missingRequired.length) {
       md += `## Missing API Keys\n\n`;
-      md += `These APIs are loaded but will fail without keys:\n\n`;
+      md += `These APIs are loaded but will fail without keys (APIs marked optional still work, at lower rate limits):\n\n`;
       md += `| Key | APIs Affected | Get Key |\n|---|---|---|\n`;
-      for (const k of missingKeys) {
+      for (const k of missingRequired) {
         const g = keyGroups[k];
         md += `| \`${k}\` | ${g.apis.join(", ")} | [Sign up](${g.signup}) |\n`;
+      }
+      md += `\n`;
+    }
+
+    if (missingOptional.length) {
+      md += `## Optional API Keys Not Set\n\n`;
+      md += `These APIs work without a key; setting it raises rate limits:\n\n`;
+      for (const k of missingOptional) {
+        md += `- \`${k}\` → ${keyGroups[k].apis.join(", ")} ([sign up](${keyGroups[k].signup}))\n`;
       }
       md += `\n`;
     }
@@ -374,16 +386,17 @@ server.addResource({
 
     // Free APIs
     md += `## No Key Required (${noKey.length} APIs)\n\n`;
-    md += noKey.map(m => `- **${m.displayName}** (${m.tools.length} tools) — ${m.description.split(".")[0]}.`).join("\n");
+    md += noKey.map(m => `- **${m.displayName}** (${m.tools.length} tools)${m.auth?.optional ? " — optional key for higher limits" : ""} — ${m.description.split(".")[0]}.`).join("\n");
     md += `\n\n`;
 
     // All APIs with tools
     md += `## All APIs & Tools\n\n`;
     for (const m of activeModules) {
+      const configured = authEnvVars(m.auth).every(v => !!process.env[v]);
       const status = !m.auth ? "No key needed"
-        : (Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).every(v => !!process.env[v])
-          ? "Key configured"
-          : "Key missing";
+        : configured ? "Key configured"
+        : m.auth.optional ? "Optional key not set (works at lower rate limits)"
+        : "Key missing";
       md += `### ${m.displayName} — ${status}\n\n`;
       md += `${m.tools.length} tools: ${m.tools.map(t => `\`${t.name}\``).join(", ")}\n\n`;
       if (m.workflow) md += `**Workflow:** ${m.workflow}\n\n`;

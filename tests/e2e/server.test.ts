@@ -76,4 +76,36 @@ describe("CLI", () => {
     expect(parsed.length).toBe(moduleDirs.length);
     expect(parsed.reduce((n, m) => n + m.toolCount, 0)).toBe(moduleToolCount);
   }, 30_000);
+
+  it("--list-modules --json distinguishes optional from required keys", async () => {
+    const res = await runCli(["--list-modules", "--json"]);
+    const parsed = JSON.parse(res.stdout) as { name: string; requiresApiKey: boolean; optionalApiKey: boolean }[];
+    const byName = new Map(parsed.map(m => [m.name, m]));
+    expect(byName.get("fda")).toMatchObject({ requiresApiKey: false, optionalApiKey: true });
+    expect(byName.get("bls")).toMatchObject({ requiresApiKey: false, optionalApiKey: true });
+    expect(byName.get("fred")).toMatchObject({ requiresApiKey: true, optionalApiKey: false });
+    expect(byName.get("treasury")).toMatchObject({ requiresApiKey: false, optionalApiKey: false });
+  }, 30_000);
+});
+
+describe("startup warnings", () => {
+  it("warns about missing required keys but not optional ones", async () => {
+    const session = await connectStdio({ args: ["--modules", "fda,bls,fred"] });
+    try {
+      // Give the startup warnings a moment to flush.
+      await new Promise(r => setTimeout(r, 200));
+      const stderr = session.stderr();
+      expect(stderr).toContain("FRED_API_KEY not set");
+      expect(stderr).not.toContain("BLS_API_KEY not set");
+      expect(stderr).not.toContain("DATA_GOV_API_KEY not set");
+
+      const res = await session.client.readResource({ uri: "govdata://reference" });
+      const text = (res.contents[0] as { text?: string }).text ?? "";
+      expect(text).toContain("## Optional API Keys Not Set");
+      expect(text).toMatch(/FDA \(OpenFDA\) — Optional key not set/);
+      expect(text).toMatch(/## Missing API Keys[\s\S]*FRED_API_KEY/);
+    } finally {
+      await session.close();
+    }
+  }, 30_000);
 });

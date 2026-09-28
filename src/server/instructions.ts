@@ -5,8 +5,17 @@
  * Curated content (Code Mode, Rules) is appended unchanged.
  */
 
-import { QUESTION_TYPES, type ApiModule } from "../shared/types.js";
+import { QUESTION_TYPES, authEnvVars, type ApiModule } from "../shared/types.js";
 import { CODE_MODE_GUIDE, RULES } from "./curated-guides.js";
+
+/** One-line auth note for a module's instruction block. */
+export function authNote(m: Pick<ApiModule, "auth">): string {
+  if (!m.auth) return "No key required.";
+  const vars = authEnvVars(m.auth).join(", ");
+  return m.auth.optional
+    ? `Works without a key; set ${vars} for higher rate limits.`
+    : `Requires ${vars}.`;
+}
 
 /**
  * Build the full MCP instructions string from module metadata.
@@ -22,9 +31,6 @@ export function buildInstructions(modules: ApiModule[]): string {
 
   // ── Section 1: Per-module blocks ──
   for (const m of modules) {
-    const authNote = m.auth
-      ? `Requires ${(Array.isArray(m.auth.envVar) ? m.auth.envVar : [m.auth.envVar]).join(", ")}.`
-      : "No key required.";
     sections.push(
       [
         `== ${m.displayName.toUpperCase()} ==`,
@@ -32,7 +38,7 @@ export function buildInstructions(modules: ApiModule[]): string {
         `Tools: ${m.tools.map((t) => t.name).join(", ")}`,
         m.workflow && `Workflow: ${m.workflow}`,
         m.tips,
-        authNote,
+        authNote(m),
       ]
         .filter(Boolean)
         .join("\n"),
