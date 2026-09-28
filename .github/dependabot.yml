@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # MCP server runtime + test tooling
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      runtime:
+        dependency-type: production
+        update-types: [minor, patch]
+      dev:
+        dependency-type: development
+        update-types: [minor, patch]
+    commit-message:
+      prefix: fix(deps)
+      prefix-development: chore(deps-dev)
+
+  # Documentation site toolchain (VitePress + TypeDoc) — never shipped
+  - package-ecosystem: npm
+    directory: /docs
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      docs:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore(docs-deps)
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
