@@ -9,6 +9,7 @@
  */
 
 import { createClient, qp } from "../../shared/client.js";
+import { searchPublications } from "../govinfo/sdk.js";
 import { htmlToText } from "../../shared/html.js";
 import { isHostOrSubdomain } from "../../shared/url.js";
 export * from "./types.js";
@@ -113,10 +114,9 @@ export const congressNumbers = {
 /**
  * Search/list bills by congress number and/or bill type.
  *
- * NOTE: The Congress.gov API v3 does NOT support text/keyword search on the /bill endpoint.
- * The `query` parameter is accepted but used for client-side title filtering only.
- * To find specific bills, use `getBillDetails()` with known bill numbers, or browse
- * by congress/bill_type and filter results.
+ * Without `query`, lists bills from the Congress.gov API (sorted by latest
+ * update). With `query`, runs a full-text search of bill text through GovInfo
+ * (see `searchBillsByKeyword`) — the Congress.gov API has no keyword search.
  */
 export async function searchBills(opts: {
   query?: string;
@@ -127,7 +127,18 @@ export async function searchBills(opts: {
   fromDateTime?: string;
   toDateTime?: string;
   sort?: string;
-} = {}): Promise<{ bills: CongressBill[] }> {
+} = {}): Promise<{ bills: CongressBill[]; keyword?: Omit<BillKeywordSearch, "bills"> }> {
+  if (opts.query?.trim()) {
+    const { bills, ...keyword } = await searchBillsByKeyword({
+      query: opts.query,
+      congress: opts.congress,
+      bill_type: opts.bill_type,
+      limit: opts.limit,
+      offset: opts.offset,
+    });
+    return { bills, keyword };
+  }
+
   let path: string;
   if (opts.congress) {
     path = `/bill/${opts.congress}`;
@@ -137,11 +148,8 @@ export async function searchBills(opts: {
     path = "/bill";
   }
 
-  // Fetch more if we need to filter client-side
-  const fetchLimit = opts.query ? Math.min((opts.limit ?? 20) * 5, 250) : (opts.limit ?? 20);
-
   const params = qp({
-    limit: fetchLimit,
+    limit: opts.limit ?? 20,
     offset: opts.offset ?? 0,
     sort: opts.sort ?? "updateDate+desc",
     fromDateTime: opts.fromDateTime,
@@ -149,20 +157,103 @@ export async function searchBills(opts: {
   });
 
   const res = await api.get<{ bills?: CongressBill[] }>(path, params);
+  return { bills: res.bills ?? [] };
+}
 
-  let bills = res.bills ?? [];
+// ─── Keyword search (GovInfo full text → Congress.gov details) ───────
 
-  // Client-side keyword filtering since the API doesn't support text search
-  if (opts.query) {
-    const terms = opts.query.toLowerCase().split(/\s+/).filter(Boolean);
-    bills = bills.filter(b => {
-      const title = (b.title ?? "").toLowerCase();
-      return terms.some(t => title.includes(t));
-    });
-    bills = bills.slice(0, opts.limit ?? 20);
+const BILL_PACKAGE_RE = /^BILLS-(\d+)(hr|s|hjres|sjres|hconres|sconres|hres|sres)(\d+)([a-z]+)$/i;
+
+/** Most bills returned (and hydrated from Congress.gov) per keyword search call. */
+export const KEYWORD_SEARCH_MAX_BILLS = 20;
+
+/** GovInfo hits scanned per keyword search (several text versions per bill). */
+const KEYWORD_SEARCH_HITS = 100;
+
+/** Parse a GovInfo BILLS package ID such as "BILLS-119hr1234ih". */
+export function parseBillPackageId(
+  packageId: string,
+): { congress: number; type: string; number: number; version: string } | null {
+  const m = BILL_PACKAGE_RE.exec(packageId);
+  if (!m) return null;
+  return { congress: Number(m[1]), type: m[2].toLowerCase(), number: Number(m[3]), version: m[4].toLowerCase() };
+}
+
+/** Result of a keyword bill search. */
+export interface BillKeywordSearch {
+  bills: CongressBill[];
+  /** Matching bill-text documents in GovInfo (all versions, before de-duplication). */
+  textHits: number;
+  /** Distinct bills among the relevance-ranked hits scanned. */
+  matchingBills: number;
+  /** Bills whose Congress.gov details couldn't be loaded (GovInfo title only). */
+  detailFailures: number;
+}
+
+/**
+ * Full-text keyword search of bill text via GovInfo's BILLS collection,
+ * ranked by relevance. Text versions are de-duplicated into bills, then each
+ * returned bill is hydrated with sponsor/latest action from Congress.gov.
+ * Supports GovInfo query syntax (quoted phrases, AND/OR). `offset` pages
+ * through the top relevance-ranked hits.
+ */
+export async function searchBillsByKeyword(opts: {
+  query: string;
+  congress?: number;
+  bill_type?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<BillKeywordSearch> {
+  const hits = await searchPublications({
+    query: opts.query,
+    collection: "BILLS",
+    congress: opts.congress,
+    billType: opts.bill_type,
+    pageSize: KEYWORD_SEARCH_HITS,
+  });
+
+  const unique = new Map<string, { congress: number; type: string; number: number; title: string }>();
+  for (const hit of hits.results) {
+    const parsed = parseBillPackageId(hit.packageId);
+    if (!parsed) continue;
+    const key = `${parsed.congress}-${parsed.type}-${parsed.number}`;
+    if (!unique.has(key)) unique.set(key, { ...parsed, title: hit.title });
   }
 
-  return { bills };
+  const limit = Math.min(opts.limit ?? KEYWORD_SEARCH_MAX_BILLS, KEYWORD_SEARCH_MAX_BILLS);
+  const offset = opts.offset ?? 0;
+  const page = [...unique.values()].slice(offset, offset + limit);
+
+  let detailFailures = 0;
+  const bills = await Promise.all(page.map(async (b): Promise<CongressBill> => {
+    const base: CongressBill = { type: b.type.toUpperCase(), number: b.number, title: b.title, congress: b.congress };
+    try {
+      const res = await api.get<{ bill?: CongressBillDetail & { sponsors?: { fullName?: string }[] } }>(
+        `/bill/${b.congress}/${b.type}/${b.number}`,
+      );
+      const detail = res.bill ?? {};
+      const sponsor = detail.sponsors?.[0];
+      return {
+        ...base,
+        title: detail.title ?? b.title,
+        introducedDate: detail.introducedDate,
+        sponsor: sponsor
+          ? {
+              name: sponsor.fullName ?? [sponsor.firstName, sponsor.lastName].filter(Boolean).join(" "),
+              party: sponsor.party,
+              state: sponsor.state,
+            }
+          : undefined,
+        latestAction: detail.latestAction,
+        url: `https://www.congress.gov/bill/${b.congress}th-congress/${BILL_TYPE_DATA[b.type as keyof typeof BILL_TYPE_DATA]?.urlSegment ?? b.type}/${b.number}`,
+      };
+    } catch {
+      detailFailures++;
+      return base;
+    }
+  }));
+
+  return { bills, textHits: hits.total, matchingBills: unique.size, detailFailures };
 }
 
 /** Get detailed information about a specific bill, including cosponsors with party breakdown. */

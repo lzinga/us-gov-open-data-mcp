@@ -188,27 +188,52 @@ export const tools: Tool<any, any>[] = [
     description:
       "Search for bills in Congress by keyword, congress number, or bill type. " +
       "Returns bill number, title, sponsor, latest action, and status.\n\n" +
+      "With `query`: full-text search of bill text via GovInfo, ranked by relevance — supports quoted phrases " +
+      "and AND/OR (e.g., '\"artificial intelligence\" AND privacy'). Returns up to 20 distinct bills per call; " +
+      "use offset for more. fromDateTime/toDateTime/sort apply only when listing without a query.\n" +
+      "Without `query`: lists bills by most recent update.\n\n" +
       "Congress numbers: 118th (2023-2024), 119th (2025-2026), 117th (2021-2022).\n" +
       "Bill types: hr (House), s (Senate), hjres, sjres, hconres, sconres, hres, sres",
     annotations: { title: "Congress: Search Bills", readOnlyHint: true },
     parameters: z.object({
-      query: z.string().optional().describe("Keyword/text search across bill titles and summaries (e.g., 'infrastructure', 'tax reform', 'climate')"),
-      congress: z.number().int().optional().describe("Congress number (e.g., 119 for 2025-2026, 118 for 2023-2024). Omit to list bills across all congresses"),
+      query: z.string().optional().describe("Full-text keyword search of bill text (e.g., 'infrastructure', '\"tax credit\" AND solar'). Omit to list recent bills"),
+      congress: z.number().int().optional().describe("Congress number (e.g., 119 for 2025-2026, 118 for 2023-2024). Omit to search/list across all congresses"),
       bill_type: z.enum(keysEnum(BILL_TYPES)).optional().describe("Bill type"),
-      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20)"),
-      offset: z.number().int().optional().describe("Results offset for pagination (default: 0)"),
-      fromDateTime: z.string().optional().describe("Filter by update date from this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
-      toDateTime: z.string().optional().describe("Filter by update date to this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
-      sort: z.enum(["updateDate+asc", "updateDate+desc"]).optional().describe("Sort order. Value can be updateDate+asc or updateDate+desc (default: updateDate+desc)"),
+      limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20; keyword searches return at most 20)"),
+      offset: z.number().int().min(0).optional().describe("Results offset for pagination (default: 0)"),
+      fromDateTime: z.string().optional().describe("Listing only: filter by update date from this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
+      toDateTime: z.string().optional().describe("Listing only: filter by update date to this timestamp. Format: YYYY-MM-DDT00:00:00Z"),
+      sort: z.enum(["updateDate+asc", "updateDate+desc"]).optional().describe("Listing only: sort order (default: updateDate+desc)"),
     }),
     execute: async ({ query, congress, bill_type, limit, offset, fromDateTime, toDateTime, sort }) => {
       const data = await searchBills({ query, congress, bill_type, limit, offset, fromDateTime, toDateTime, sort });
       const bills = data.bills;
-      if (!bills.length) {
-        return emptyResponse(query ? `No bills found matching "${query}".` : "No bills found.");
+      const scope = `${congress ? ` (${congress}th Congress)` : ""}`;
+      if (data.keyword) {
+        const kw = data.keyword;
+        if (!bills.length) {
+          return emptyResponse(`No bills found matching "${query}"${scope} (GovInfo full-text search, ${kw.textHits} text hits).`);
+        }
+        return listResponse(
+          `Bill search "${query}"${scope}: ${bills.length} of ${kw.matchingBills} matching bills ` +
+          `(GovInfo full-text search, ranked by relevance; ${kw.textHits} matching bill-text versions)`,
+          {
+            items: bills.map(summarizeBill),
+            total: kw.matchingBills,
+            meta: {
+              searchMode: "fulltext",
+              source: "GovInfo BILLS collection + Congress.gov bill details",
+              textHits: kw.textHits,
+              matchingBills: kw.matchingBills,
+              offset: offset ?? 0,
+              ...(kw.detailFailures ? { partialFailures: { congressGovDetails: kw.detailFailures } } : {}),
+            },
+          },
+        );
       }
+      if (!bills.length) return emptyResponse("No bills found.");
       return listResponse(
-        `Bill search${query ? ` "${query}"` : ""}${congress ? ` (${congress}th Congress)` : ""}: ${bills.length} results`,
+        `Bill list${scope}: ${bills.length} results (most recently updated first)`,
         { items: bills.map(summarizeBill) },
       );
     },
