@@ -29,6 +29,8 @@
     "dist"
   ],
   "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "start": "node dist/server.js",
     "start:http": "node dist/server.js --transport httpStream --port 8080",
