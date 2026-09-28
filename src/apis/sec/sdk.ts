@@ -390,3 +390,86 @@ export function clearCache(): void {
   dataApi.clearCache();
   searchApi.clearCache();
 }
+
+// ─── Company lookup and insider filings (EDGAR full-text search) ─────
+
+/** A company or person known to EDGAR. */
+export interface EdgarEntity {
+  cik: string;
+  name: string;
+  tickers: string[];
+}
+
+/**
+ * Find companies by ticker or name using EDGAR's entity search (the same
+ * index as the EDGAR search box). Works without SEC_CONTACT_EMAIL.
+ */
+export async function lookupCompanies(text: string, limit = 5): Promise<EdgarEntity[]> {
+  const raw = await searchApi.get<{ hits?: { hits?: { _id?: string; _source?: { entity?: string; tickers?: string } }[] } }>(
+    "/search-index", { keysTyped: text.trim() },
+  );
+  return (raw.hits?.hits ?? []).slice(0, limit).map(h => ({
+    cik: padCik(String(h._id ?? "")),
+    name: String(h._source?.entity ?? "").replace(/\s*\([^)]*\)\s*$/, "").trim(),
+    tickers: String(h._source?.tickers ?? "").split(",").map(t => t.trim()).filter(Boolean),
+  })).filter(e => /^\d{10}$/.test(e.cik));
+}
+
+/** A CIK from a CIK, ticker ("AAPL", "BRK-B") or company name. */
+export async function resolveCik(input: string): Promise<string> {
+  const raw = input.trim();
+  if (/^\d{1,10}$/.test(raw)) return padCik(raw);
+  const matches = await lookupCompanies(raw, 10);
+  const ticker = raw.toUpperCase();
+  const best = matches.find(m => m.tickers.some(t => t.toUpperCase() === ticker)) ?? matches[0];
+  if (!best) throw new Error(`No SEC registrant found for "${input}". Try the exact ticker or legal name.`);
+  return best.cik;
+}
+
+/** An insider ownership filing (Form 3, 4 or 5) about a company. */
+export interface InsiderFiling {
+  form: string;
+  filedDate: string;
+  /** Date of the earliest reported transaction (period of report). */
+  transactionDate: string | null;
+  insider: string | null;
+  insiderCik: string | null;
+  accessionNumber: string;
+  /** EDGAR filing index page. */
+  url: string;
+}
+
+/**
+ * Insider ownership filings where the company is the issuer: Form 4
+ * (changes in ownership) by default, or 3/5. Newest first, from EDGAR
+ * full-text search. The transaction details are in the linked filing.
+ */
+export async function getInsiderFilings(issuerCik: string, opts: {
+  forms?: string; startDate?: string; endDate?: string; limit?: number;
+} = {}): Promise<{ total: number; filings: InsiderFiling[] }> {
+  const cik = padCik(issuerCik);
+  const raw = await searchApi.get<{ hits?: { total?: { value?: number }; hits?: { _id?: string; _source?: Record<string, unknown> }[] } }>(
+    "/search-index", { forms: opts.forms ?? "4", ciks: cik, startdt: opts.startDate, enddt: opts.endDate },
+  );
+  const hits = raw.hits?.hits ?? [];
+  const filings = hits
+    .map(h => {
+      const src = h._source ?? {};
+      const names = (src.display_names as string[] | undefined) ?? [];
+      const ciks = (src.ciks as string[] | undefined) ?? [];
+      // Display names look like "Newstead Jennifer  (CIK 0001780525)"; the insider is the one that isn't the issuer.
+      const ownerIndex = ciks.findIndex(c => c !== cik);
+      const adsh = String(src.adsh ?? String(h._id ?? "").split(":")[0]);
+      return {
+        form: String(src.form ?? "?"),
+        filedDate: String(src.file_date ?? ""),
+        transactionDate: (src.period_ending as string | undefined) ?? null,
+        insider: ownerIndex >= 0 ? (names[ownerIndex] ?? "").replace(/\s*\(CIK \d+\)\s*$/, "").trim() || null : null,
+        insiderCik: ownerIndex >= 0 ? ciks[ownerIndex] : null,
+        accessionNumber: adsh,
+        url: `https://www.sec.gov/Archives/edgar/data/${Number(cik)}/${adsh.replace(/-/g, "")}/${adsh}-index.htm`,
+      };
+    })
+    .sort((a, b) => b.filedDate.localeCompare(a.filedDate));
+  return { total: raw.hits?.total?.value ?? filings.length, filings: filings.slice(0, opts.limit ?? 20) };
+}

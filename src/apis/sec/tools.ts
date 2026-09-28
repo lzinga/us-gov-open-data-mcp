@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import type { Tool } from "fastmcp";
+import { UserError, type Tool } from "fastmcp";
 import {
   getCompanyByCik,
   getCompanyFacts,
@@ -12,6 +12,8 @@ import {
   summarizeFinancials,
   getCompanyConcept,
   getFrame,
+  resolveCik,
+  getInsiderFilings,
   xbrlConcepts,
   type SecFiling,
 } from "./sdk.js";
@@ -21,21 +23,17 @@ export const tools: Tool<any, any>[] = [
   {
     name: "sec_company_search",
     description:
-      "Look up a company on SEC EDGAR by CIK number. Returns company name, " +
+      "Look up a company on SEC EDGAR by ticker, name or CIK. Returns company name, " +
       "tickers, SIC code, state, and recent filings list.\n\n" +
-      "Common CIK numbers:\n" +
-      "- Apple: 0000320193\n" +
-      "- Microsoft: 0000789019\n" +
-      "- Amazon: 0001018724\n" +
-      "- Lockheed Martin: 0000936468\n" +
-      "- Raytheon (RTX): 0000101829\n" +
-      "- Boeing: 0000012927\n\n" +
-      "To find CIK: search by company name using sec_filing_search.",
+      "Examples: company='AAPL', company='Lockheed Martin', cik='0000320193'.",
     annotations: { title: "SEC: Company Lookup", readOnlyHint: true },
     parameters: z.object({
-      cik: z.string().describe("10-digit CIK number (e.g., '0000320193' for Apple). Leading zeros optional."),
+      company: z.string().optional().describe("Ticker ('NVDA', 'BRK-B'), company name ('Boeing') or CIK"),
+      cik: z.string().optional().describe("10-digit CIK number (e.g., '0000320193' for Apple). Leading zeros optional."),
     }),
-    execute: async ({ cik }) => {
+    execute: async ({ company, cik: cikArg }) => {
+      if (!company && !cikArg) throw new UserError("Give a company (ticker or name) or a cik.");
+      const cik = cikArg ?? await resolveCik(company!);
       const res = await getCompanyByCik(cik);
 
       const filings = res.filings?.recent;
@@ -79,23 +77,49 @@ export const tools: Tool<any, any>[] = [
   },
 
   {
+    name: "sec_insider_filings",
+    description:
+      "Insider trading disclosures for a company: Form 4 filings (changes in officers', directors' and 10% owners' holdings), " +
+      "or Forms 3 and 5, newest first. Lists who filed, when, the transaction date and a link to the filing.\n" +
+      "Give a ticker, company name or CIK.",
+    annotations: { title: "SEC: Insider Filings", readOnlyHint: true },
+    parameters: z.object({
+      company: z.string().describe("Ticker ('AAPL'), company name or CIK of the issuer"),
+      forms: z.string().default("4").describe("Forms, comma-separated: '4' (default), '3,4,5'"),
+      start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Filed on or after, YYYY-MM-DD"),
+      end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Filed on or before, YYYY-MM-DD"),
+      limit: z.number().int().min(1).max(100).default(20).describe("Max filings (default 20)"),
+    }),
+    execute: async ({ company, forms, start_date, end_date, limit }) => {
+      const cik = await resolveCik(company);
+      const { total, filings } = await getInsiderFilings(cik, { forms, startDate: start_date, endDate: end_date, limit });
+      if (!filings.length) return emptyResponse(`No Form ${forms} filings found for ${company} (CIK ${cik}).`);
+      const insiders = new Set(filings.map(f => f.insider).filter(Boolean));
+      return tableResponse(
+        `${total} Form ${forms} filing(s) for ${company} (CIK ${cik}), showing ${filings.length} from ${insiders.size} insider(s); latest ${filings[0].filedDate}`,
+        { rows: filings, total, meta: { issuerCik: cik, note: "Transaction details (shares, prices) are in each linked filing." } },
+      );
+    },
+  },
+
+  {
     name: "sec_company_financials",
     description:
       "Get financial data (revenue, net income, assets, etc.) from SEC XBRL filings for a company. " +
       "Returns standardized financial data extracted from 10-K and 10-Q filings.\n\n" +
-      "Requires CIK number. Use sec_company_search to look up filings first.\n\n" +
+      "Takes a CIK, ticker or company name.\n\n" +
       "Common XBRL concepts: Revenues, NetIncomeLoss, Assets, Liabilities, " +
       "StockholdersEquity, EarningsPerShareBasic, CashAndCashEquivalentsAtCarryingValue",
     annotations: { title: "SEC: Company Financial Facts", readOnlyHint: true },
     parameters: z.object({
-      cik: z.string().describe("10-digit CIK number (e.g., '0000320193' for Apple)"),
+      cik: z.string().describe("CIK ('0000320193'), ticker ('AAPL') or company name"),
       metric: z.string().optional().describe(
         "Specific XBRL concept to retrieve (e.g., 'Revenues', 'NetIncomeLoss', 'Assets'). " +
         "Omit to get a summary of available key metrics.",
       ),
     }),
     execute: async ({ cik, metric }) => {
-      const facts = await getCompanyFacts(cik);
+      const facts = await getCompanyFacts(await resolveCik(cik));
       const usgaap = facts.facts["us-gaap"];
 
       if (!usgaap) {
@@ -184,14 +208,14 @@ export const tools: Tool<any, any>[] = [
       "EarningsPerShareBasic, CashAndCashEquivalentsAtCarryingValue.",
     annotations: { title: "SEC: Company Concept Time Series", readOnlyHint: true },
     parameters: z.object({
-      cik: z.string().describe("10-digit CIK number (e.g. '0000320193' for Apple). Leading zeros optional."),
+      cik: z.string().describe("CIK ('0000320193'), ticker ('AAPL') or company name"),
       concept: z.string().describe("XBRL concept tag, e.g. 'Revenues', 'NetIncomeLoss', 'Assets'"),
       taxonomy: z.enum(["us-gaap", "ifrs-full", "dei", "srt"]).default("us-gaap").describe("XBRL taxonomy (default us-gaap)"),
     }),
     execute: async ({ cik, concept, taxonomy }) => {
       let data;
       try {
-        data = await getCompanyConcept(cik, concept, taxonomy);
+        data = await getCompanyConcept(await resolveCik(cik), concept, taxonomy);
       } catch (e) {
         if (e instanceof Error && /HTTP 404/.test(e.message)) {
           return emptyResponse(`Concept "${concept}" not reported by CIK ${cik} in taxonomy ${taxonomy}.`);
