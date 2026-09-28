@@ -256,23 +256,27 @@ export function resolveCacheRoot(env: NodeJS.ProcessEnv = process.env): string |
   return root;
 }
 
-/** Cache for one API client. */
+/** Cache for one API client. The store may be passed lazily, as a function. */
 export class DiskCache {
   constructor(
-    private readonly store: CacheStore,
+    private readonly store: CacheStore | (() => CacheStore),
     private readonly ns: string,
     private readonly ttlMs: number,
   ) {}
 
+  private resolve(): CacheStore {
+    return typeof this.store === "function" ? this.store() : this.store;
+  }
+
   get(key: string): Promise<CachedResponse | undefined> {
-    return this.store.get(this.ns, key);
+    return this.resolve().get(this.ns, key);
   }
 
   set(key: string, data: unknown): void {
-    this.store.set(this.ns, key, data, this.ttlMs);
+    this.resolve().set(this.ns, key, data, this.ttlMs);
   }
 
   clear(): void {
-    this.store.clear(this.ns);
+    this.resolve().clear(this.ns);
   }
 }

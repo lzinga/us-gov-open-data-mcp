@@ -24,6 +24,16 @@ for (const obs of gdp.observations) {
 
 All functions include disk-backed caching, retry with exponential backoff, and rate limiting — no extra setup.
 
+Every module is also available as a namespace from the package root (the same as `us-gov-open-data-mcp/sdk`).
+Importing the package never starts the MCP server; use the `us-gov-open-data-mcp` command, or import
+`us-gov-open-data-mcp/server`, for that.
+
+```typescript
+import { fred } from "us-gov-open-data-mcp";
+
+const gdp = await fred.getObservations("GDP", { sort: "desc", limit: 1 });
+```
+
 ### Economic Data
 
 ### Get GDP, Unemployment, Inflation from FRED
