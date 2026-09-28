@@ -102,36 +102,47 @@ export const tools: Tool<any, any>[] = [
       year_to: z.number().int().min(1970).optional().describe("Last year of loss"),
       flood_event: z.string().optional().describe(
         "Storm or event name, e.g. 'Harvey', 'Ian', 'Atmospheric River', in any capitalization. Words like 'Hurricane' " +
-        "or 'Tropical Storm' are dropped, since FEMA writes recent events as '2025-08-Erin-HU'. A storm or one-word name " +
-        "matches whole words only ('Earl' is not 'Early'); longer phrases match anywhere. Add year_from/year_to when a " +
-        "name was reused.",
+        "or 'Tropical Storm' are dropped, since FEMA writes recent events as '2025-08-Erin-HU'. A one-word name matches " +
+        "whole words ('Earl' is not 'Early'), or inside names if no event has it as a word ('Kona' in " +
+        "'2026-03-KonaStorm'); longer names match anywhere. Add year_from/year_to when a name was reused.",
       ),
       sort_by: z.enum(["date", "paid"]).default("date").describe("'date' (newest first, default) or 'paid' (largest building payment first)"),
       limit: z.number().int().min(1).max(1000).default(50).describe("Claims to return (default 50, max 1000)"),
     }),
     execute: async (args) => {
-      const { total, claims } = await getNfipClaims({
+      const { total, claims, floodEventMatch } = await getNfipClaims({
         state: args.state, county: args.county, zip: args.zip, yearFrom: args.year_from, yearTo: args.year_to,
         floodEvent: args.flood_event, sortBy: args.sort_by, limit: args.limit,
       });
       if (!claims.length) {
+        const event = args.flood_event?.trim();
         return emptyResponse(
           "No NFIP claims match these filters." +
-          (args.flood_event?.trim()
-            ? " FEMA names events inconsistently ('Hurricane Ian', '2025-08-Erin-HU', '2025 July TS Chantal'): try one " +
-              "distinctive word of the name, or drop flood_event and filter by state and year."
-            : ""),
+          (!event
+            ? ""
+            : floodEventMatch === "whole word"
+              ? ` "${event}" has claims outside these place and year filters; widen them to see them.`
+              : " FEMA names events inconsistently ('Hurricane Ian', '2025-08-Erin-HU', '2025 July TS Chantal'): try one " +
+                "distinctive word of the name, or drop flood_event and filter by state and year."),
         );
       }
       const paid = claims.reduce((sum, c) => sum + c.totalPaid, 0);
       const floodEvents = [...new Set(claims.map(c => c.floodEvent).filter((e): e is string => !!e))].slice(0, 10);
       return tableResponse(
         `${total.toLocaleString("en-US")} NFIP claim(s) match; showing ${claims.length} (sorted by ${args.sort_by}), ` +
-        `$${Math.round(paid).toLocaleString("en-US")} paid on those shown`,
+        `$${Math.round(paid).toLocaleString("en-US")} paid on those shown` +
+        (floodEventMatch === "within names"
+          ? `. No event has "${args.flood_event?.trim()}" as a whole word, so it was matched inside event names`
+          : ""),
         {
           rows: claims as unknown as Record<string, unknown>[],
           total,
-          meta: { dataset: "NfipClaims", paidOnShown: Math.round(paid), floodEvents: floodEvents.length ? floodEvents : null },
+          meta: {
+            dataset: "NfipClaims",
+            paidOnShown: Math.round(paid),
+            floodEvents: floodEvents.length ? floodEvents : null,
+            floodEventMatch: floodEventMatch ?? null,
+          },
         },
       );
     },

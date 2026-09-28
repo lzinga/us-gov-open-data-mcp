@@ -411,6 +411,17 @@ const STORM_TYPE = /^(?:hurricane|tropical\s+(?:storm|depression|cyclone)|super\
 /** Characters FEMA puts between the words of an event name. */
 const WORD_BREAKS = [" ", "-", "/"];
 
+/** The name to search for: whitespace tidied and a leading storm type dropped. */
+function eventName(input: string): string {
+  const typed = input.trim().replace(/\s+/g, " ");
+  return typed.replace(STORM_TYPE, "") || typed;
+}
+
+/** True when floodEventFilter() matches `input` as a whole word: it names one word, once any storm type is dropped. */
+export function isOneWordEvent(input: string): boolean {
+  return !eventName(input).includes(" ");
+}
+
 /**
  * Clauses matching `word` only where it stands alone in the name: at either
  * end or next to a space, hyphen or slash. "Earl" then finds "Hurricane Earl"
@@ -433,16 +444,16 @@ function wholeWordClauses(word: string): string[] {
  * Case, Sentence case and lower case, plus forms without spaces for names
  * like "2026-03-KonaStorm".
  *
- * A single word, or a name whose storm type was dropped, must match as a
- * whole word; other phrases match anywhere.
+ * A one-word name must match a whole word ("Earl" is not "Early summer
+ * storms") unless `substring` is set; longer names match anywhere. A one-word
+ * name has at most three forms, so the filter stays at 48 clauses or fewer,
+ * well under OpenFEMA's limit (it rejects about 90).
  */
-export function floodEventFilter(input: string): string {
-  const typed = input.trim().replace(/\s+/g, " ");
-  const withoutType = typed.replace(STORM_TYPE, "");
-  const name = withoutType || typed;
-  const wholeWord = (withoutType !== "" && withoutType !== typed) || !name.includes(" ");
+export function floodEventFilter(input: string, opts: { substring?: boolean } = {}): string {
+  const name = eventName(input);
+  const wholeWord = !opts.substring && !name.includes(" ");
   const lower = name.toLowerCase();
-  const title = lower.replace(/(^|[\s-])(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
+  const title = lower.replace(/(^|[\s\-/("])(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
   const sentence = lower.charAt(0).toUpperCase() + lower.slice(1);
   const forms = new Set<string>();
   for (const form of [name, title, sentence, lower]) {
@@ -452,6 +463,13 @@ export function floodEventFilter(input: string): string {
   const clauses = [...forms].flatMap(form => (wholeWord ? wholeWordClauses(form) : [`contains(floodEvent,${odataString(form)})`]));
   return clauses.length === 1 ? clauses[0] : `(${clauses.join(" or ")})`;
 }
+
+/**
+ * How a flood event name was matched: as a whole word; anywhere (names of
+ * two or more words); or, for a one-word name that no event has as a whole
+ * word, inside event names ("Kona" in "2026-03-KonaStorm").
+ */
+export type FloodEventMatch = "whole word" | "anywhere" | "within names";
 
 const NFIP_FIELDS = [
   "dateOfLoss", "yearOfLoss", "floodEvent", "state", "countyCode", "reportedZipCode", "ratedFloodZone", "primaryResidenceIndicator",
@@ -463,6 +481,10 @@ const NFIP_FIELDS = [
  * National Flood Insurance Program claims (NfipClaims v3), filtered by
  * place, year and named flood event. `total` is the number of claims
  * matching the filters; `claims` holds up to `limit` of them.
+ *
+ * A one-word event name is matched as a whole word. When that finds nothing
+ * and no event anywhere has the word, it is matched inside event names
+ * instead, and `floodEventMatch` says so.
  */
 export async function getNfipClaims(opts: {
   state?: string;
@@ -473,7 +495,7 @@ export async function getNfipClaims(opts: {
   floodEvent?: string;
   sortBy?: "date" | "paid";
   limit?: number;
-} = {}): Promise<{ total: number; claims: NfipClaimSummary[] }> {
+} = {}): Promise<{ total: number; claims: NfipClaimSummary[]; floodEventMatch?: FloodEventMatch }> {
   const filters: string[] = [];
   if (opts.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts.county) {
@@ -483,16 +505,42 @@ export async function getNfipClaims(opts: {
   if (opts.zip) filters.push(`reportedZipCode eq ${odataString(opts.zip.trim())}`);
   if (opts.yearFrom !== undefined) filters.push(`yearOfLoss ge ${integerValue(opts.yearFrom, "year_from")}`);
   if (opts.yearTo !== undefined) filters.push(`yearOfLoss le ${integerValue(opts.yearTo, "year_to")}`);
-  if (opts.floodEvent?.trim()) filters.push(floodEventFilter(opts.floodEvent));
 
-  const res = await api.get<{ metadata?: { count?: number }; NfipClaims?: Record<string, unknown>[] }>("/v3/NfipClaims", {
+  type Page = { metadata?: { count?: number }; NfipClaims?: Record<string, unknown>[] };
+  const query = (clauses: string[], select: string, top: number) => api.get<Page>("/v3/NfipClaims", {
     $format: "json",
-    $select: NFIP_FIELDS.join(","),
-    $filter: filters.length ? filters.join(" and ") : undefined,
+    $select: select,
+    $filter: clauses.length ? clauses.join(" and ") : undefined,
     $orderby: opts.sortBy === "paid" ? "netBuildingPaymentAmount desc" : "dateOfLoss desc",
-    $top: String(Math.min(opts.limit ?? 50, 1000)),
+    $top: String(top),
     $count: "true",
   });
+  const count = (page: Page) => page.metadata?.count ?? page.NfipClaims?.length ?? 0;
+  const claimsQuery = (eventClause?: string) =>
+    query(eventClause ? [...filters, eventClause] : filters, NFIP_FIELDS.join(","), Math.min(opts.limit ?? 50, 1000));
+
+  const event = opts.floodEvent?.trim();
+  let floodEventMatch: FloodEventMatch | undefined;
+  let res: Page;
+  if (!event) {
+    res = await claimsQuery();
+  } else if (!isOneWordEvent(event)) {
+    floodEventMatch = "anywhere";
+    res = await claimsQuery(floodEventFilter(event));
+  } else {
+    floodEventMatch = "whole word";
+    res = await claimsQuery(floodEventFilter(event));
+    // Nothing as a whole word. If some event has the word elsewhere (outside
+    // these place and year filters), the empty result is right; if none does,
+    // FEMA may have run it into a longer name ("Kona" in "2026-03-KonaStorm").
+    if (!count(res)) {
+      const wordExists = filters.length > 0 && count(await query([floodEventFilter(event)], "floodEvent", 1)) > 0;
+      if (!wordExists) {
+        floodEventMatch = "within names";
+        res = await claimsQuery(floodEventFilter(event, { substring: true }));
+      }
+    }
+  }
   const num = (v: unknown) => (v === null || v === undefined || v === "" ? null : Number(v));
   const claims = (res.NfipClaims ?? []).map(r => {
     const paidBuilding = num(r.netBuildingPaymentAmount);
@@ -518,5 +566,5 @@ export async function getNfipClaims(opts: {
       waterDepthInches: num(r.waterDepth),
     };
   });
-  return { total: res.metadata?.count ?? claims.length, claims };
+  return { total: res.metadata?.count ?? claims.length, claims, ...(floodEventMatch ? { floodEventMatch } : {}) };
 }
