@@ -280,6 +280,17 @@ These APIs work without a key; setting the key raises their rate limits. If the 
 ${optionalKeyApis.map(m => `- **${m.displayName}** — \`${[].concat(m.auth.envVar).join(", ")}\``).join("\n")}
 - **CDC** — 1,000 req/hour without an app token (token support not yet implemented)
 :::
+
+## Contact Settings
+
+Two agencies ask automated clients to identify themselves. Neither needs a signup:
+
+| Variable | Used by | Value |
+|----------|---------|-------|
+| \`SEC_CONTACT_EMAIL\` | SEC EDGAR | Your email address. SEC's [fair access policy](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data) asks for one and may block requests without it. |
+| \`NWS_USER_AGENT\` | NWS (National Weather Service) | Your app name and contact, e.g. \`my-app (me@example.org)\`. Optional: a default naming this project is sent otherwise. |
+
+Values left unchanged from \`.env.example\` (such as \`your_email@example.com\`) are ignored.
 `;
 
 writeFileSync(join(GUIDE_DIR, "api-keys.md"), apiKeysPage, "utf-8");

@@ -8,7 +8,8 @@ Versions are CalVer `YYYY.M.D` (UTC date). A release takes two workflows.
    - commits `release: vX` and pushes the commit together with the annotated tag `vX`. The push is atomic and
      never forced, so it fails if `main` moved during the run.
    - creates a draft GitHub release with generated notes
-2. **Publish**: review the draft and publish it. That runs [`publish.yml`](workflows/publish.yml), which builds and
+2. **Publish**: review the draft, add the upgrade notes from the Unreleased section of [`CHANGELOG.md`](../CHANGELOG.md)
+   (then give that section the version's heading), and publish it. That runs [`publish.yml`](workflows/publish.yml), which builds and
    tests the tag once without credentials, and validates `server.json`. It then publishes that same tarball to npm
    (trusted publishing, with provenance) and to GitHub Packages as `@lzinga/us-gov-open-data-mcp`, and lists the
    version in the [MCP Registry](https://registry.modelcontextprotocol.io) as

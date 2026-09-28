@@ -14,18 +14,35 @@ The instructions and tools stay in the model's context for the entire session. E
 
 ```
 src/
-  server.ts                 # Entry point — auto-discovers API modules
+  server.ts                 # Entry point — auto-discovers API modules, parses CLI flags
   server/
     instructions.ts         # Builds the instructions string from module metadata
     curated-guides.ts       # Code Mode guide + analysis rules (hand-authored)
     prompts.ts              # 36 cross-cutting analysis prompts (module-aware)
+    prompt-filter.ts        # Drops prompt steps that name tools which aren't loaded
+    module-selection.ts     # --modules / --domains / --hide-unconfigured
+    tool-registry.ts        # One validated entry point for calling any tool by name
+    discovery.ts            # Discovery mode: find_tools + call_tool
+    serve-tool.ts           # Wraps each tool: meta.sources + response size budget
+    response-budget.ts      # Trims oversized results, keeping them valid JSON
+    sources.ts              # Adds the upstream requests behind a result to meta.sources
+    reference-resources.ts  # govdata://{module}/reference MCP resources
+    http-auth.ts            # Bearer-token access control for the HTTP transport
+    logger.ts               # Server logger passed to FastMCP
   shared/
     client.ts               # createClient() — HTTP client with cache, retry, rate-limit
+    disk-cache.ts           # Disk-backed TTL cache (one file per response, LRU-swept)
+    request-context.ts      # Records which upstream requests produced a result
     types.ts                # Domain, QuestionType, RouteHint, ModuleMeta, ApiModule
     response.ts             # Standardized JSON response helpers
+    geo.ts                  # State names, USPS codes and FIPS codes
+    query-escape.ts         # Escaping for SoQL/OData filters built from parameters
+    env.ts                  # Optional settings; ignores .env.example placeholders
+    version.ts              # Package version and default User-Agent
     enum-utils.ts           # Zod enum helpers for tool parameters
+    sandbox.ts              # WASM (QuickJS) sandbox for code mode
   apis/
-    fred/                   # One folder per API (41 total)
+    fred/                   # One folder per API (42 total)
       sdk.ts                # Typed API client (no MCP dependency — usable standalone)
       meta.ts               # Identity, auth, domains, crossRef routing hints
       tools.ts              # MCP tool definitions (Zod schemas → SDK calls)
@@ -67,12 +84,18 @@ Exports an array of FastMCP tool definitions. Each tool has a Zod parameter sche
 ### `server.ts` — Auto-Discovery
 
 Scans `apis/` at startup, imports each folder's `index.ts`, and:
-1. Registers all tools
-2. Registers all prompts (per-module + cross-cutting)
-3. Builds the instructions string from module metadata
-4. Validates API keys and logs which are missing
+1. Selects modules (`--modules`, `--domains`, `--hide-unconfigured`; unknown names are an error)
+2. Registers the tools — every tool in full mode, or `find_tools` and `call_tool` in their place in discovery mode (`code_mode` and `clear_cache` are always there)
+3. Registers prompts (per-module + cross-cutting), minus steps that need unloaded tools
+4. Registers each module's reference data as a `govdata://{module}/reference` resource
+5. Builds the instructions string from module metadata
+6. Validates API keys and logs which are missing
 
 No manual wiring — drop a new folder in `apis/` and it's discovered automatically.
+
+### Tool results
+
+Every tool goes through `serveTool()`. It records the upstream requests the tool made (URLs without credentials, with fetch time and cache status) and adds them to the result as `meta.sources`. It then holds the result to a size budget (`MAX_RESPONSE_BYTES`, default 150,000): oversized results lose rows or long strings, but stay valid JSON and say what was trimmed.
 
 ## The Instructions String
 
@@ -131,7 +154,7 @@ The `question` field is type-checked — a typo like `"defecit"` fails compilati
 
 ### Selective loading
 
-With `MODULES=fred,bls,treasury`, only those 3 modules are loaded. The instructions shrink to ~2K tokens because only their per-module blocks and routing entries are generated.
+With `MODULES=fred,bls,treasury`, only those 3 modules are loaded. The instructions shrink to ~2K tokens because only their per-module blocks and routing entries are generated. `DOMAINS=economy,health` loads every module in those domains, and `HIDE_UNCONFIGURED=1` skips modules whose required key isn't set. For the smallest footprint, `TOOL_MODE=discovery` lists four tools (`find_tools`, `call_tool`, `code_mode`, `clear_cache`) instead of all 350.
 
 ## Prompts
 
@@ -156,5 +179,5 @@ Cross-cutting prompts are **module-aware**: when modules are selectively loaded 
 | **SDK ≠ MCP** | API clients have zero MCP/Zod dependency — usable in any project |
 | **Disk cache** | MCP servers restart constantly (VS Code reloads); in-memory cache is useless |
 | **Auto-generated routing table** | Built from `crossRef` metadata. Adding a module updates routing automatically |
-| **Instructions over resources** | MCP resources aren't auto-read by most clients. Everything critical goes in the instructions string |
+| **Instructions over resources** | MCP resources aren't auto-read by most clients. Everything critical goes in the instructions string; resources only carry optional reference tables |
 | **JSON over markdown** | Tools return data; the client decides how to present it |
