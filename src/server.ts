@@ -21,6 +21,7 @@
  *   node dist/server.js --list-modules                    # list all modules grouped by domain and exit
  *   node dist/server.js --list                            # alias for --list-modules
  *   node dist/server.js --list-modules --json             # same, as JSON (for scripting)
+ *   node dist/server.js --version                         # print the package version and exit
  */
 
 import "dotenv/config";
@@ -35,6 +36,12 @@ import { buildAnalysisPrompts } from "./server/prompts.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import { DOMAINS, authEnvVars, requiresKey, type ApiModule } from "./shared/types.js";
+import { PACKAGE_VERSION } from "./shared/version.js";
+
+if (process.argv.includes("--version")) {
+  console.log(PACKAGE_VERSION);
+  process.exit(0);
+}
 
 const logger = createServerLogger();
 
@@ -168,7 +175,7 @@ for (const mod of activeModules) {
 
 const server = new FastMCP({
   name: "US Government Open Data",
-  version: "2.0.0",
+  version: PACKAGE_VERSION as `${number}.${number}.${number}`,
   logger,
   instructions: buildInstructions(activeModules),
 });

@@ -14,10 +14,9 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { USER_AGENT as DEFAULT_USER_AGENT } from "../../shared/version.js";
 
-const USER_AGENT =
-  process.env.NWS_USER_AGENT?.trim() ||
-  "us-gov-open-data-mcp (https://github.com/lzinga/us-gov-open-data-mcp)";
+const USER_AGENT = process.env.NWS_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
 
 const api = createClient({
   baseUrl: "https://api.weather.gov",
