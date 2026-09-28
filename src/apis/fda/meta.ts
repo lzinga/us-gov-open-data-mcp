@@ -13,7 +13,7 @@ export default {
     "device events, 510(k) clearances, classification, PMA, UDI, recalls; " +
     "food recalls & adverse events; animal/vet adverse events; tobacco problem reports; " +
     "substance data, UNII, historical documents, and more. 25+ searchable endpoints.",
-  auth: { envVar: "DATA_GOV_API_KEY", signup: "https://open.fda.gov/apis/authentication/" },
+  auth: { envVar: "DATA_GOV_API_KEY", signup: "https://open.fda.gov/apis/authentication/", optional: true },
   workflow:
     "fda_drug_events/fda_drug_counts for adverse reactions → fda_drug_labels for prescribing info → " +
     "fda_drug_ndc to identify products → fda_approved_drugs for approval history → " +

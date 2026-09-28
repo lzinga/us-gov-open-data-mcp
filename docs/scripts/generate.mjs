@@ -49,8 +49,10 @@ for (const dir of apiDirs) {
 
 const totalTools = modules.reduce((n, m) => n + m.tools.length, 0);
 const totalPrompts = modules.reduce((n, m) => n + m.prompts.length, 0);
-const noKeyApis = modules.filter(m => !m.auth).map(m => m.displayName);
-const keyApis = modules.filter(m => m.auth);
+// "No key" = usable without any key (keyless, or the key is optional).
+const noKeyApis = modules.filter(m => !m.auth || m.auth.optional).map(m => m.displayName);
+const keyApis = modules.filter(m => m.auth && !m.auth.optional);
+const optionalKeyApis = modules.filter(m => m.auth?.optional);
 
 // ── Helpers ──
 
@@ -75,9 +77,11 @@ function slugify(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-/** Format auth for display: `KEY_NAME` or "None" */
+/** Format auth for display: `KEY_NAME`, `KEY_NAME` (optional), or "None" */
 function fmtAuth(m) {
-  return m.auth ? `\`${[].concat(m.auth.envVar).join(", ")}\`` : "None";
+  if (!m.auth) return "None";
+  const keys = `\`${[].concat(m.auth.envVar).join(", ")}\``;
+  return m.auth.optional ? `${keys} (optional)` : keys;
 }
 
 /** Truncate at word boundary */
@@ -225,7 +229,7 @@ for (const m of modules) {
   if (!m.auth) continue;
   for (const key of [].concat(m.auth.envVar)) {
     if (!keyGroups[key]) keyGroups[key] = { envVar: key, signup: m.auth.signup, apis: [] };
-    keyGroups[key].apis.push(m.displayName);
+    keyGroups[key].apis.push(m.auth.optional ? `${m.displayName} (optional)` : m.displayName);
   }
 }
 
@@ -271,12 +275,10 @@ These APIs work immediately — no signup required:
 ${noKeyApis.join(", ")}
 
 ::: info Optional keys for higher rate limits
-Some no-key APIs accept an optional \`DATA_GOV_API_KEY\` for higher rate limits. If you already have one set for other modules (Congress, FBI, FEC, etc.), these APIs will automatically use it:
+These APIs work without a key; setting the key raises their rate limits. If the key is already in your environment for other modules, it's used automatically:
 
-- **FDA (OpenFDA)** — 240 req/min without key, 120K req/day with key
-- **CDC** — 1,000 req/hour without app token (token support not yet implemented)
-
-You don't need to do anything extra — if the key is in your environment, it's used automatically.
+${optionalKeyApis.map(m => `- **${m.displayName}** — \`${[].concat(m.auth.envVar).join(", ")}\``).join("\n")}
+- **CDC** — 1,000 req/hour without an app token (token support not yet implemented)
 :::
 `;
 

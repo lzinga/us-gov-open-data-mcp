@@ -52,6 +52,13 @@ describe("buildInstructions", () => {
     expect(result).toContain("No key required.");
   });
 
+  it("marks optional keys as optional, not required", () => {
+    const mod = mockModule({ auth: { envVar: "OPT_KEY", signup: "https://example.com", optional: true } });
+    const result = buildInstructions([mod]);
+    expect(result).toContain("Works without a key; set OPT_KEY for higher rate limits.");
+    expect(result).not.toContain("Requires OPT_KEY.");
+  });
+
   it("includes auto-generated routing table", () => {
     const mod = mockModule({
       crossRef: [

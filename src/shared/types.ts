@@ -125,6 +125,11 @@ export interface ModuleMeta {
     /** Env var name(s) to check at startup. String for one key, array for multi-credential (e.g. ["AQS_API_KEY", "AQS_EMAIL"]). */
     envVar: string | string[];
     signup: string;
+    /**
+     * True when the API works without the key and the key only raises rate
+     * limits (e.g. openFDA, BLS). Optional keys are not reported as missing.
+     */
+    optional?: boolean;
   };
   /** Tool workflow guidance for the MCP client (e.g. "fred_search → fred_series_data"). */
   workflow: string;
@@ -151,4 +156,15 @@ export interface ApiModule extends ModuleMeta {
   prompts?: InputPrompt<any, any>[];
   /** Clear cached API responses. */
   clearCache?: () => void;
+}
+
+/** Env var names a module's auth config refers to (empty when keyless). */
+export function authEnvVars(auth: ModuleMeta["auth"]): string[] {
+  if (!auth) return [];
+  return Array.isArray(auth.envVar) ? auth.envVar : [auth.envVar];
+}
+
+/** True when the module cannot work without its API key(s). */
+export function requiresKey(mod: Pick<ModuleMeta, "auth">): boolean {
+  return !!mod.auth && !mod.auth.optional;
 }
