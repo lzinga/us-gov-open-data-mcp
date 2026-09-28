@@ -1,5 +1,5 @@
 /**
- * USGS SDK — typed API client for earthquake data and water services.
+ * USGS SDK — typed API client for earthquake data and water data.
  *
  * Standalone — no MCP server required. Usage:
  *
@@ -8,13 +8,17 @@
  *   const quakes = await searchEarthquakes({ minmagnitude: 5, starttime: "2024-01-01" });
  *   const water = await getWaterData({ sites: "01646500", parameterCd: "00060" });
  *
- * No API key required.
+ * Earthquakes need no key. The USGS Water Data APIs (api.waterdata.usgs.gov)
+ * allow a few anonymous requests per hour; they run on api.data.gov, so an
+ * existing DATA_GOV_API_KEY raises the limit to 1,000/hour.
  * Docs:
  *   Earthquake: https://earthquake.usgs.gov/fdsnws/event/1/
- *   Water Services: https://waterservices.usgs.gov/
+ *   Water Data APIs: https://api.waterdata.usgs.gov/docs/ogcapi/
+ *     (replaces waterservices.usgs.gov, decommissioned Nov 2026–Feb 2027)
  */
 
 import { createClient } from "../../shared/client.js";
+import { resolveState } from "../../shared/geo.js";
 
 // ─── Clients ─────────────────────────────────────────────────────────
 
@@ -25,12 +29,37 @@ const earthquakeApi = createClient({
   cacheTtlMs: 5 * 60 * 1000, // 5 min — earthquake data updates frequently
 });
 
+/** Legacy NWIS WaterServices — being migrated to waterDataApi. */
 const waterApi = createClient({
   baseUrl: "https://waterservices.usgs.gov/nwis",
   name: "usgs-water",
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 15 * 60 * 1000, // 15 min
 });
+
+/** USGS Water Data APIs (OGC API - Features + statistics), behind api.data.gov. */
+const waterDataApi = createClient({
+  baseUrl: "https://api.waterdata.usgs.gov",
+  name: "usgs-waterdata",
+  auth: { type: "header", envParams: { "X-Api-Key": "DATA_GOV_API_KEY" } },
+  rateLimit: { perSecond: 2, burst: 5 },
+  cacheTtlMs: 15 * 60 * 1000, // 15 min
+  timeoutMs: 60_000,
+});
+
+/** OGC API collections root. */
+const OGC = "/ogcapi/v0/collections";
+
+/** "01646500" or "USGS-01646500" → "USGS-01646500". */
+export function toMonitoringLocationId(site: string): string {
+  const s = site.trim();
+  return /^[A-Z]+-/i.test(s) ? s.toUpperCase() : `USGS-${s}`;
+}
+
+/** "USGS-01646500" → "01646500". */
+function siteNumber(monitoringLocationId: string): string {
+  return monitoringLocationId.replace(/^[A-Z]+-/i, "");
+}
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -277,32 +306,93 @@ export async function getWaterData(opts: {
   return waterApi.get<WaterResponse>("/iv/", params);
 }
 
+/** A USGS monitoring location (from the Water Data APIs). */
+export interface WaterSite {
+  /** "USGS-01646500" */
+  monitoringLocationId: string;
+  /** "01646500" */
+  siteNo: string;
+  name: string | null;
+  siteTypeCode: string | null;
+  siteType: string | null;
+  state: string | null;
+  county: string | null;
+  hucCode: string | null;
+  /** Drainage area, square miles. */
+  drainageArea: number | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+/** Default and maximum sites returned by searchWaterSites. */
+export const WATER_SITES_DEFAULT_LIMIT = 200;
+export const WATER_SITES_MAX_LIMIT = 1000;
+
 /**
- * Search for USGS water monitoring sites.
+ * Search USGS water monitoring locations by state, county, and site type.
+ * Includes inactive/historical sites (the Water Data APIs have no "active"
+ * filter). `truncated` is true when the limit was reached.
  *
  * Example:
- *   const sites = await searchWaterSites({ stateCd: "CA", siteType: "ST" });
+ *   const { sites } = await searchWaterSites({ stateCd: "MD", siteType: "ST" });
  */
 export async function searchWaterSites(opts: {
+  /** State as USPS code, name, or FIPS. */
   stateCd?: string;
+  /** County FIPS: 5 digits (state + county, e.g. "24031") or 3 digits with stateCd. */
   countyCd?: string;
-  huc?: string;
+  /** ST (stream, default), GW (groundwater), LK (lake), SP (spring), etc. */
   siteType?: string;
-  siteStatus?: "all" | "active" | "inactive";
-  hasDataTypeCd?: string;
-}): Promise<string> {
-  const params: Record<string, string | number | undefined> = {
-    format: "rdb",
-    stateCd: opts.stateCd,
-    countyCd: opts.countyCd,
-    huc: opts.huc,
-    siteType: opts.siteType ?? "ST",
-    siteStatus: opts.siteStatus ?? "active",
-    hasDataTypeCd: opts.hasDataTypeCd ?? "iv",
-    siteOutput: "expanded",
-  };
-  // RDB is tab-delimited but easier to parse than the alternatives
-  return waterApi.getText("/site/", params);
+  limit?: number;
+}): Promise<{ sites: WaterSite[]; truncated: boolean }> {
+  let stateFips = opts.stateCd ? resolveState(opts.stateCd, "state_cd").fips : undefined;
+  let countyCode: string | undefined;
+  if (opts.countyCd) {
+    const digits = opts.countyCd.trim();
+    if (/^\d{5}$/.test(digits)) {
+      stateFips = digits.slice(0, 2);
+      countyCode = digits.slice(2);
+    } else if (/^\d{1,3}$/.test(digits) && stateFips) {
+      countyCode = digits.padStart(3, "0");
+    } else {
+      throw new Error(`county_cd "${opts.countyCd}" must be a 5-digit county FIPS (e.g. "24031") or a 3-digit code with state_cd.`);
+    }
+  }
+  if (!stateFips) throw new Error("Provide state_cd or a 5-digit county_cd to search water monitoring sites.");
+
+  const limit = Math.min(opts.limit ?? WATER_SITES_DEFAULT_LIMIT, WATER_SITES_MAX_LIMIT);
+  const res = await waterDataApi.get<{ features?: { id?: string; geometry?: { coordinates?: number[] } | null; properties?: Record<string, unknown> }[] }>(
+    `${OGC}/monitoring-locations/items`,
+    {
+      f: "json",
+      state_code: stateFips,
+      county_code: countyCode,
+      site_type_code: (opts.siteType ?? "ST").toUpperCase(),
+      limit,
+      properties: "id,monitoring_location_number,monitoring_location_name,site_type_code,site_type,state_name,county_name,hydrologic_unit_code,drainage_area",
+    },
+  );
+
+  const features = res.features ?? [];
+  const sites = features.map((f): WaterSite => {
+    const p = f.properties ?? {};
+    const [lon, lat] = f.geometry?.coordinates ?? [];
+    const id = String(f.id ?? p.id ?? "");
+    return {
+      monitoringLocationId: id,
+      siteNo: String(p.monitoring_location_number ?? siteNumber(id)),
+      name: (p.monitoring_location_name as string) ?? null,
+      siteTypeCode: (p.site_type_code as string) ?? null,
+      siteType: (p.site_type as string) ?? null,
+      state: (p.state_name as string) ?? null,
+      county: (p.county_name as string) ?? null,
+      hucCode: (p.hydrologic_unit_code as string) ?? null,
+      drainageArea: p.drainage_area != null && p.drainage_area !== "" ? Number(p.drainage_area) : null,
+      latitude: typeof lat === "number" ? lat : null,
+      longitude: typeof lon === "number" ? lon : null,
+    };
+  });
+  return { sites, truncated: features.length >= limit };
 }
 
 /**
@@ -374,4 +464,5 @@ export async function getWaterStatistics(opts: {
 export function clearCache(): void {
   earthquakeApi.clearCache();
   waterApi.clearCache();
+  waterDataApi.clearCache();
 }

@@ -13,6 +13,8 @@ import {
   searchWaterSites,
   getWaterStatistics,
   WATER_PARAMS,
+  WATER_SITES_DEFAULT_LIMIT,
+  WATER_SITES_MAX_LIMIT,
   ALERT_LEVELS,
   clearCache as sdkClearCache,
   type EarthquakeFeature,
@@ -155,36 +157,42 @@ export const tools: Tool<any, any>[] = [
   {
     name: "usgs_water_sites",
     description:
-      "Search for USGS water monitoring sites by state, county, or hydrologic unit.\n" +
-      "Site types: ST=stream, GW=groundwater, LK=lake, SP=spring.",
+      "Search for USGS water monitoring sites by state or county.\n" +
+      "Site types: ST=stream (default), GW=groundwater, LK=lake, SP=spring.\n" +
+      "Includes inactive and historical sites; for sites currently reporting data, use usgs_water_data with state_cd.",
     annotations: { title: "USGS: Water Sites", readOnlyHint: true },
     parameters: z.object({
-      state_cd: z.string().optional().describe("Two-letter state code: 'CA', 'TX'"),
-      county_cd: z.string().optional().describe("County FIPS code"),
-      site_type: z.enum(["ST", "GW", "LK", "SP"]).optional().describe("Site type: ST (stream), GW (groundwater), LK (lake), SP (spring)"),
+      state_cd: z.string().optional().describe("State: two-letter code ('CA', 'TX'), name, or FIPS code"),
+      county_cd: z.string().optional().describe("County FIPS: 5 digits ('24031') or 3 digits together with state_cd"),
+      site_type: z.enum(["ST", "GW", "LK", "SP"]).optional().describe("Site type: ST (stream, default), GW (groundwater), LK (lake), SP (spring)"),
+      limit: z.number().int().min(1).max(WATER_SITES_MAX_LIMIT).default(WATER_SITES_DEFAULT_LIMIT)
+        .describe(`Max sites to return (default ${WATER_SITES_DEFAULT_LIMIT}, max ${WATER_SITES_MAX_LIMIT})`),
     }),
     execute: async (args) => {
-      const data = await searchWaterSites({
+      const { sites, truncated } = await searchWaterSites({
         stateCd: args.state_cd,
         countyCd: args.county_cd,
         siteType: args.site_type,
+        limit: args.limit,
       });
-      // RDB format comes back as a string — parse tab-separated rows into objects
-      const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
-      const lines = text.split("\n").filter((l: string) => !l.startsWith("#"));
-      // First non-comment line is the header, second is dashes, rest are data
-      const header = lines[0]?.split("\t") ?? [];
-      const dataLines = lines.slice(2); // skip header + dash line
-      const rows = dataLines.map((line: string) => {
-        const vals = line.split("\t");
-        const obj: Record<string, unknown> = {};
-        header.forEach((h: string, i: number) => { if (h) obj[h] = vals[i] ?? null; });
-        return obj;
-      }).filter((r: Record<string, unknown>) => Object.values(r).some(v => v));
-      if (!rows.length) return emptyResponse("No water monitoring sites found.");
+      if (!sites.length) return emptyResponse("No water monitoring sites found.");
       return tableResponse(
-        `Water monitoring sites: ${dataLines.length} total`,
-        { rows, total: dataLines.length },
+        `Water monitoring sites: ${sites.length} returned${truncated ? " (limit reached; more may exist)" : ""}`,
+        {
+          rows: sites.map(s => ({
+            site_no: s.siteNo,
+            station_nm: s.name,
+            site_tp_cd: s.siteTypeCode,
+            dec_lat_va: s.latitude,
+            dec_long_va: s.longitude,
+            county: s.county,
+            huc_cd: s.hucCode,
+            drain_area_va: s.drainageArea,
+            monitoring_location_id: s.monitoringLocationId,
+          })),
+          total: truncated ? undefined : sites.length,
+          meta: { source: "USGS Water Data APIs (monitoring-locations)", truncated },
+        },
       );
     },
   },
