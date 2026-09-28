@@ -108,6 +108,17 @@ describe("ToolRegistry", () => {
     expect(formatIssues([{ message: "Required", path: ["a", { key: "b" }, 0] }])).toBe("a.b.0: Required");
     expect(formatIssues([{ message: "Bad" }])).toBe("(root): Bad");
   });
+
+  it("suggests similar tool names", () => {
+    const reg = new ToolRegistry();
+    for (const n of ["fred_search", "fred_series_data", "fred_series_info", "bls_series_data", "fda_count"]) {
+      reg.register(n.split("_")[0], fakeTool(n));
+    }
+    const hints = reg.suggest("fred_series");
+    expect(hints.slice(0, 2).sort()).toEqual(["fred_series_data", "fred_series_info"]);
+    expect(hints).not.toContain("fda_count");
+    expect(reg.suggest("zzz")).toEqual([]);
+  });
 });
 
 describe("registry built from real modules", () => {
