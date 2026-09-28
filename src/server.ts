@@ -42,7 +42,8 @@ import { selectModules } from "./server/module-selection.js";
 import { filterPrompts } from "./server/prompt-filter.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { modulesWithReference, referenceUri, renderReference } from "./server/reference-resources.js";
-import { budgetResult, maxResponseBytes } from "./server/response-budget.js";
+import { maxResponseBytes } from "./server/response-budget.js";
+import { serveTool } from "./server/serve-tool.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import { DOMAINS, authEnvVars, requiresKey, type ApiModule } from "./shared/types.js";
@@ -249,11 +250,8 @@ const AVAILABLE_TOOLS = new Set(activeModules.flatMap(m => [...m.tools.map(t => 
 /** Size budget for results sent to the client (MAX_RESPONSE_BYTES; see response-budget.ts). */
 const MAX_RESPONSE = maxResponseBytes();
 
-/** The tool with its results held to the size budget. code_mode reads raw results via the registry. */
-function withBudget<T extends { execute: (args: any, ctx: any) => unknown }>(tool: T): T {
-  if (MAX_RESPONSE <= 0) return tool;
-  return { ...tool, execute: async (args: unknown, ctx: unknown) => budgetResult(await tool.execute(args, ctx), MAX_RESPONSE) };
-}
+/** The tool as served to clients: `meta.sources` added, then the size budget (serve-tool.ts). */
+const withBudget = <T extends { execute: (args: any, ctx: any) => unknown }>(tool: T): T => serveTool(tool, MAX_RESPONSE);
 
 for (const mod of activeModules) {
   if (toolMode === "full") {

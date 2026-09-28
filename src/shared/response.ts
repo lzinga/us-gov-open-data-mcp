@@ -481,8 +481,8 @@ export function listResponse(summary: string, opts: {
 /**
  * Empty/no-result response — consistent across all modules.
  */
-export function emptyResponse(message: string): string {
-  return JSON.stringify({ summary: message, dataType: "empty", data: null });
+export function emptyResponse(message: string, meta?: Record<string, unknown>): string {
+  return JSON.stringify({ summary: message, dataType: "empty", data: null, ...(meta ? { meta: stripNulls(meta) } : {}) });
 }
 
 // ─── HTML Sanitization ───────────────────────────────────────────────

@@ -122,9 +122,8 @@ export class CacheStore {
     return { data: entry.data, fetchedAt: entry.fetchedAt, expires: entry.expires };
   }
 
-  set(ns: string, key: string, data: unknown, ttlMs: number): void {
+  set(ns: string, key: string, data: unknown, ttlMs: number, fetchedAt = Date.now()): void {
     if (ttlMs <= 0) return;
-    const fetchedAt = Date.now();
     const expires = fetchedAt + ttlMs;
 
     if (!this.root) {
@@ -272,8 +271,8 @@ export class DiskCache {
     return this.resolve().get(this.ns, key);
   }
 
-  set(key: string, data: unknown): void {
-    this.resolve().set(this.ns, key, data, this.ttlMs);
+  set(key: string, data: unknown, fetchedAt?: number): void {
+    this.resolve().set(this.ns, key, data, this.ttlMs, fetchedAt);
   }
 
   clear(): void {
