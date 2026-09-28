@@ -408,26 +408,48 @@ export interface NfipClaimSummary {
 /** Storm-type words FEMA may or may not include: "Hurricane Ian", "2025-08-Erin-HU", "2025 July TS Chantal". */
 const STORM_TYPE = /^(?:hurricane|tropical\s+(?:storm|depression|cyclone)|super\s*storm|typhoon|ts|td|hu)\s+/i;
 
+/** Characters FEMA puts between the words of an event name. */
+const WORD_BREAKS = [" ", "-", "/"];
+
+/**
+ * Clauses matching `word` only where it stands alone in the name: at either
+ * end or next to a space, hyphen or slash. "Earl" then finds "Hurricane Earl"
+ * but not "Early summer storms", and "Erin" finds "2025-08-Erin-HU".
+ */
+function wholeWordClauses(word: string): string[] {
+  const q = odataString;
+  return [
+    `floodEvent eq ${q(word)}`,
+    ...WORD_BREAKS.map(b => `startswith(floodEvent,${q(word + b)})`),
+    ...WORD_BREAKS.map(b => `endswith(floodEvent,${q(b + word)})`),
+    ...WORD_BREAKS.flatMap(before => WORD_BREAKS.map(after => `contains(floodEvent,${q(before + word + after)})`)),
+  ];
+}
+
 /**
  * OData filter for a flood event name. OpenFEMA's contains() is
  * case-sensitive (and rejects tolower()), and FEMA writes names several ways,
- * so this drops a leading storm type and ORs the capitalizations FEMA uses
- * (Title Case, Sentence case), plus a form without spaces for names like
- * "2026-03-KonaStorm". The input is kept as typed unless it is all lowercase,
- * where it would only add false matches ("ida" in "Florida").
+ * so this drops a leading storm type and ORs the name as typed, in Title
+ * Case, Sentence case and lower case, plus forms without spaces for names
+ * like "2026-03-KonaStorm".
+ *
+ * A single word, or a name whose storm type was dropped, must match as a
+ * whole word; other phrases match anywhere.
  */
 export function floodEventFilter(input: string): string {
   const typed = input.trim().replace(/\s+/g, " ");
-  const name = typed.replace(STORM_TYPE, "") || typed;
+  const withoutType = typed.replace(STORM_TYPE, "");
+  const name = withoutType || typed;
+  const wholeWord = (withoutType !== "" && withoutType !== typed) || !name.includes(" ");
   const lower = name.toLowerCase();
   const title = lower.replace(/(^|[\s-])(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
   const sentence = lower.charAt(0).toUpperCase() + lower.slice(1);
   const forms = new Set<string>();
-  for (const form of name === lower ? [title, sentence] : [name, title, sentence]) {
+  for (const form of [name, title, sentence, lower]) {
     forms.add(form);
     if (form.includes(" ")) forms.add(form.replaceAll(" ", ""));
   }
-  const clauses = [...forms].map(form => `contains(floodEvent,${odataString(form)})`);
+  const clauses = [...forms].flatMap(form => (wholeWord ? wholeWordClauses(form) : [`contains(floodEvent,${odataString(form)})`]));
   return clauses.length === 1 ? clauses[0] : `(${clauses.join(" or ")})`;
 }
 

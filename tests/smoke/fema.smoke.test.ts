@@ -25,6 +25,14 @@ describe("FEMA NFIP claims (live)", () => {
     expect(res.data.total).toBeGreaterThan(50);
     expect(res.meta.floodEvents.some(e => /Erin/.test(e))).toBe(true);
   }, 60_000);
+
+  it("matches a storm name as a whole word ('Hurricane Earl' is not 'Early summer storms')", async () => {
+    const res = await callTool("fema", "fema_nfip_claims", { flood_event: "Hurricane Earl", sort_by: "date", limit: 50 }) as {
+      meta: { floodEvents: string[] };
+    };
+    expect(res.meta.floodEvents.length).toBeGreaterThan(0);
+    for (const event of res.meta.floodEvents) expect(event).toMatch(/\bEarl\b/);
+  }, 60_000);
 });
 
 describe("fema_query dataset versions (live)", () => {

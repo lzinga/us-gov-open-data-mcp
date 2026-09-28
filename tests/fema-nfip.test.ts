@@ -35,10 +35,12 @@ describe("fema_nfip_claims", () => {
     await call({ state: "Texas", county: "48201", zip: "77009", year_from: 2020, year_to: 2024, flood_event: "Hurricane O'Beryl", sort_by: "paid", limit: 5 });
     const q = urls[0].searchParams;
     expect(urls[0].pathname).toBe("/api/open/v3/NfipClaims");
-    expect(q.get("$filter")).toBe(
-      "state eq 'TX' and countyCode eq '48201' and reportedZipCode eq '77009' and yearOfLoss ge 2020 and yearOfLoss le 2024 " +
-      "and (contains(floodEvent,'O''Beryl') or contains(floodEvent,'O''beryl'))",
-    );
+    const filter = q.get("$filter")!;
+    expect(filter.startsWith(
+      "state eq 'TX' and countyCode eq '48201' and reportedZipCode eq '77009' and yearOfLoss ge 2020 and yearOfLoss le 2024 and (",
+    )).toBe(true);
+    expect(filter).toContain("endswith(floodEvent,' O''Beryl')");
+    expect(filter).toContain("contains(floodEvent,'-O''beryl-')");
     expect(q.get("$orderby")).toBe("netBuildingPaymentAmount desc");
     expect(q.get("$top")).toBe("5");
     expect(q.get("$count")).toBe("true");
@@ -84,24 +86,51 @@ describe("fema_nfip_claims", () => {
 
 describe("floodEventFilter", () => {
   const filter = async (input: string) => (await import("../src/apis/fema/sdk.js")).floodEventFilter(input);
-  const or = (...forms: string[]) => `(${forms.map(f => `contains(floodEvent,'${f}')`).join(" or ")})`;
 
-  it("drops the storm type and matches FEMA's capitalization", async () => {
-    expect(await filter("Harvey")).toBe("contains(floodEvent,'Harvey')");
-    expect(await filter("hurricane harvey")).toBe("contains(floodEvent,'Harvey')");
-    expect(await filter("Tropical Storm Chantal")).toBe("contains(floodEvent,'Chantal')"); // "2025 July TS Chantal"
-    expect(await filter("TS  chantal ")).toBe("contains(floodEvent,'Chantal')");
-    expect(await filter("Hurricane")).toBe("contains(floodEvent,'Hurricane')"); // nothing left to drop to
+  /** Evaluate the generated filter (ORed eq/startswith/endswith/contains clauses) against event names. */
+  const EVENTS = [
+    "Hurricane Harvey", "Hurricane Earl", "Early summer severe storms", "2025-08-Erin-HU", "Hurricane Erin",
+    "2025 July TS Chantal", "Hurricane Ida", "Hurricane Idalia", "April Florida Flooding", "Hurricane Georges (Keys)",
+    "Vermont/New York Flooding", "2026-03-KonaStorm", "2025-12-AtmosphericRiver", "California Atmospheric River",
+    "December Nor'easter", "2025-10-Nor'easter", "Late spring severe storms", "2026-07-West Virginia-Flooding",
+  ];
+  async function matches(input: string): Promise<string[]> {
+    const expr = (await filter(input)).replace(/^\((.*)\)$/, "$1");
+    const tests = expr.split(" or ").map(clause => {
+      const m = /^(?:(contains|startswith|endswith)\(floodEvent,'((?:[^']|'')*)'\)|floodEvent eq '((?:[^']|'')*)')$/.exec(clause);
+      if (!m) throw new Error(`unexpected clause: ${clause}`);
+      const value = (m[2] ?? m[3]).replace(/''/g, "'");
+      const fn = m[1] ?? "eq";
+      return (name: string) => fn === "eq" ? name === value : fn === "contains" ? name.includes(value)
+        : fn === "startswith" ? name.startsWith(value) : name.endsWith(value);
+    });
+    return EVENTS.filter(name => tests.some(t => t(name)));
+  }
+
+  it("drops the storm type and matches a storm name as a whole word, in any capitalization", async () => {
+    expect(await matches("Harvey")).toEqual(["Hurricane Harvey"]);
+    expect(await matches("hurricane harvey")).toEqual(["Hurricane Harvey"]);
+    expect(await matches("Hurricane Earl")).toEqual(["Hurricane Earl"]); // not "Early summer severe storms"
+    expect(await matches("Hurricane Erin")).toEqual(["2025-08-Erin-HU", "Hurricane Erin"]);
+    expect(await matches("Tropical Storm Chantal")).toEqual(["2025 July TS Chantal"]);
+    expect(await matches("TS  chantal ")).toEqual(["2025 July TS Chantal"]);
+    expect(await matches("ida")).toEqual(["Hurricane Ida"]); // not Idalia, not Florida
+    expect(await matches("Georges")).toEqual(["Hurricane Georges (Keys)"]);
+    expect(await matches("Vermont")).toEqual(["Vermont/New York Flooding"]);
   });
 
-  it("does not search an all-lowercase name as typed", async () => {
-    expect(await filter("ida")).toBe("contains(floodEvent,'Ida')"); // 'ida' would match "Florida"
+  it("matches FEMA's hyphenated and space-less names", async () => {
+    expect(await matches("KonaStorm")).toEqual(["2026-03-KonaStorm"]);
+    expect(await matches("nor'easter")).toEqual(["December Nor'easter", "2025-10-Nor'easter"]);
+    expect(await matches("atmospheric river")).toEqual(["2025-12-AtmosphericRiver", "California Atmospheric River"]);
+    expect(await matches("west virginia")).toEqual(["2026-07-West Virginia-Flooding"]);
   });
 
-  it("tries Title Case, Sentence case and forms without spaces", async () => {
-    expect(await filter("atmospheric river")).toBe(or("Atmospheric River", "AtmosphericRiver", "Atmospheric river", "Atmosphericriver"));
-    expect(await filter("KonaStorm")).toBe(or("KonaStorm", "Konastorm")); // "2026-03-KonaStorm"
-    expect(await filter("Nor'easter")).toBe("contains(floodEvent,'Nor''easter')");
+  it("matches other phrases anywhere, in the capitalizations FEMA uses", async () => {
+    expect(await matches("late spring severe storms")).toEqual(["Late spring severe storms"]);
+    expect(await matches("Summer Severe")).toEqual(["Early summer severe storms"]);
+    expect(await matches("storms")).toEqual(["Early summer severe storms", "Late spring severe storms"]);
+    expect(await matches("Hurricane")).toEqual(EVENTS.filter(e => e.startsWith("Hurricane ")));
   });
 });
 
