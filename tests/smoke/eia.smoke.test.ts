@@ -23,6 +23,6 @@ describe("EIA browse/query (live)", () => {
     const rows = (res.data.rows as unknown[][]).map(r => Object.fromEntries(cols.map((c, i) => [c, r[i]])));
     expect(new Set(rows.map(r => r.stateid))).toEqual(new Set(["CA", "TX"]));
     for (const r of rows) expect(typeof r.price).toBe("number");
-    expect(Object.keys(res.seriesStats)).toEqual(expect.arrayContaining(["CA | RES", "TX | RES"]));
+    expect(Object.keys(res.seriesStats as object)).toEqual(expect.arrayContaining(["CA | RES", "TX | RES"]));
   }, 60_000);
 });

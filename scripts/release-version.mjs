@@ -69,6 +69,9 @@ export function compareVersions(a, b) {
  * The version to release: the override if given, else today's CalVer.
  * Throws if it is not a plain X.Y.Z, already exists, or does not sort after
  * every existing version.
+ *
+ * @param {{ override?: string, existing: string[], now?: Date }} options
+ * @returns {string}
  */
 export function nextVersion({ override, existing, now = new Date() }) {
   const known = existing.map(v => String(v).trim().replace(/^v/, "")).filter(v => parseVersion(v));

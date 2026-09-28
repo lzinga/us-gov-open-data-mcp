@@ -20,6 +20,7 @@ function mockModule(overrides: Partial<ApiModule> = {}): ApiModule {
     description: "A test module",
     workflow: "test_search → test_data",
     tips: "Use test_search first",
+    toolPrefix: "test_",
     domains: ["economy"],
     tools: [
       { name: "test_search", description: "Search", parameters: {}, execute: async () => "" } as any,
