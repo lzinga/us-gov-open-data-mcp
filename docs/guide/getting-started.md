@@ -66,7 +66,33 @@ For web apps or remote access:
 node dist/server.js --transport httpStream --port 8080
 ```
 
-Endpoint: `http://localhost:8080/mcp`
+Endpoint: `http://localhost:8080/mcp`. By default the server only listens on `127.0.0.1`.
+
+To accept connections from other machines, set a token (at least 16 characters). Clients then send
+`Authorization: Bearer <token>`:
+
+```bash
+export MCP_AUTH_TOKEN=$(openssl rand -hex 32)
+MCP_HOST=0.0.0.0 node dist/server.js --transport httpStream --port 8080
+```
+
+Without `MCP_AUTH_TOKEN`, the server refuses to listen on a non-loopback address, since anyone who can reach
+the port could use it and your API keys. If a reverse proxy in front of the server already authenticates
+requests, set `MCP_ALLOW_INSECURE_HTTP=1` instead. `/health` stays open for health checks.
+
+The server speaks plain HTTP. For HTTPS, put it behind a reverse proxy (Caddy, nginx, a cloud load balancer)
+that terminates TLS and forwards to the server.
+
+### Docker
+
+```bash
+docker build -t us-gov-open-data-mcp .
+TOKEN=$(openssl rand -hex 32) && echo "$TOKEN"
+docker run -d -p 8080:8080 -e MCP_AUTH_TOKEN="$TOKEN" -e FRED_API_KEY=your_key us-gov-open-data-mcp
+```
+
+The image serves HTTP Stream on `0.0.0.0:8080`, so it needs `MCP_AUTH_TOKEN`. It runs as the unprivileged
+`node` user and has a `HEALTHCHECK` on `/health`.
 
 ### Selective Module Loading
 
