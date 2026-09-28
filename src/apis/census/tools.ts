@@ -8,8 +8,6 @@ import {
   queryCensus,
   searchVariables,
   getPlaceProfile,
-  commonVariables,
-  datasets,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse, recordResponse } from "../../shared/response.js";
 import { stateAs } from "../../shared/geo.js";
@@ -21,7 +19,7 @@ function rowToObject(headers: string[], row: string[]): Record<string, unknown> 
   headers.forEach((h, i) => {
     const val = row[i];
     const num = Number(val);
-    obj[h] = !geoKeys.has(h) && !isNaN(num) && val !== "" ? num : val;
+    obj[h] = !geoKeys.has(h) && !Number.isNaN(num) && val !== "" ? num : val;
   });
   return obj;
 }

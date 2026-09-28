@@ -39,6 +39,7 @@
     "prebuild": "npm run clean",
     "build": "tsc",
     "typecheck": "tsc -p tsconfig.test.json",
+    "lint": "biome lint --error-on-warnings",
     "start": "node dist/server.js",
     "start:http": "node dist/server.js --transport httpStream --port 8080",
     "dev": "tsc --watch",
@@ -126,6 +127,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/he": "^1.2.3",
     "@types/node": "^22.20.4",

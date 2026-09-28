@@ -12,9 +12,6 @@ import {
   getWhdEnforcement,
   getUiClaimsNational,
   getUiClaimsState,
-  INSPECTION_TYPES,
-  VIOLATION_TYPES,
-  DATASETS,
 } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 

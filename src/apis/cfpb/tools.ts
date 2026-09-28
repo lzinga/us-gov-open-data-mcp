@@ -11,9 +11,6 @@ import {
   getComplaintById,
   getStateComplaints,
   suggestCompany,
-  suggestSearch,
-  PRODUCTS,
-  AGG_FIELDS,
 } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 

@@ -14,7 +14,6 @@ import {
   getFrame,
   resolveCik,
   getInsiderFilings,
-  xbrlConcepts,
   type SecFiling,
 } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";

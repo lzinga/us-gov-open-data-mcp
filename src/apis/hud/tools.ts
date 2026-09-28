@@ -12,7 +12,6 @@ import {
   getStateFairMarketRents,
   getIncomeLimits,
   getStateIncomeLimits,
-  clearCache as sdkClearCache,
 } from "./sdk.js";
 import { listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 import { stateAs } from "../../shared/geo.js";

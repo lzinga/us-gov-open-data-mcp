@@ -11,9 +11,6 @@ import {
   getSummary,
   getDeposits,
   getHistory,
-  DATASETS,
-  INSTITUTION_FIELDS,
-  FILTER_EXAMPLES,
 } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 

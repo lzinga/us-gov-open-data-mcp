@@ -150,7 +150,7 @@ function parseDate(unixStr: string | undefined): string | undefined {
   if (!unixStr) return undefined;
   try {
     const ts = parseInt(unixStr, 10);
-    if (isNaN(ts)) return unixStr;
+    if (Number.isNaN(ts)) return unixStr;
     return new Date(ts * 1000).toISOString().slice(0, 10);
   } catch {
     return unixStr;

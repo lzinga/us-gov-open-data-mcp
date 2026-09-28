@@ -5,8 +5,8 @@
  * the expected fields so the server can auto-discover them.
  */
 
-import { join } from "path";
-import { existsSync } from "fs";
+import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { describe, it, expect, beforeAll } from "vitest";
 import {
   moduleDirs,

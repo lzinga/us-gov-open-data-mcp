@@ -14,12 +14,7 @@ import {
   getPaymentsByPhysician,
   getPaymentsByTeachingHospital,
   getPaymentsBySpecialty,
-  getProviderProfiles,
   getNationalTotals,
-  getStateTotals,
-  listAvailableDatasets,
-  PAYMENT_TYPES,
-  clearCache as sdkClearCache,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
 

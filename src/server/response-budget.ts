@@ -56,7 +56,7 @@ function clipStrings(value: Json, cap: number): number {
   let n = 0;
   const visit = (v: Json, set: (x: Json) => void) => {
     if (typeof v === "string" && v.length > cap) { set(`${v.slice(0, cap)}… [clipped from ${v.length} chars]`); n++; }
-    else if (Array.isArray(v)) v.forEach((x, i) => visit(x, y => { v[i] = y; }));
+    else if (Array.isArray(v)) v.forEach((x, i) => { visit(x, y => { v[i] = y; }); });
     else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) visit(x, y => { (v as Record<string, Json>)[k] = y; });
   };
   visit(value, () => {});

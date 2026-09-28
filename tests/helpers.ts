@@ -7,9 +7,9 @@
 
 /// <reference types="vite/client" />
 
-import { readdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { readdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // ─── Paths ───────────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ export interface ModuleTool {
   description: string;
   parameters: unknown;
   annotations?: { title?: string; readOnlyHint?: boolean };
-  execute?: Function;
+  execute?: (...args: any[]) => unknown;
 }
 
 export interface ModuleAuth {

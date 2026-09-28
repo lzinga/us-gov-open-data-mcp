@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { getLeadingCausesOfDeath, getLifeExpectancy, getStateLifeExpectancy, getMortalityRates, getPlacesHealth, getPlacesCityHealth, getCovidData, getWeeklyDeaths, getDisabilityData, getDrugOverdoseData, getProvisionalOverdoseDeaths, OVERDOSE_INDICATORS, getNutritionObesityData, getHistoricalDeathRates, getBirthIndicators, queryDataset, DATASETS } from "./sdk.js";
+import { getLeadingCausesOfDeath, getLifeExpectancy, getStateLifeExpectancy, getMortalityRates, getPlacesHealth, getPlacesCityHealth, getCovidData, getWeeklyDeaths, getDisabilityData, getDrugOverdoseData, getProvisionalOverdoseDeaths, OVERDOSE_INDICATORS, getNutritionObesityData, getHistoricalDeathRates, getBirthIndicators, queryDataset, } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 
 export const tools: Tool<any, any>[] = [

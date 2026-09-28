@@ -243,7 +243,7 @@ function parseRetryAfter(header: string | null): number | null {
   }
   // HTTP-date form (e.g. "Wed, 21 Oct 2026 07:28:00 GMT")
   const dateMs = Date.parse(trimmed);
-  if (!isNaN(dateMs)) {
+  if (!Number.isNaN(dateMs)) {
     return Math.max(0, dateMs - Date.now());
   }
   return null;

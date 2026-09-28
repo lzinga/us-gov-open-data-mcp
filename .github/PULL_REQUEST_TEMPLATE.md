@@ -21,6 +21,7 @@
 - [ ] Tools use descriptive `.describe()` on all Zod parameters
 - [ ] `npm run build` passes with no errors
 - [ ] `npm run test` passes
+- [ ] `npm run typecheck` and `npm run lint` pass
 - [ ] Tested tool output manually via MCP client or SDK import
 
 ## New Tool Checklist
@@ -32,6 +33,7 @@
 - [ ] Tool returns a standardized response type (`timeseriesResponse`, `tableResponse`, `recordResponse`, `listResponse`, or `emptyResponse`)
 - [ ] `npm run build` passes with no errors
 - [ ] `npm run test` passes
+- [ ] `npm run typecheck` and `npm run lint` pass
 
 ## Additional Notes
 

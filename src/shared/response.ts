@@ -196,7 +196,7 @@ function computeStats(
     const raw = obj[valueKey];
     const num = typeof raw === "number" ? raw : Number(raw);
     const date = String(obj[dateKey] ?? "");
-    if (!isNaN(num) && raw !== "" && raw !== "." && raw !== null && raw !== undefined) {
+    if (!Number.isNaN(num) && raw !== "" && raw !== "." && raw !== null && raw !== undefined) {
       valid.push({ date, value: num, t: parsePeriod(date) });
     }
   }

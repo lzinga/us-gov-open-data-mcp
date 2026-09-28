@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { getIndicator, compareCountries, searchIndicators, listCountries, listTopics, getTopicIndicators, listSources, getSourceIndicators, listRegions, listIncomeLevels, listLendingTypes, POPULAR_INDICATORS } from "./sdk.js";
+import { getIndicator, compareCountries, searchIndicators, listCountries, listTopics, getTopicIndicators, listSources, getSourceIndicators, listRegions, listIncomeLevels, listLendingTypes, } from "./sdk.js";
 import { timeseriesResponse, tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 
 export const tools: Tool<any, any>[] = [

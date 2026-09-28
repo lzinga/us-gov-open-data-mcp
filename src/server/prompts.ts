@@ -958,7 +958,6 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     ],
     load: async ({ location: _location }) => {
       const location = _location ?? "national";
-      const isNational = location.toLowerCase() === "national";
       const isState = location.length === 2;
       return `Housing market analysis: ${location}\n\n` +
         "HOME PRICES:\n" +
