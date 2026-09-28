@@ -12,6 +12,9 @@ describe("timeseries stats (live)", () => {
     expect(res.stats.changePct).toBeGreaterThan(30);
     expect(res.stats.cagrPct).toBeGreaterThan(1);
     expect(res.stats.cagrPct).toBeLessThan(6);
+    // The summary reports returned dates, not FRED's 9999-12-31 open-ended default.
+    expect(res.summary).not.toContain("9999");
+    expect(res.summary).toContain(res.stats.last.date);
   });
 
   itWithKeys(["EIA_API_KEY"])("EIA multi-state electricity prices don't get stats mixed across series", async () => {

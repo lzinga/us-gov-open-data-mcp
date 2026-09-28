@@ -63,14 +63,19 @@ export const tools: Tool<any, any>[] = [
         start: start_date, end: end_date, limit, sort: sort_order, frequency,
       });
       if (!data.observations?.length) return emptyResponse(`No observations for "${series_id}".`);
+      // observation_start/end echo the request (end defaults to 9999-12-31), so
+      // report the dates actually returned.
+      const dates = data.observations.map(o => o.date).sort();
+      const firstDate = dates[0];
+      const lastDate = dates[dates.length - 1];
       return timeseriesResponse(
-        `${series_id.toUpperCase()}: ${data.count} observations, ${data.observation_start} to ${data.observation_end}`,
+        `${series_id.toUpperCase()}: ${data.observations.length} of ${data.count} observations, ${firstDate} to ${lastDate}`,
         {
           rows: data.observations,
           dateKey: "date",
           valueKey: "value",
           total: data.count,
-          meta: { seriesId: series_id.toUpperCase(), start: data.observation_start, end: data.observation_end },
+          meta: { seriesId: series_id.toUpperCase(), firstDate, lastDate },
         },
       );
     },
