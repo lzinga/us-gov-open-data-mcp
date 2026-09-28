@@ -101,9 +101,10 @@ export const tools: Tool<any, any>[] = [
       year_from: z.number().int().min(1970).optional().describe("First year of loss"),
       year_to: z.number().int().min(1970).optional().describe("Last year of loss"),
       flood_event: z.string().optional().describe(
-        "Storm or event name, e.g. 'Harvey', 'Ian', 'Atmospheric River'. Matched as a substring in any capitalization; " +
-        "words like 'Hurricane' or 'Tropical Storm' are dropped, since FEMA writes recent events as '2025-08-Erin-HU'. " +
-        "Add year_from/year_to when a name was reused.",
+        "Storm or event name, e.g. 'Harvey', 'Ian', 'Atmospheric River', in any capitalization. Words like 'Hurricane' " +
+        "or 'Tropical Storm' are dropped, since FEMA writes recent events as '2025-08-Erin-HU'. A storm or one-word name " +
+        "matches whole words only ('Earl' is not 'Early'); longer phrases match anywhere. Add year_from/year_to when a " +
+        "name was reused.",
       ),
       sort_by: z.enum(["date", "paid"]).default("date").describe("'date' (newest first, default) or 'paid' (largest building payment first)"),
       limit: z.number().int().min(1).max(1000).default(50).describe("Claims to return (default 50, max 1000)"),
