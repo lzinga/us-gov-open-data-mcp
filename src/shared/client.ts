@@ -12,10 +12,7 @@
  *   - Auth via query param, header, or request body
  */
 
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { homedir } from "node:os";
+import { CacheStore, DiskCache, resolveCacheRoot } from "./disk-cache.js";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -193,217 +190,19 @@ export class TokenBucket {
 
 // ─── Disk-backed TTL Cache ────────────────────────────────────────────
 //
-// Single consolidated JSON file shared by all modules. Lazy-loaded on
-// first cache miss. LRU eviction per module keeps memory bounded.
-// Async writes don't block the event loop. Global write coalescing
-// batches all module updates into one disk write.
-//
-// The directory and file are private to the current user (0700/0600 on
-// POSIX). Cache keys never contain credentials. If a private directory
-// can't be created, the cache stays in memory only rather than falling
-// back to a shared location such as /tmp.
+// One file per response under the user's private cache directory; see
+// disk-cache.ts. Shared by every client in the process.
 
-const IS_POSIX = process.platform !== "win32";
+const cacheStore = new CacheStore({ root: resolveCacheRoot() });
 
-function getCacheDir(): string | null {
-  const base = process.env.XDG_CACHE_HOME || join(homedir(), ".cache");
-  const dir = join(base, "us-gov-open-data-mcp");
-  try {
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-    if (IS_POSIX) chmodSync(dir, 0o700);
-    return dir;
-  } catch {
-    return null;
-  }
-}
-
-const CACHE_DIR = getCacheDir();
-/** v2: keys no longer include credentials. Older files may, so they are deleted. */
-const CACHE_FILE = CACHE_DIR ? join(CACHE_DIR, "cache.v2.json") : null;
-const MAX_ENTRIES_PER_MODULE = 200;
-
-interface CacheEntry { data: unknown; expires: number; lastAccess: number; }
-
-// ─── Global disk store (shared by all DiskCache instances) ───────────
-
-let _globalLoaded = false;
-let _globalDirty = false;
-let _globalWriteTimer: ReturnType<typeof setTimeout> | undefined;
-
-/** namespace → key → entry */
-const _globalStore = new Map<string, Map<string, CacheEntry>>();
-
-/**
- * Delete cache files written by earlier versions (cache.json and the older
- * per-module *.json files). Their keys can contain API keys in plaintext.
- */
-function removeLegacyCacheFiles(): void {
-  if (!CACHE_DIR || !CACHE_FILE) return;
-  try {
-    for (const file of readdirSync(CACHE_DIR)) {
-      if (file.endsWith(".json") && join(CACHE_DIR, file) !== CACHE_FILE) {
-        try { unlinkSync(join(CACHE_DIR, file)); } catch { /* best effort */ }
-      }
-    }
-  } catch {
-    // Directory unreadable — nothing to clean up.
-  }
-}
-
-function loadGlobal(): void {
-  if (_globalLoaded) return;
-  _globalLoaded = true;
-  if (!CACHE_FILE) return;
-  removeLegacyCacheFiles();
-  try {
-    if (!existsSync(CACHE_FILE)) return;
-    if (IS_POSIX) chmodSync(CACHE_FILE, 0o600);
-    const raw = JSON.parse(readFileSync(CACHE_FILE, "utf-8")) as Record<string, Record<string, CacheEntry>>;
-    const now = Date.now();
-    let totalLoaded = 0;
-    for (const [ns, entries] of Object.entries(raw)) {
-      const map = new Map<string, CacheEntry>();
-      for (const [key, entry] of Object.entries(entries)) {
-        if (entry.expires > now) {
-          map.set(key, entry);
-          totalLoaded++;
-        }
-      }
-      if (map.size > 0) _globalStore.set(ns, map);
-    }
-    if (totalLoaded > 0 && process.env.DEBUG_CACHE) {
-      console.error(`Cache: loaded ${totalLoaded} entries from disk (${_globalStore.size} modules)`);
-    }
-  } catch {
-    // Corrupted — start fresh
-  }
-}
-
-/** Serialize the unexpired store and write it (private file mode). */
-async function writeGlobal(): Promise<void> {
-  if (!CACHE_FILE || !_globalDirty) return;
-  _globalDirty = false;
-  const now = Date.now();
-  const obj: Record<string, Record<string, CacheEntry>> = {};
-  for (const [ns, map] of _globalStore) {
-    const entries: Record<string, CacheEntry> = {};
-    for (const [key, entry] of map) {
-      if (entry.expires > now) entries[key] = entry;
-    }
-    if (Object.keys(entries).length > 0) obj[ns] = entries;
-  }
-  try {
-    await writeFile(CACHE_FILE, JSON.stringify(obj), { encoding: "utf-8", mode: 0o600 });
-  } catch {
-    // Disk cache is best-effort.
-  }
-}
-
-function scheduleGlobalWrite(): void {
-  if (_globalWriteTimer) return;
-  _globalWriteTimer = setTimeout(() => {
-    _globalWriteTimer = undefined;
-    void writeGlobal();
-  }, 2000);
-  if (typeof _globalWriteTimer === "object" && "unref" in _globalWriteTimer) {
-    _globalWriteTimer.unref();
-  }
-}
-
-/** Write pending cache changes to disk now instead of waiting for the debounce. */
+/** Wait for background cache maintenance (the size scan and LRU sweeps) to finish. */
 export async function flushDiskCache(): Promise<void> {
-  if (_globalWriteTimer) {
-    clearTimeout(_globalWriteTimer);
-    _globalWriteTimer = undefined;
-  }
-  await writeGlobal();
+  await cacheStore.idle();
 }
 
-/** Absolute path of the cache file, or null when the disk cache is disabled. */
+/** Directory holding the cache entries, or null when the disk cache is disabled. */
 export function diskCachePath(): string | null {
-  return CACHE_FILE;
-}
-
-// ─── Per-module cache interface ──────────────────────────────────────
-
-class DiskCache {
-  private ns: string;
-  private ttlMs: number;
-
-  constructor(ttlMs: number, name: string) {
-    this.ttlMs = ttlMs;
-    this.ns = name;
-  }
-
-  private getMap(): Map<string, CacheEntry> {
-    loadGlobal(); // Lazy — only reads disk on first access
-    let map = _globalStore.get(this.ns);
-    if (!map) {
-      map = new Map();
-      _globalStore.set(this.ns, map);
-    }
-    return map;
-  }
-
-  get(key: string): unknown | undefined {
-    const map = this.getMap();
-    const entry = map.get(key);
-    if (!entry) return undefined;
-    if (Date.now() > entry.expires) {
-      map.delete(key);
-      _globalDirty = true;
-      scheduleGlobalWrite();
-      return undefined;
-    }
-    // Update last access for LRU
-    entry.lastAccess = Date.now();
-    return entry.data;
-  }
-
-  set(key: string, data: unknown): void {
-    if (this.ttlMs <= 0) return;
-    const map = this.getMap();
-
-    // LRU eviction if at capacity
-    if (map.size >= MAX_ENTRIES_PER_MODULE && !map.has(key)) {
-      let oldestKey: string | undefined;
-      let oldestAccess = Infinity;
-      for (const [k, e] of map) {
-        const access = e.lastAccess ?? e.expires - this.ttlMs;
-        if (access < oldestAccess) {
-          oldestAccess = access;
-          oldestKey = k;
-        }
-      }
-      if (oldestKey) map.delete(oldestKey);
-    }
-
-    const now = Date.now();
-    map.set(key, { data, expires: now + this.ttlMs, lastAccess: now });
-    _globalDirty = true;
-    scheduleGlobalWrite();
-  }
-
-  clear(): void {
-    // Load first: flushing an unloaded store would overwrite every other
-    // module's entries on disk with an empty store.
-    loadGlobal();
-    _globalStore.delete(this.ns);
-    _globalDirty = true;
-    scheduleGlobalWrite();
-  }
-
-  get size(): number {
-    loadGlobal();
-    const map = _globalStore.get(this.ns);
-    if (!map) return 0;
-    const now = Date.now();
-    let count = 0;
-    for (const entry of map.values()) {
-      if (now <= entry.expires) count++;
-    }
-    return count;
-  }
+  return cacheStore.root;
 }
 
 // ─── Timeouts and retry logic ────────────────────────────────────────
@@ -543,7 +342,7 @@ export function createClient(config: ClientConfig): ApiClient {
 
   const rl = config.rateLimit ?? { perSecond: 5, burst: 10 };
   const limiter = new TokenBucket(rl.burst, rl.perSecond);
-  const cache = new DiskCache(cacheTtlMs, name);
+  const cache = new DiskCache(cacheStore, name, cacheTtlMs);
 
   /** Resolve all env-backed auth params. Returns empty record if none are set. */
   function resolveAuthParams(): Record<string, string> {
@@ -627,8 +426,8 @@ export function createClient(config: ClientConfig): ApiClient {
       ? `json:${emptyBodyAsNull ? "empty-as-null" : "strict"}`
       : responseType;
     const cacheKey = `${cacheIdentity}|${cacheResponseType}`;
-    const cached = cache.get(cacheKey);
-    if (cached !== undefined) return cached as T;
+    const cached = await cache.get(cacheKey);
+    if (cached !== undefined) return cached.data as T;
 
     const res = await fetchRetry(url, init, timeoutMs, limiter, name, configMaxRetries, deadlineMs);
 

@@ -4,7 +4,7 @@
  * src/shared/client.ts resolves its cache directory from XDG_CACHE_HOME (or
  * ~/.cache) when it is first imported, and several tests call clearCache()
  * on every module. Without this, `npm test` reads and rewrites the
- * developer's real ~/.cache/us-gov-open-data-mcp/cache.json.
+ * developer's real ~/.cache/us-gov-open-data-mcp cache.
  *
  * Setup files run before each test file's imports, so every module graph
  * sees the temporary directory.
