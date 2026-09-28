@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { findState, resolveState, US_STATES } from "../src/shared/geo.js";
+import { findState, resolveState, stateAs, US_STATES } from "../src/shared/geo.js";
 
 describe("US_STATES", () => {
   it("covers 50 states, DC, and 5 territories with unique codes", () => {
@@ -41,5 +41,19 @@ describe("resolveState", () => {
   it("throws an actionable error for unknown states", () => {
     expect(resolveState("tx").fips).toBe("48");
     expect(() => resolveState("Texass", "state_cd")).toThrow(/Unknown state_cd "Texass".*two-letter code/);
+  });
+});
+
+describe("stateAs", () => {
+  it("converts any known form to the one an API expects", () => {
+    expect(stateAs("Texas", "usps")).toBe("TX");
+    expect(stateAs("tx", "fips")).toBe("48");
+    expect(stateAs(6, "name")).toBe("California");
+    expect(stateAs("dc", "name")).toBe("District of Columbia");
+  });
+
+  it("passes unknown input through trimmed, for the API to judge", () => {
+    expect(stateAs(" US ", "usps")).toBe("US");
+    expect(stateAs("Atlantis", "fips")).toBe("Atlantis");
   });
 });
