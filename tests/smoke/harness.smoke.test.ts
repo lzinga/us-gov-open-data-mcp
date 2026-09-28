@@ -7,7 +7,7 @@ import { callTool, itWithKeys, records } from "./helpers.js";
 
 describe("smoke harness", () => {
   it("calls a keyless API (Treasury debt to the penny)", async () => {
-    const res = await callTool("treasury", "query_fiscal_data", {
+    const res = await callTool("treasury", "treasury_query_fiscal_data", {
       endpoint: "/v2/accounting/od/debt_to_penny",
       sort: "-record_date",
       page_size: 2,

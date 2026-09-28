@@ -10,6 +10,7 @@ export default {
   displayName: "USDA FoodData Central",
   category: "Agriculture",
   description: "Nutritional data for 300K+ foods: calories, macros, vitamins, minerals. Covers branded products, standard reference foods, and survey foods.",
+  toolPrefix: "fooddata_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "fooddata_search to find foods → fooddata_detail for full nutrient breakdown",
   tips: "Data types: 'Foundation' (minimally processed), 'SR Legacy' (historical reference), 'Branded' (commercial products), 'Survey' (FNDDS dietary studies). Use Foundation or SR Legacy for generic foods, Branded for specific products.",

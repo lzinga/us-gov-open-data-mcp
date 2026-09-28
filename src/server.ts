@@ -226,6 +226,30 @@ for (const mod of activeModules) {
   if (mod.prompts?.length) server.addPrompts(mod.prompts as any);
 }
 
+// ─── Tool registry and deprecated aliases ────────────────────────────
+
+/** Old tool names → current names, from the loaded modules' `deprecatedAliases`. */
+const TOOL_ALIASES: Record<string, string> = Object.assign({}, ...activeModules.map(m => m.deprecatedAliases ?? {}));
+
+// Validated entry point for calling module tools from server-side features.
+const registry = buildToolRegistry(activeModules, TOOL_ALIASES);
+
+// Each alias is served as its own tool (same schema and behavior) so clients
+// and saved prompts that use an old name keep working for one release.
+for (const [alias, canonical] of registry.aliasEntries()) {
+  const { tool } = registry.resolve(canonical)!;
+  server.addTool({
+    ...tool,
+    name: alias,
+    description: `[Deprecated — use ${canonical}] ${tool.description ?? ""}`,
+    annotations: {
+      ...DEFAULT_TOOL_ANNOTATIONS,
+      ...(tool.annotations ?? {}),
+      title: `${tool.annotations?.title ?? canonical} (deprecated)`,
+    },
+  } as any);
+}
+
 // ─── clear_cache tool ────────────────────────────────────────────────
 
 server.addTool({
@@ -261,19 +285,6 @@ server.addTool({
 server.addPrompts(buildAnalysisPrompts(activeModules) as any);
 
 // ─── Code mode tool ──────────────────────────────────────────────────
-
-/**
- * Tool-name alias map. Resolves old/legacy names to current canonical names
- * so cached client prompts and saved system messages keep working after a
- * tool rename. Empty today — populate when a tool is renamed.
- */
-const TOOL_ALIASES: Record<string, string> = {
-  // Example for future use:
-  // "fda_search_events": "fda_drug_events",
-};
-
-// Validated entry point for calling module tools from server-side features.
-const registry = buildToolRegistry(activeModules, TOOL_ALIASES);
 
 server.addTool({
   name: "code_mode",

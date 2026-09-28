@@ -10,6 +10,7 @@ export default {
   category: "Procurement",
   description:
     "GSA CALC+ (Contract-Awarded Labor Category) ceiling rates - awarded hourly rates on GSA MAS professional services contracts. Covers 10,000+ contracts with labor category, vendor, price, education, experience, worksite, business size, security clearance, and SIN data. Useful for market research, IGCEs, and competitive pricing analysis.",
+  toolPrefix: "calc_",
   workflow:
     "Use calc_search_rates to find rates by keyword, labor category, vendor, or filters -> calc_suggest for autocomplete on labor categories, vendors, or contract numbers -> calc_contract_rates to see all rates under a specific contract.",
   tips:

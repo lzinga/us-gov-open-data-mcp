@@ -8,6 +8,7 @@ export default {
   name: "nhtsa",
   displayName: "NHTSA",
   category: "Safety",
+  toolPrefix: "nhtsa_",
   description:
     "National Highway Traffic Safety Administration — vehicle recalls (1949–present), consumer complaints, " +
     "5-star safety ratings (NCAP), VIN decoding, product browsing, and car seat inspection station finder. " +

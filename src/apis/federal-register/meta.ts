@@ -9,6 +9,7 @@ export default {
   displayName: "Federal Register",
   category: "Legislative",
   description: "Executive orders, presidential documents, rules, agency notices",
+  toolPrefix: "fr_",
   workflow: "fr_executive_orders or fr_search_rules → review results",
   tips:
     "Use president slugs: 'donald-trump', 'joe-biden', 'barack-obama', 'george-w-bush', 'william-j-clinton'. No API key required.",

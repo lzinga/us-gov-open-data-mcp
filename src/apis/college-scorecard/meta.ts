@@ -10,6 +10,7 @@ export default {
   displayName: "College Scorecard",
   category: "Education",
   description: "College costs, graduation rates, post-graduation earnings, student debt, admission rates for every U.S. college and university",
+  toolPrefix: "scorecard_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "scorecard_search to find schools → scorecard_compare for side-by-side → scorecard_top for rankings",
   tips:

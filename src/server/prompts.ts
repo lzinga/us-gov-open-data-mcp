@@ -91,9 +91,9 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     description: "Current state of U.S. government finances: debt, deficit, revenue, spending, interest costs.",
     load: async () =>
       "Pull a comprehensive fiscal snapshot:\n\n" +
-      "1. Treasury query_fiscal_data with debt_to_penny — latest national debt\n" +
-      "2. Treasury query_fiscal_data with mts_table_1 — latest Monthly Treasury Statement (revenue vs outlays)\n" +
-      "3. Treasury query_fiscal_data with avg_interest_rates — cost of servicing the debt\n" +
+      "1. treasury_query_fiscal_data with debt_to_penny — latest national debt\n" +
+      "2. treasury_query_fiscal_data with mts_table_1 — latest Monthly Treasury Statement (revenue vs outlays)\n" +
+      "3. treasury_query_fiscal_data with avg_interest_rates — cost of servicing the debt\n" +
       "4. FRED FYFSGDA188S — deficit as % of GDP\n" +
       "5. FRED GDP — current GDP for debt-to-GDP ratio\n" +
       "6. usa_spending_by_agency — top 10 agencies by spending\n" +
@@ -768,7 +768,7 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       "- lobbying_search for top recipients — do they lobby for more spending?\n" +
       "- fec_search_committees for top recipients — do they fund politicians who authorize spending?\n\n" +
       "CONTEXT:\n" +
-      "- Treasury query_fiscal_data mts_table_1 — total federal receipts vs outlays\n" +
+      "- treasury_query_fiscal_data mts_table_1 — total federal receipts vs outlays\n" +
       "- census_population — per-capita spending calculation\n\n" +
       "Follow the money from taxpayer to recipient. Show the full chain: " +
       "Congress authorizes → Agency spends → Recipient gets paid → Recipient lobbies for more.",

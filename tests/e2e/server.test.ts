@@ -9,6 +9,8 @@ import { connectStdio, repoRoot, runCli } from "./helpers.js";
 import { moduleDirs, getModule } from "../helpers.js";
 
 const moduleToolCount = moduleDirs.reduce((n, d) => n + (getModule(d).tools as unknown[]).length, 0);
+const aliasCount = (d: string) => Object.keys((getModule(d).deprecatedAliases as Record<string, string> | undefined) ?? {}).length;
+const totalAliases = moduleDirs.reduce((n, d) => n + aliasCount(d), 0);
 const SERVER_TOOLS = ["clear_cache", "code_mode"];
 const PACKAGE_JSON_VERSION = (JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8")) as { version: string }).version;
 
@@ -36,9 +38,23 @@ describe("stdio server (all modules)", () => {
   it("lists every module tool plus the server tools", async () => {
     const { tools } = await session.client.listTools();
     const names = tools.map(t => t.name);
-    expect(names.length).toBe(moduleToolCount + SERVER_TOOLS.length);
+    expect(names.length).toBe(moduleToolCount + totalAliases + SERVER_TOOLS.length);
     for (const t of SERVER_TOOLS) expect(names).toContain(t);
     for (const tool of tools) expect(tool.annotations?.readOnlyHint, tool.name).toBeDefined();
+  });
+
+  it("serves deprecated Treasury aliases that behave like the new names", async () => {
+    const { tools } = await session.client.listTools();
+    const alias = tools.find(t => t.name === "search_datasets");
+    expect(alias?.description).toMatch(/^\[Deprecated — use treasury_search_datasets\] /);
+    expect(alias?.annotations?.title).toMatch(/\(deprecated\)$/);
+    expect(tools.find(t => t.name === "treasury_search_datasets")?.inputSchema).toEqual(alias?.inputSchema);
+
+    // Local catalog search: no upstream request.
+    const viaAlias = await session.client.callTool({ name: "search_datasets", arguments: { query: "debt" } });
+    const viaNew = await session.client.callTool({ name: "treasury_search_datasets", arguments: { query: "debt" } });
+    expect(viaAlias.isError).toBeFalsy();
+    expect(viaAlias.content).toEqual(viaNew.content);
   });
 
   it("serves the govdata://reference resource", async () => {
@@ -72,6 +88,7 @@ describe("stdio server (selective loading)", () => {
       const expected =
         (getModule("fred").tools as unknown[]).length +
         (getModule("treasury").tools as unknown[]).length +
+        aliasCount("treasury") +
         SERVER_TOOLS.length;
       expect(tools.length).toBe(expected);
     } finally {

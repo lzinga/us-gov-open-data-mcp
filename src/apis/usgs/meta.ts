@@ -11,6 +11,7 @@ export default {
   category: "Environment",
   description:
     "Earthquake events (magnitude, location, depth, tsunami risk) and water resources monitoring (streamflow, water levels, temperature) from 13,000+ stations nationwide. Earthquakes need no key; water data works without a key at low volume.",
+  toolPrefix: "usgs_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.waterdata.usgs.gov/signup/", optional: true },
   workflow:
     "Use usgs_earthquakes to search for earthquakes by magnitude/location/date → usgs_significant for recent notable events → usgs_water_data for streamflow and water levels at monitoring sites → usgs_water_sites to find stations.",

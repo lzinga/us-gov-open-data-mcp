@@ -11,6 +11,7 @@ export default {
   category: "Health",
   description:
     "Search NIH-funded research projects by disease, investigator, institution, state, and funding amount. Track research spending by disease category (RCDC), institute, and grant type. Cross-reference with CDC (health outcomes), FDA (drug approvals), ClinicalTrials.gov (trials), and Open Payments (pharma influence). No API key required.",
+  toolPrefix: "nih_",
   workflow:
     "Use nih_search_projects to find grants by topic/PI/org → nih_spending_by_category for disease funding trends → nih_projects_by_agency for institute breakdown → nih_search_publications for linked publications.",
   tips:

@@ -11,6 +11,7 @@ export default {
   category: "Financial",
   description:
     "Bank data for 5,000+ FDIC-insured institutions — search banks, failures since 1934, quarterly financials, branch-level deposits, merger/charter history. Filter by state, assets, charter type.",
+  toolPrefix: "fdic_",
   workflow:
     "fdic_search_institutions to find banks → fdic_financials for Call Report data → fdic_failures for failed banks → fdic_deposits for branch deposits",
   tips:

@@ -10,6 +10,7 @@ export default {
   displayName: "World Bank",
   category: "International",
   description: "International economic indicators for 200+ countries: GDP, population, health spending, life expectancy, trade, inequality",
+  toolPrefix: "wb_",
   workflow: "wb_indicator for a single country, wb_compare to compare countries, wb_search to find indicator IDs",
   tips: "Countries: US, GB, DE, JP, CN, IN, BR. Indicators: NY.GDP.MKTP.CD (GDP), SP.POP.TOTL (population), SP.DYN.LE00.IN (life expectancy)",
   domains: ["international", "economy"],

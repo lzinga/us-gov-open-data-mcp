@@ -15,6 +15,7 @@ export default {
   name: "clinical-trials",
   displayName: "ClinicalTrials.gov",
   category: "Health",
+  toolPrefix: "clinical_trials_",
   description:
     "Search 400K+ clinical trials: conditions, drugs, sponsors, phases, recruitment status, " +
     "locations, results. Explore data model fields, enum values, and field statistics. " +

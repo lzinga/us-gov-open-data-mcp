@@ -11,6 +11,7 @@ export default {
   category: "Justice",
   description:
     "National/state/agency crime statistics, arrests, hate crimes, law enforcement employees, expanded homicide data, and use of force from the FBI CDE API",
+  toolPrefix: "fbi_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "fbi_agencies → fbi_crime_summarized or fbi_arrest_data → fbi_hate_crime for detail",
   tips:

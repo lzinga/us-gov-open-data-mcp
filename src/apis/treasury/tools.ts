@@ -15,7 +15,7 @@ import { tableResponse, listResponse, emptyResponse } from "../../shared/respons
 
 export const tools: Tool<any, any>[] = [
   {
-    name: "list_datasets",
+    name: "treasury_list_datasets",
     description:
       "List all 53 U.S. Treasury Fiscal Data API datasets and their 181 endpoints. " +
       "Returns dataset name, data table name, API endpoint path, and description.",
@@ -41,7 +41,7 @@ export const tools: Tool<any, any>[] = [
   },
 
   {
-    name: "search_datasets",
+    name: "treasury_search_datasets",
     description:
       "Search for Treasury Fiscal Data datasets and endpoints by keyword. " +
       "Searches across all 53 datasets (181 endpoints) by name, table name, endpoint path, and description.",
@@ -73,7 +73,7 @@ export const tools: Tool<any, any>[] = [
   },
 
   {
-    name: "get_endpoint_fields",
+    name: "treasury_get_endpoint_fields",
     description:
       "Get field names, data types, and formats for a specific Treasury Fiscal Data API endpoint. " +
       "This helps you discover what fields are available before querying data.",
@@ -102,7 +102,7 @@ export const tools: Tool<any, any>[] = [
   },
 
   {
-    name: "query_fiscal_data",
+    name: "treasury_query_fiscal_data",
     description:
       "Query the U.S. Treasury Fiscal Data API. Supports field selection, filtering, sorting, and pagination.\n\n" +
       "Filter operators: eq (equal), gt, gte, lt, lte, in.\n" +

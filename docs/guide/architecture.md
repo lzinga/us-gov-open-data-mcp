@@ -114,14 +114,14 @@ crossRef: [
 
 // treasury/meta.ts
 crossRef: [
-  { question: "debt/deficit", route: "query_fiscal_data with debt_to_penny, avg_interest_rates" },
+  { question: "debt/deficit", route: "treasury_query_fiscal_data with debt_to_penny, avg_interest_rates" },
 ]
 ```
 
 At startup, `buildRoutingTable()` collects all hints, groups by question type, and produces:
 
 ```
-DEBT/DEFICIT → FRED(fred_series_data with GDP, FYFSGDA188S) + Treasury(query_fiscal_data with debt_to_penny) + World Bank(wb_indicator with GC.DOD.TOTL.GD.ZS)
+DEBT/DEFICIT → FRED(fred_series_data with GDP, FYFSGDA188S) + Treasury(treasury_query_fiscal_data with debt_to_penny) + World Bank(wb_indicator with GC.DOD.TOTL.GD.ZS)
 ```
 
 The LLM reads this and knows exactly which tools + parameters to call. Adding a new module with `crossRef` hints automatically extends the routing table.

@@ -9,6 +9,7 @@ export default {
   name: "dol",
   displayName: "DOL (Department of Labor)",
   category: "Safety",
+  toolPrefix: "dol_",
   description:
     "OSHA workplace safety inspections, violations, and accident investigations. " +
     "WHD wage theft enforcement (back wages, penalties, FLSA/FMLA violations). " +

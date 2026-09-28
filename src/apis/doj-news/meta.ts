@@ -11,6 +11,7 @@ export default {
   category: "Justice",
   description:
     "Department of Justice press releases (262K+) and blog entries (3,200+). Search by title keyword, date, and DOJ component. Covers enforcement actions, indictments, settlements, policy announcements across all DOJ divisions including FBI, DEA, ATF, USAO, and Civil Rights.",
+  toolPrefix: "doj_",
   workflow:
     "doj_press_releases to search/browse press releases → doj_press_release_detail for full text → doj_blog_entries to search blog posts → doj_blog_detail for full text.",
   tips:

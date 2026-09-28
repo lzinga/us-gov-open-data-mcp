@@ -120,6 +120,17 @@ export interface ModuleMeta {
   category: string;
   /** Brief description of what the API provides. */
   description: string;
+  /**
+   * Prefix shared by every tool name in the module (e.g. "fred_", "fr_" for
+   * the Federal Register). Checked by tests so tool names stay namespaced.
+   */
+  toolPrefix: string;
+  /**
+   * Old tool names that still work for one release after a rename:
+   * old name → current name. Each is served as a separate tool whose
+   * description starts with "[Deprecated — use <current name>]".
+   */
+  deprecatedAliases?: Record<string, string>;
   /** API key configuration. Omit for keyless APIs. */
   auth?: {
     /** Env var name(s) to check at startup. String for one key, array for multi-credential (e.g. ["AQS_API_KEY", "AQS_EMAIL"]). */

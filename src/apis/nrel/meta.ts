@@ -10,6 +10,7 @@ export default {
   displayName: "NREL (Clean Energy)",
   category: "Environment",
   description: "EV charging stations, alt fuel stations, electricity rates, solar resource data from the National Renewable Energy Laboratory",
+  toolPrefix: "nrel_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "nrel_fuel_stations to find EV chargers/alt fuel → nrel_utility_rates for electricity costs → nrel_solar for solar potential",
   tips: "Fuel types: ELEC (EV), E85 (ethanol), CNG (natural gas), LPG (propane), BD (biodiesel), HY (hydrogen). Status: E=open, P=planned, T=temporarily unavailable.",

@@ -11,6 +11,7 @@ export default {
   category: "Spending",
   description:
     "CMS Open Payments — tracks payments from pharmaceutical and medical device companies to doctors and teaching hospitals. 15M+ payment records per year. Search by company, doctor, state, or specialty. No API key required.",
+  toolPrefix: "open_payments_",
   workflow:
     "Use open_payments_search to find payments by company/doctor/state → open_payments_top for highest payments → " +
     "open_payments_top_doctors for aggregate totals per doctor → cross-reference with fda_drug_events for the same company's drugs → " +

@@ -10,6 +10,7 @@ export default {
   displayName: "Senate Lobbying Disclosures",
   category: "Financial",
   description: "Lobbying filings, expenditures, activities, and campaign contributions — who is lobbying Congress, on what issues, and how much they're spending",
+  toolPrefix: "lobbying_",
   auth: { envVar: "LDA_API_KEY", signup: "https://lda.gov/api/register/", optional: true },
   workflow: "lobbying_search to find filings by company/issue → lobbying_detail for specific bills lobbied → lobbying_contributions for campaign donations by lobbyists. For conflict-of-interest investigations: search by trade group AND individual companies to get total industry lobbying spend across 3+ years around a vote.",
   tips:

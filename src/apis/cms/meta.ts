@@ -11,6 +11,7 @@ export default {
   category: "Health",
   description:
     "Centers for Medicare & Medicaid Services — hospital compare, nursing home ratings, home health agencies, hospice, dialysis, Medicare spending, HCAHPS patient surveys, quality measures. No API key required.",
+  toolPrefix: "cms_",
   workflow:
     "Use cms_search to find datasets by keyword → cms_hospitals for hospital quality data → cms_nursing_homes for nursing home ratings → cms_query for any CMS provider dataset.",
   tips:
