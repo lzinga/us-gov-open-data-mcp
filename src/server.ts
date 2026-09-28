@@ -19,6 +19,8 @@
  *   MCP_HOST=0.0.0.0 MCP_AUTH_TOKEN=<token> node dist/server.js --transport httpStream # remote access (bearer token)
  *   MODULES=fred,bls,treasury node dist/server.js         # load only 3 modules
  *   node dist/server.js --modules fred,bls,treasury       # same via CLI flag
+ *   node dist/server.js --domains economy,health          # every module in these domains (DOMAINS=…); unions with --modules
+ *   node dist/server.js --hide-unconfigured               # skip modules whose required key isn't set (HIDE_UNCONFIGURED=1)
  *   node dist/server.js --list-modules                    # list all modules grouped by domain and exit
  *   node dist/server.js --list                            # alias for --list-modules
  *   node dist/server.js --list-modules --json             # same, as JSON (for scripting)
@@ -34,6 +36,7 @@ import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
 import { bearerAuthenticator, planHttpAuth, type HttpAuthPlan } from "./server/http-auth.js";
 import { createServerLogger } from "./server/logger.js";
+import { selectModules } from "./server/module-selection.js";
 import { filterPrompts } from "./server/prompt-filter.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
@@ -83,13 +86,17 @@ function parseArgs() {
   const port = Number(get("--port") ?? process.env.MCP_PORT ?? 8080);
   // Loopback by default; set MCP_HOST=0.0.0.0 for external access (requires MCP_AUTH_TOKEN, see http-auth.ts).
   const host = process.env.MCP_HOST ?? "127.0.0.1";
-  const modulesFilter = get("--modules") ?? process.env.MODULES;
+  const selection = {
+    modules: get("--modules") ?? process.env.MODULES,
+    domains: get("--domains") ?? process.env.DOMAINS,
+    hideUnconfigured: args.includes("--hide-unconfigured") || process.env.HIDE_UNCONFIGURED === "1",
+  };
   const listModules = args.includes("--list-modules") || args.includes("--list");
 
-  return { transport, port, host, modulesFilter, listModules };
+  return { transport, port, host, selection, listModules };
 }
 
-const { transport, port, host, modulesFilter, listModules } = parseArgs();
+const { transport, port, host, selection, listModules } = parseArgs();
 
 if (listModules) {
   const asJson = process.argv.includes("--json");
@@ -145,17 +152,15 @@ if (listModules) {
 
 let activeModules = MODULES;
 
-if (modulesFilter) {
-  const wanted = new Set(modulesFilter.split(",").map(s => s.trim().toLowerCase()));
-  activeModules = MODULES.filter(m => wanted.has(m.name.toLowerCase()));
-
-  if (activeModules.length === 0) {
-    console.error(
-      `No modules matched "${modulesFilter}". Available: ${MODULES.map(m => m.name).join(", ")}`,
-    );
+if (selection.modules || selection.domains || selection.hideUnconfigured) {
+  try {
+    const { active, hidden } = selectModules(MODULES, selection);
+    activeModules = active;
+    for (const h of hidden) console.error(`Hidden (no ${h.missing.join(", ")}): ${h.name}`);
+  } catch (err) {
+    console.error((err as Error).message);
     process.exit(1);
   }
-
   console.error(
     `Loaded ${activeModules.length}/${MODULES.length} modules: ${activeModules.map(m => m.name).join(", ")}`,
   );
