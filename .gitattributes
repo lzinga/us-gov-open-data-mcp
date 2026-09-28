@@ -1,0 +1,2 @@
+# Shell scripts run on Linux runners and in Git Bash; keep them LF everywhere.
+*.sh text eol=lf

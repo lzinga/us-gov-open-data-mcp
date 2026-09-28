@@ -4,13 +4,15 @@ Versions are CalVer `YYYY.M.D` (UTC date). A release takes two workflows.
 
 1. **Prepare Release**: in Actions, select Prepare Release, then Run workflow on `main`. The workflow:
    - picks the version with [`scripts/release-version.mjs`](../scripts/release-version.mjs)
-   - bumps `package.json`, then builds and tests
+   - bumps `package.json` and `server.json` (the MCP Registry listing), then builds and tests
    - commits `release: vX` and pushes the commit together with the annotated tag `vX`. The push is atomic and
      never forced, so it fails if `main` moved during the run.
    - creates a draft GitHub release with generated notes
 2. **Publish**: review the draft and publish it. That runs [`publish.yml`](workflows/publish.yml), which builds and
-   tests the tag once without credentials. It then publishes that same tarball to npm (trusted publishing, with
-   provenance) and to GitHub Packages as `@lzinga/us-gov-open-data-mcp`.
+   tests the tag once without credentials, and validates `server.json`. It then publishes that same tarball to npm
+   (trusted publishing, with provenance) and to GitHub Packages as `@lzinga/us-gov-open-data-mcp`, and lists the
+   version in the [MCP Registry](https://registry.modelcontextprotocol.io) as
+   `io.github.lzinga/us-gov-open-data-mcp`. The registry login uses GitHub OIDC, so it needs no secret.
 
 ## Version rules
 
@@ -36,6 +38,9 @@ Versions are CalVer `YYYY.M.D` (UTC date). A release takes two workflows.
    - add required reviewers to the `npm` environment (Settings, then Environments)
    - enable immutable releases, so that published tags and assets can't change
 
+The MCP Registry needs no setup: the first release that includes `server.json` creates the listing. Check it at
+https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.lzinga/us-gov-open-data-mcp.
+
 ## Troubleshooting
 
 - **`E404 Not Found - PUT https://registry.npmjs.org/us-gov-open-data-mcp`**: npm rejected the credentials.
@@ -45,3 +50,7 @@ Versions are CalVer `YYYY.M.D` (UTC date). A release takes two workflows.
 - **Re-running a failed publish** uses the workflow file from the release tag's commit. Tags created before
   trusted publishing still use `NPM_TOKEN`, so cut a new release instead.
 - **"Version … already exists"**: see [version rules](#version-rules).
+- **MCP Registry "Package validation failed"**: the registry reads `mcpName` from the published npm package. It
+  must equal the `name` in `server.json`; the publish job retries in case npm hasn't served the new version yet.
+- **MCP Registry "invalid audience"**: `mcp-publisher` is too old for the registry. Update the version and
+  checksum in [`scripts/install-mcp-publisher.sh`](../scripts/install-mcp-publisher.sh).

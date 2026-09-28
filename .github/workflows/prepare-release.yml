@@ -52,6 +52,9 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: npm version "$VERSION" --no-git-tag-version --allow-same-version
 
+      - name: Set the MCP Registry listing's version
+        run: node scripts/server-json.mjs --write
+
       - name: Build
         run: npm run build
 
@@ -65,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
+          git add package.json package-lock.json server.json
           git diff --cached --quiet || git commit -m "release: v$VERSION"
           git tag -a "v$VERSION" -m "v$VERSION"
           # No --force: the push fails if main moved during the run or the tag

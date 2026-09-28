@@ -1,10 +1,11 @@
-name: Publish to npm & GitHub Packages
+name: Publish to npm, GitHub Packages & the MCP Registry
 
 # Triggers when you publish a GitHub Release (from draft → published).
 #
 # npm uses trusted publishing (OIDC): no NPM_TOKEN secret. The package's
 # trusted publisher on npmjs.com must name this repository and the workflow
 # file "publish.yml" (environment "npm"). Provenance is attached automatically.
+# The MCP Registry also takes a GitHub OIDC login, so it needs no secret either.
 on:
   release:
     types: [published]
@@ -42,11 +43,20 @@ jobs:
             exit 1
           fi
 
+      - name: Check server.json matches package.json
+        run: node scripts/server-json.mjs
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build and test
         run: npm test # pretest builds
+
+      - name: Validate the MCP Registry listing
+        run: |
+          bash scripts/install-mcp-publisher.sh
+          ./mcp-publisher validate
+          rm mcp-publisher
 
       - name: Pack for npm
         run: |
@@ -130,3 +140,34 @@ jobs:
         run: npm publish package/*.tgz # zizmor: ignore[use-trusted-publishing]
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-mcp-registry:
+    # List the release in the official MCP Registry as
+    # io.github.lzinga/us-gov-open-data-mcp. The registry checks the npm
+    # package's mcpName, so this runs once npm has the new version.
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC login to the registry; no secret needed
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Install mcp-publisher
+        run: bash scripts/install-mcp-publisher.sh
+
+      - name: Log in to the MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server.json
+        # npm can take a moment to serve a just-published version.
+        run: |
+          for attempt in 1 2 3; do
+            if ./mcp-publisher publish; then exit 0; fi
+            echo "Attempt $attempt failed; retrying in 30s."
+            sleep 30
+          done
+          exit 1

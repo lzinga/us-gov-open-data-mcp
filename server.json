@@ -1,0 +1,181 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.lzinga/us-gov-open-data-mcp",
+  "title": "U.S. Government Open Data",
+  "description": "Open data from 40+ U.S. government APIs: economy, spending, Congress, health, energy, disasters",
+  "repository": {
+    "url": "https://github.com/lzinga/us-gov-open-data-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://lzinga.github.io/us-gov-open-data-mcp/",
+  "version": "2026.9.14",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "us-gov-open-data-mcp",
+      "version": "2026.9.14",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "DATA_GOV_API_KEY",
+          "description": "api.data.gov key, shared by Congress, FEC, GovInfo, FBI, NREL, Regulations.gov, College Scorecard, USDA FoodData, openFDA and USGS Water",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "FRED_API_KEY",
+          "description": "FRED (Federal Reserve Economic Data) API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "CENSUS_API_KEY",
+          "description": "Census Bureau API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "BLS_API_KEY",
+          "description": "Bureau of Labor Statistics API key (optional; raises rate limits)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "BEA_API_KEY",
+          "description": "Bureau of Economic Analysis API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "EIA_API_KEY",
+          "description": "Energy Information Administration API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "NOAA_API_KEY",
+          "description": "NOAA Climate Data Online token (station climate data works without it)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "USDA_NASS_API_KEY",
+          "description": "USDA NASS Quick Stats API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "HUD_USER_TOKEN",
+          "description": "HUD User API token",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "DOL_API_KEY",
+          "description": "Department of Labor API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "USPTO_API_KEY",
+          "description": "USPTO Open Data Portal API key",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "LDA_API_KEY",
+          "description": "Senate Lobbying Disclosure (lda.gov) API key (optional; raises rate limits)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "AQS_API_KEY",
+          "description": "EPA Air Quality System API key (used with AQS_EMAIL)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "AQS_EMAIL",
+          "description": "Email address registered for the EPA AQS API key",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "SEC_CONTACT_EMAIL",
+          "description": "Your email for the SEC User-Agent; SEC asks automated tools for a contact and may block requests without one",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "NWS_USER_AGENT",
+          "description": "User-Agent for the National Weather Service API, with your contact details (a default is sent otherwise)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "MODULES",
+          "description": "Comma-separated modules to load (default: all), e.g. 'fred,bls,treasury'",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "DOMAINS",
+          "description": "Comma-separated domains to load, e.g. 'economy,health' (added to MODULES)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "HIDE_UNCONFIGURED",
+          "description": "Set to 1 to skip modules whose required API key is not set",
+          "isRequired": false,
+          "isSecret": false,
+          "choices": [
+            "0",
+            "1"
+          ],
+          "format": "string"
+        },
+        {
+          "name": "TOOL_MODE",
+          "description": "'full' (every tool) or 'discovery' (find_tools and call_tool only)",
+          "isRequired": false,
+          "isSecret": false,
+          "choices": [
+            "full",
+            "discovery"
+          ],
+          "default": "full",
+          "format": "string"
+        },
+        {
+          "name": "MAX_RESPONSE_BYTES",
+          "description": "Largest tool result in bytes before rows are trimmed (default 150000)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "number"
+        }
+      ]
+    }
+  ]
+}
