@@ -37,7 +37,7 @@ describe("buildInstructions", () => {
     const result = buildInstructions([mod]);
     expect(result).toContain("== FRED (FEDERAL RESERVE) ==");
     expect(result).toContain("A test module");
-    expect(result).toContain("Tools: test_search, test_data");
+    expect(result).not.toContain("Tools: "); // clients get tool names from tools/list
     expect(result).toContain("Workflow: test_search → test_data");
   });
 

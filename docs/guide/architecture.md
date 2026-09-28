@@ -4,7 +4,7 @@
 
 When an MCP client connects (VS Code, Claude Desktop, Cursor), the server does three things:
 
-1. **Sends instructions** (~14K tokens) — a text blob the LLM reads to know which tools to combine for which questions
+1. **Sends instructions** (~16K tokens) — a text blob the LLM reads to know which tools to combine for which questions
 2. **Registers 300+ tools** — each with a name, description, and parameter schema the LLM can call
 3. **Registers 36 prompts** — step-by-step analysis templates the user can invoke (e.g. `/follow_the_money`, `/drug_safety`)
 
@@ -82,24 +82,25 @@ The instructions string is the most important part of the system. It's the only 
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Per-module blocks (41×)                     ~11K tokens │
+│  Per-module blocks (42×)                      ~8K tokens │
 │  ├─ == FRED (FEDERAL RESERVE ECONOMIC DATA) ==          │
 │  ├─ 800K+ economic time series: GDP, CPI...            │
-│  ├─ Tools: fred_search, fred_series_data, ...           │
 │  ├─ Workflow: fred_search → fred_series_data            │
 │  ├─ Popular: GDP, UNRATE, CPIAUCSL, ...                 │
 │  └─ Requires FRED_API_KEY.                              │
 │                                                         │
-│  Cross-reference routing table (33 lines)    ~2K tokens │
+│  Cross-reference routing table (36 lines)    ~7K tokens │
 │  ├─ DEBT/DEFICIT → FRED(...) + Treasury(...) + ...      │
 │  ├─ DRUG INVESTIGATION → FDA(...) + NIH(...) + ...      │
 │  └─ HOUSING → HUD(...) + FRED(...) + Census(...) + ...  │
 │                                                         │
-│  Code Mode guide                            ~500 tokens │
-│  Analysis rules (8 standards)               ~400 tokens │
+│  Code Mode guide                            ~450 tokens │
+│  Analysis rules (8 standards)               ~250 tokens │
 └─────────────────────────────────────────────────────────┘
-                                        Total: ~14K tokens
+                                        Total: ~16K tokens
 ```
+
+Tool names aren't repeated here: clients get them, with descriptions, from `tools/list`.
 
 ### How the routing table works
 
@@ -130,7 +131,7 @@ The `question` field is type-checked — a typo like `"defecit"` fails compilati
 
 ### Selective loading
 
-With `MODULES=fred,bls,treasury`, only those 3 modules are loaded. The instructions shrink to ~3K tokens because only their per-module blocks and routing entries are generated.
+With `MODULES=fred,bls,treasury`, only those 3 modules are loaded. The instructions shrink to ~2K tokens because only their per-module blocks and routing entries are generated.
 
 ## Prompts
 
