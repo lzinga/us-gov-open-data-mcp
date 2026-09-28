@@ -15,8 +15,9 @@ import { stateAs } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
+// Paths carry the dataset version (/v2/..., /v3/...): OpenFEMA versions each dataset separately.
 const api = createClient({
-  baseUrl: "https://www.fema.gov/api/open/v2",
+  baseUrl: "https://www.fema.gov/api/open",
   name: "fema",
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — disaster data updates periodically
@@ -111,64 +112,81 @@ export interface FemaListResponse<T> {
 
 // ─── Datasets ────────────────────────────────────────────────────────
 
-/** Available datasets with Socrata endpoint IDs. */
+/** Available datasets with their OpenFEMA entity names and API versions. */
 export const DATASETS = {
   disaster_declarations: {
     endpoint: "DisasterDeclarationsSummaries",
+    version: "v2",
     name: "Disaster Declarations",
     description: "All federally declared disasters since 1953: major disasters, emergencies, fire management",
   },
   housing_owners: {
     endpoint: "HousingAssistanceOwners",
+    version: "v2",
     name: "Housing Assistance (Owners)",
     description: "Individual Assistance for homeowners: inspections, damage severity, assistance amounts by county/zip",
   },
   housing_renters: {
     endpoint: "HousingAssistanceRenters",
+    version: "v2",
     name: "Housing Assistance (Renters)",
     description: "Individual Assistance for renters: inspections, damage severity, assistance amounts by county/zip",
   },
   public_assistance: {
     endpoint: "PublicAssistanceGrantAwardActivities",
+    version: "v2",
     name: "Public Assistance Awards",
     description: "PA project awards: applicant, county, damage category, federal share obligated",
   },
   public_assistance_details: {
     endpoint: "PublicAssistanceFundedProjectsDetails",
+    version: "v2",
     name: "PA Funded Projects",
     description: "Detailed public assistance funded projects with damage categories and amounts",
   },
   nfip_claims: {
-    endpoint: "FimaNfipClaims",
+    endpoint: "NfipClaims",
+    version: "v3",
     name: "NFIP Flood Insurance Claims",
     description: "National Flood Insurance Program claims: loss amounts, flood zones, damage details",
   },
   nfip_policies: {
-    endpoint: "FimaNfipPolicies",
+    endpoint: "NfipPolicies",
+    version: "v3",
     name: "NFIP Flood Insurance Policies",
     description: "National Flood Insurance Program policy transactions: coverage, premiums, locations",
   },
   hazard_mitigation: {
     endpoint: "HazardMitigationGrantProgramDisasterSummaries",
+    version: "v3",
     name: "Hazard Mitigation Grants",
     description: "HMGP disaster-level financial summaries: obligations, project counts",
   },
   mission_assignments: {
     endpoint: "MissionAssignments",
+    version: "v2",
     name: "Mission Assignments",
     description: "Work orders from FEMA to other federal agencies for disaster response (FY2013+)",
   },
   fema_regions: {
     endpoint: "FemaRegions",
+    version: "v2",
     name: "FEMA Regions",
     description: "FEMA region boundaries, headquarters, and associated states",
   },
   registrations: {
     endpoint: "RegistrationIntakeIndividualsHouseholdPrograms",
+    version: "v2",
     name: "IHP Registrations",
     description: "Registration and IHP data by city: call center, web, mobile registrations, eligible amounts",
   },
 } as const;
+
+/** Retired OpenFEMA entity names and the entities that replaced them. */
+const RENAMED_ENTITIES: Record<string, string> = {
+  FimaNfipClaims: "NfipClaims",
+  FimaNfipPolicies: "NfipPolicies",
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
@@ -218,7 +236,7 @@ export async function getDisasterDeclarations(opts?: {
   if (opts?.declarationType) filters.push(`declarationType eq ${odataString(opts.declarationType)}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
-  const res = await api.get("/DisasterDeclarationsSummaries", params);
+  const res = await api.get("/v2/DisasterDeclarationsSummaries", params);
   return extractArray<DisasterDeclaration>(res, "DisasterDeclarationsSummaries");
 }
 
@@ -245,7 +263,7 @@ export async function getHousingAssistance(opts?: {
   if (opts?.county) filters.push(`county eq ${odataString(opts.county)}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
-  const res = await api.get("/HousingAssistanceOwners", params);
+  const res = await api.get("/v2/HousingAssistanceOwners", params);
   return extractArray<HousingAssistanceRecord>(res, "HousingAssistanceOwners");
 }
 
@@ -270,7 +288,7 @@ export async function getPublicAssistance(opts?: {
   if (opts?.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
-  const res = await api.get("/PublicAssistanceGrantAwardActivities", params);
+  const res = await api.get("/v2/PublicAssistanceGrantAwardActivities", params);
   return extractArray<PublicAssistanceRecord>(res, "PublicAssistanceGrantAwardActivities");
 }
 
@@ -278,12 +296,62 @@ export async function getPublicAssistance(opts?: {
  * Get FEMA regions.
  */
 export async function getFemaRegions(): Promise<FemaRegion[]> {
-  const res = await api.get("/FemaRegions", { $format: "json" });
+  const res = await api.get("/v2/FemaRegions", { $format: "json" });
   return extractArray<FemaRegion>(res, "FemaRegions");
 }
 
 /**
- * General-purpose query against any OpenFEMA v2 dataset.
+ * Latest current version of an OpenFEMA entity ("v3"), from the DataSets
+ * catalog. Null when the catalog has no such entity; undefined when the
+ * catalog could not be read.
+ */
+async function latestVersion(entity: string): Promise<string | null | undefined> {
+  let res: { DataSets?: { version: number; depDate?: string | null }[] };
+  try {
+    res = await api.get("/v1/DataSets", {
+      $format: "json",
+      $select: "name,version,depDate",
+      $filter: `name eq ${odataString(entity)}`,
+      $orderby: "version desc",
+    });
+  } catch {
+    return undefined;
+  }
+  const sets = res.DataSets ?? [];
+  const current = sets.find(s => !s.depDate) ?? sets[0];
+  return current ? `v${current.version}` : null;
+}
+
+/**
+ * Resolve a dataset key (nfip_claims), entity name (NfipClaims) or
+ * versioned entity (v1/IpawsArchivedAlerts) to its API path.
+ */
+export async function resolveDataset(dataset: string): Promise<{ path: string; entity: string }> {
+  const known = (DATASETS as Record<string, { endpoint: string; version: string }>)[dataset.trim()];
+  if (known) return { path: `/${known.version}/${known.endpoint}`, entity: known.endpoint };
+
+  const m = /^(?:(v\d+)\/)?([A-Za-z][A-Za-z0-9]*)$/.exec(dataset.trim());
+  if (!m) {
+    throw new Error(
+      `"${dataset}" is not a FEMA dataset. Use a key (${Object.keys(DATASETS).join(", ")}) ` +
+      `or an OpenFEMA entity name such as "IpawsArchivedAlerts" or "v1/IpawsArchivedAlerts".`,
+    );
+  }
+  const entity = RENAMED_ENTITIES[m[2]] ?? m[2];
+  if (m[1]) return { path: `/${m[1]}/${entity}`, entity };
+
+  const listed = Object.values(DATASETS).find(d => d.endpoint.toLowerCase() === entity.toLowerCase());
+  if (listed) return { path: `/${listed.version}/${listed.endpoint}`, entity: listed.endpoint };
+
+  const version = await latestVersion(entity);
+  if (version === null) {
+    throw new Error(`OpenFEMA has no dataset named "${entity}". Entity names are case-sensitive; see https://www.fema.gov/about/openfema/data-sets.`);
+  }
+  return { path: `/${version ?? "v2"}/${entity}`, entity };
+}
+
+/**
+ * General-purpose query against any OpenFEMA dataset, at its current version.
  */
 export async function queryDataset(opts: {
   dataset: string;
@@ -293,7 +361,7 @@ export async function queryDataset(opts: {
   top?: number;
   skip?: number;
 }): Promise<unknown[]> {
-  const endpoint = (DATASETS as Record<string, { endpoint: string }>)[opts.dataset]?.endpoint ?? opts.dataset;
+  const { path, entity } = await resolveDataset(opts.dataset);
   const params: Record<string, string> = {
     $format: "json",
     $top: String(opts.top ?? 50),
@@ -303,11 +371,103 @@ export async function queryDataset(opts: {
   if (opts.orderBy) params.$orderby = opts.orderBy;
   if (opts.skip) params.$skip = String(opts.skip);
 
-  const res = await api.get(`/${endpoint}`, params);
-  return extractArray<unknown>(res, endpoint);
+  const res = await api.get(path, params);
+  return extractArray<unknown>(res, entity);
 }
 
 /** Clear the FEMA SDK cache. */
 export function clearCache(): void {
   api.clearCache();
+}
+
+// ─── NFIP flood insurance claims ─────────────────────────────────────
+
+/** One NFIP claim, with the paid amounts summed. */
+export interface NfipClaimSummary {
+  dateOfLoss: string | null;
+  yearOfLoss: number | null;
+  floodEvent: string | null;
+  state: string | null;
+  countyFips: string | null;
+  zip: string | null;
+  floodZone: string | null;
+  primaryResidence: boolean | null;
+  buildingDamage: number | null;
+  contentsDamage: number | null;
+  paidBuilding: number | null;
+  paidContents: number | null;
+  paidIcc: number | null;
+  /** Building + contents + increased-cost-of-compliance payments. */
+  totalPaid: number;
+  buildingCoverage: number | null;
+  contentsCoverage: number | null;
+  waterDepthInches: number | null;
+}
+
+const NFIP_FIELDS = [
+  "dateOfLoss", "yearOfLoss", "floodEvent", "state", "countyCode", "reportedZipCode", "ratedFloodZone", "primaryResidenceIndicator",
+  "buildingDamageAmount", "contentsDamageAmount", "netBuildingPaymentAmount", "netContentsPaymentAmount", "netIccPaymentAmount",
+  "totalBuildingInsuranceCoverage", "totalContentsInsuranceCoverage", "waterDepth",
+];
+
+/**
+ * National Flood Insurance Program claims (NfipClaims v3), filtered by
+ * place, year and named flood event. `total` is the number of claims
+ * matching the filters; `claims` holds up to `limit` of them.
+ */
+export async function getNfipClaims(opts: {
+  state?: string;
+  county?: string;
+  zip?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  floodEvent?: string;
+  sortBy?: "date" | "paid";
+  limit?: number;
+} = {}): Promise<{ total: number; claims: NfipClaimSummary[] }> {
+  const filters: string[] = [];
+  if (opts.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
+  if (opts.county) {
+    if (!/^\d{5}$/.test(opts.county.trim())) throw new Error(`county must be a 5-digit FIPS code (e.g. "48201"), not "${opts.county}".`);
+    filters.push(`countyCode eq ${odataString(opts.county.trim())}`);
+  }
+  if (opts.zip) filters.push(`reportedZipCode eq ${odataString(opts.zip.trim())}`);
+  if (opts.yearFrom !== undefined) filters.push(`yearOfLoss ge ${integerValue(opts.yearFrom, "year_from")}`);
+  if (opts.yearTo !== undefined) filters.push(`yearOfLoss le ${integerValue(opts.yearTo, "year_to")}`);
+  if (opts.floodEvent) filters.push(`contains(floodEvent,${odataString(opts.floodEvent.trim())})`);
+
+  const res = await api.get<{ metadata?: { count?: number }; NfipClaims?: Record<string, unknown>[] }>("/v3/NfipClaims", {
+    $format: "json",
+    $select: NFIP_FIELDS.join(","),
+    $filter: filters.length ? filters.join(" and ") : undefined,
+    $orderby: opts.sortBy === "paid" ? "netBuildingPaymentAmount desc" : "dateOfLoss desc",
+    $top: String(Math.min(opts.limit ?? 50, 1000)),
+    $count: "true",
+  });
+  const num = (v: unknown) => (v === null || v === undefined || v === "" ? null : Number(v));
+  const claims = (res.NfipClaims ?? []).map(r => {
+    const paidBuilding = num(r.netBuildingPaymentAmount);
+    const paidContents = num(r.netContentsPaymentAmount);
+    const paidIcc = num(r.netIccPaymentAmount);
+    return {
+      dateOfLoss: r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : null,
+      yearOfLoss: num(r.yearOfLoss),
+      floodEvent: (r.floodEvent as string | null) ?? null,
+      state: (r.state as string | null) ?? null,
+      countyFips: (r.countyCode as string | null) ?? null,
+      zip: (r.reportedZipCode as string | null) ?? null,
+      floodZone: (r.ratedFloodZone as string | null) ?? null,
+      primaryResidence: typeof r.primaryResidenceIndicator === "boolean" ? r.primaryResidenceIndicator : null,
+      buildingDamage: num(r.buildingDamageAmount),
+      contentsDamage: num(r.contentsDamageAmount),
+      paidBuilding,
+      paidContents,
+      paidIcc,
+      totalPaid: Math.round(((paidBuilding ?? 0) + (paidContents ?? 0) + (paidIcc ?? 0)) * 100) / 100,
+      buildingCoverage: num(r.totalBuildingInsuranceCoverage),
+      contentsCoverage: num(r.totalContentsInsuranceCoverage),
+      waterDepthInches: num(r.waterDepth),
+    };
+  });
+  return { total: res.metadata?.count ?? claims.length, claims };
 }

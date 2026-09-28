@@ -9,6 +9,7 @@ import {
   getHousingAssistance,
   getPublicAssistance,
   getFemaRegions,
+  getNfipClaims,
   queryDataset,
   clearCache as sdkClearCache,
   DATASETS,
@@ -92,6 +93,37 @@ export const tools: Tool<any, any>[] = [
     },
   },
   {
+    name: "fema_nfip_claims",
+    description:
+      "National Flood Insurance Program (NFIP) claims: flood losses and insurance payouts by state, county, ZIP, year " +
+      "and named flood event (e.g. 'Beryl', 'Harvey', 'Ian'). Each claim has damage, building/contents/ICC payments, " +
+      "coverage, flood zone and water depth; the summary totals the payments shown. The count covers all matching claims.",
+    annotations: { title: "FEMA: NFIP Flood Claims", readOnlyHint: true },
+    parameters: z.object({
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'Texas', 'TX', '48'"),
+      county: z.string().regex(/^\d{5}$/).optional().describe("5-digit county FIPS, e.g. '48201' (Harris County, TX)"),
+      zip: z.string().regex(/^\d{5}$/).optional().describe("5-digit ZIP code"),
+      year_from: z.number().int().min(1970).optional().describe("First year of loss"),
+      year_to: z.number().int().min(1970).optional().describe("Last year of loss"),
+      flood_event: z.string().optional().describe("Named event (matched as text): 'Hurricane Harvey', 'Beryl'"),
+      sort_by: z.enum(["date", "paid"]).default("date").describe("'date' (newest first, default) or 'paid' (largest building payment first)"),
+      limit: z.number().int().min(1).max(1000).default(50).describe("Claims to return (default 50, max 1000)"),
+    }),
+    execute: async (args) => {
+      const { total, claims } = await getNfipClaims({
+        state: args.state, county: args.county, zip: args.zip, yearFrom: args.year_from, yearTo: args.year_to,
+        floodEvent: args.flood_event, sortBy: args.sort_by, limit: args.limit,
+      });
+      if (!claims.length) return emptyResponse("No NFIP claims match these filters.");
+      const paid = claims.reduce((sum, c) => sum + c.totalPaid, 0);
+      return tableResponse(
+        `${total.toLocaleString("en-US")} NFIP claim(s) match; showing ${claims.length} (sorted by ${args.sort_by}), ` +
+        `$${Math.round(paid).toLocaleString("en-US")} paid on those shown`,
+        { rows: claims as unknown as Record<string, unknown>[], total, meta: { dataset: "NfipClaims", paidOnShown: Math.round(paid) } },
+      );
+    },
+  },
+  {
     name: "fema_regions",
     description: "Get FEMA region boundaries and associated states. 10 FEMA regions cover all U.S. states and territories.",
     annotations: { title: "FEMA: Regions", readOnlyHint: true },
@@ -105,13 +137,13 @@ export const tools: Tool<any, any>[] = [
   {
     name: "fema_query",
     description:
-      "General-purpose query against any OpenFEMA v2 dataset. Use this for NFIP flood insurance claims/policies, hazard mitigation grants, mission assignments, IHP registrations, etc. Supports OData $filter syntax.",
+      "General-purpose query against any OpenFEMA dataset, at its current version. Use this for NFIP flood insurance policies, hazard mitigation grants, mission assignments, IHP registrations, etc. Supports OData $filter syntax.",
     annotations: { title: "FEMA: Query", readOnlyHint: true },
     parameters: z.object({
       dataset: z
         .string()
         .describe(
-          "Dataset key (disaster_declarations, housing_owners, housing_renters, public_assistance, nfip_claims, nfip_policies, hazard_mitigation, mission_assignments, fema_regions, registrations) or raw endpoint name"
+          "Dataset key (disaster_declarations, housing_owners, housing_renters, public_assistance, nfip_claims, nfip_policies, hazard_mitigation, mission_assignments, fema_regions, registrations) or any OpenFEMA entity name (e.g. 'IpawsArchivedAlerts', optionally with a version: 'v1/IpawsArchivedAlerts')"
         ),
       filter: z.string().optional().describe("OData $filter expression (e.g. \"state eq 'TX' and yearOfLoss eq '2017'\")"),
       select: z.string().optional().describe("Comma-separated fields to return (OData $select)"),
