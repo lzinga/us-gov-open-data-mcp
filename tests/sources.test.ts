@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 function stubFetch() {
-  const fn = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
+  const fn = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify({ ok: true }), { status: 200 }));
   vi.stubGlobal("fetch", fn);
   return fn;
 }
@@ -66,7 +66,7 @@ describe("attachSources", () => {
   const src = (i: number, cached = false) => ({ url: `https://api.test/r${i}`, method: "GET" as const, fetchedAt: Date.UTC(2026, 8, 28, 12, 0, i), cached });
 
   it("adds deduplicated sources to meta, keeping existing meta", () => {
-    const out = JSON.parse(attachSources(listResponse("x", { items: [1], meta: { note: "kept" } }), [src(1), src(1), src(2, true)]) as string);
+    const out = JSON.parse(attachSources(listResponse("x", { items: [{ n: 1 }], meta: { note: "kept" } }), [src(1), src(1), src(2, true)]) as string);
     expect(out.meta).toEqual({
       note: "kept",
       sources: [
@@ -95,7 +95,7 @@ describe("serveTool", () => {
     const api = createClient({ baseUrl: "https://api.example.test", name: `serve-${Date.now()}` });
     const tool = serveTool({
       name: "demo_tool",
-      execute: async () => { await api.get("/a"); await api.get("/b", { q: "1" }); return listResponse("2 items", { items: [1, 2] }); },
+      execute: async (_args: unknown, _ctx: unknown) => { await api.get("/a"); await api.get("/b", { q: "1" }); return listResponse("2 items", { items: [{ n: 1 }, { n: 2 }] }); },
     }, 150_000);
     const out = JSON.parse(await tool.execute({}, {}) as string);
     expect(out.meta.sources.map((s: { url: string }) => s.url)).toEqual(["https://api.example.test/a", "https://api.example.test/b?q=1"]);

@@ -138,8 +138,8 @@ export function discoveryTools(registry: ToolRegistry, modules: ApiModule[]) {
         name: z.string().describe("Tool name from find_tools, e.g. 'fred_series_data'"),
         arguments: z.record(z.string(), z.unknown()).default({}).describe("The tool's arguments as an object"),
       }),
-      execute: async ({ name, arguments: args }: { name: string; arguments: Record<string, unknown> }) => {
-        const call = await registry.invoke(name, args);
+      execute: async ({ name, arguments: args }: { name: string; arguments: Record<string, unknown> }, context?: unknown) => {
+        const call = await registry.invoke(name, args, context);
         if (!call.ok) {
           if (call.kind === "unknown_tool") {
             const hints = registry.suggest(name);

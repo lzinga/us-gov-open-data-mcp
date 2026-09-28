@@ -27,7 +27,7 @@ function readAllEntries(root: string): string {
 }
 
 function stubFetch(body: unknown = { ok: true }) {
-  const fn = vi.fn(async () => new Response(JSON.stringify(body), {
+  const fn = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify(body), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   }));

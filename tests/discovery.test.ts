@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { z } from "zod";
 import { UserError } from "fastmcp";
 import { discoveryTools, findTools } from "../src/server/discovery.js";
 import { buildToolRegistry } from "../src/server/tool-registry.js";
@@ -48,8 +49,8 @@ describe("find_tools / call_tool", () => {
   const ctx = {} as never;
 
   it("find_tools rejects an unknown module and an empty request", async () => {
-    await expect(findTool.execute({ query: "x", module: "nope", limit: 8 } as never, ctx)).rejects.toThrow(/Unknown module "nope"/);
-    await expect(findTool.execute({ query: " ", limit: 8 } as never, ctx)).rejects.toBeInstanceOf(UserError);
+    await expect(findTool.execute({ query: "x", module: "nope", limit: 8 } as never)).rejects.toThrow(/Unknown module "nope"/);
+    await expect(findTool.execute({ query: " ", limit: 8 } as never)).rejects.toBeInstanceOf(UserError);
   });
 
   it("call_tool validates arguments like a direct call", async () => {
@@ -69,5 +70,17 @@ describe("find_tools / call_tool", () => {
     const viaAlias = await callTool.execute({ name: "search_datasets", arguments: { query: "debt" } } as never, ctx) as { content: { text: string }[] };
     expect(viaAlias.content[0].text).toBe('Note: "search_datasets" is deprecated; use treasury_search_datasets.');
     expect(viaAlias.content[1].text).toBe(direct);
+  });
+
+  it("call_tool passes the request context on to the tool", async () => {
+    const seen: unknown[] = [];
+    const fake = {
+      name: "fake",
+      tools: [{ name: "fake_tool", description: "d", parameters: z.object({}), execute: async (_args: unknown, context: unknown) => { seen.push(context); return "ok"; } }],
+    } as unknown as ApiModule;
+    const [, call] = discoveryTools(buildToolRegistry([fake]), [fake]);
+    const context = { reportProgress: async () => {} };
+    expect(await call.execute({ name: "fake_tool", arguments: {} } as never, context)).toBe("ok");
+    expect(seen).toEqual([context]);
   });
 });

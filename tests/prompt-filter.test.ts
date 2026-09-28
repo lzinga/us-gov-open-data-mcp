@@ -49,7 +49,7 @@ describe("filterPromptText", () => {
 });
 
 describe("filterPrompts", () => {
-  const prompt = (name: string, text: string) => ({ name, description: name, load: async () => text });
+  const prompt = (name: string, text: string) => ({ name, description: name, load: async (_args?: unknown) => text });
 
   it("hides prompts whose tools are all unloaded and keeps tool-free prompts", async () => {
     const prompts = [
@@ -71,7 +71,7 @@ describe("filterPrompts", () => {
   });
 
   it("keeps a prompt whose sample render throws", async () => {
-    const fragile = { name: "fragile", description: "x", load: async (args: { q: string }) => `1. ${args.q.toUpperCase()} via fred_series_data` };
+    const fragile = { name: "fragile", description: "x", load: async (args: { q?: string }) => `1. ${args.q!.toUpperCase()} via fred_series_data` };
     const out = await filterPrompts([fragile], known, new Set());
     expect(out.map(p => p.name)).toEqual(["fragile"]);
   });
