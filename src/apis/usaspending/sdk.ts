@@ -28,6 +28,10 @@ const api = createClient({
 
 /** Award. */
 export interface Award {
+  /** PIID or FAIN, as shown on USAspending. */
+  awardId: string | null;
+  /** Unique award key (e.g. "CONT_AWD_…"), for getAwardDetail. */
+  awardKey: string | null;
   recipientName: string | null;
   awardAmount: number;
   totalOutlays: number;
@@ -39,9 +43,41 @@ export interface Award {
   state: string | null;
 }
 
+/** One award in detail: recipient, money, dates, agencies, place, industry codes. */
+export interface AwardDetail {
+  awardKey: string;
+  awardId: string | null;
+  category: string | null;
+  type: string | null;
+  description: string | null;
+  recipient: string | null;
+  recipientUei: string | null;
+  parentRecipient: string | null;
+  totalObligation: number | null;
+  totalOutlay: number | null;
+  baseAndAllOptions: number | null;
+  subawardCount: number | null;
+  totalSubawardAmount: number | null;
+  dateSigned: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  potentialEndDate: string | null;
+  awardingAgency: string | null;
+  awardingSubAgency: string | null;
+  fundingAgency: string | null;
+  placeOfPerformance: string | null;
+  naics: string | null;
+  psc: string | null;
+  parentAwardId: string | null;
+  url: string;
+}
+
 /** Award Search Result. */
 export interface AwardSearchResult {
-  total: number;
+  /** Total matches, when the API reports it (the award search usually doesn't). */
+  total: number | null;
+  /** True when another page of results exists. */
+  hasNext: boolean;
   awards: Award[];
 }
 
@@ -120,9 +156,10 @@ export interface AgencyOverview {
 
 // ─── Reference Data ──────────────────────────────────────────────────
 
-/** Award type code groupings. */
+/** Award type code groupings. The search API accepts codes from one group per request. */
 export const awardTypes: Record<string, string[]> = {
   contracts: ["A", "B", "C", "D"],
+  idvs: ["IDV_A", "IDV_B", "IDV_B_A", "IDV_B_B", "IDV_B_C", "IDV_C", "IDV_D", "IDV_E"],
   grants: ["02", "03", "04", "05"],
   loans: ["07", "08"],
   direct_payments: ["06", "10"],
@@ -202,10 +239,9 @@ export async function searchAwards(params: {
   const filters: Record<string, unknown> = {};
 
   if (params.keyword) filters.keywords = [params.keyword];
-  // award_type_codes is required by the API — default to all types
-  filters.award_type_codes = params.awardType
-    ? resolveAwardTypeCodes(params.awardType)
-    : [...awardTypes.contracts, ...awardTypes.grants, ...awardTypes.loans, ...awardTypes.direct_payments, ...awardTypes.insurance, ...awardTypes.other];
+  // award_type_codes is required and may only hold one group's codes (mixing
+  // groups is an HTTP 422), so the default is contracts.
+  filters.award_type_codes = resolveAwardTypeCodes(params.awardType ?? "contracts");
   if (params.agency) filters.agencies = [{ type: "awarding", tier: "toptier", name: params.agency }];
   if (params.recipient) filters.recipient_search_text = [params.recipient];
   if (params.state) filters.place_of_performance_locations = [{ country: "USA", state: params.state.toUpperCase() }];
@@ -226,7 +262,7 @@ export async function searchAwards(params: {
     fields: [
       "Award ID", "Recipient Name", "Awarding Agency", "Award Amount",
       "Total Outlays", "Description", "Start Date", "End Date",
-      "Award Type", "recipient_id", "Place of Performance State Code",
+      "Award Type", "recipient_id", "Place of Performance State Code", "generated_internal_id",
     ],
     limit: params.limit || 25,
     page: params.page || 1,
@@ -234,13 +270,18 @@ export async function searchAwards(params: {
     order: "desc",
   };
 
-  const res = await api.post<{ results?: Record<string, unknown>[]; page_metadata?: { total?: number } }>(
+  const res = await api.post<{ results?: Record<string, unknown>[]; page_metadata?: { total?: number; hasNext?: boolean } }>(
     "/search/spending_by_award/", body,
   );
 
   return {
-    total: res.page_metadata?.total ?? 0,
+    // The award search reports whether there is a next page, not a total.
+    total: res.page_metadata?.total ?? null,
+    hasNext: res.page_metadata?.hasNext ?? false,
     awards: (res.results ?? []).map(r => ({
+      awardId: (r["Award ID"] as string) || null,
+      /** Pass to usa_award_detail / getAwardDetail. */
+      awardKey: (r["generated_internal_id"] as string) || null,
       recipientName: (r["Recipient Name"] as string) || null,
       awardAmount: Number(r["Award Amount"] || 0),
       totalOutlays: Number(r["Total Outlays"] || 0),
@@ -251,6 +292,72 @@ export async function searchAwards(params: {
       endDate: (r["End Date"] as string) || null,
       state: (r["Place of Performance State Code"] as string) || null,
     })),
+  };
+}
+
+/** Award type groups searched, in order, when looking up a PIID/FAIN. */
+const LOOKUP_GROUPS = ["contracts", "idvs", "grants", "loans", "direct_payments", "other", "insurance"];
+
+/** USAspending's unique award keys: CONT_AWD_…, CONT_IDV_…, ASST_NON_…, ASST_AGG_… */
+const isAwardKey = (id: string) => /^(CONT_AWD|CONT_IDV|ASST_NON|ASST_AGG)_/i.test(id);
+
+/**
+ * One award in detail. Takes the unique award key from searchAwards
+ * (`awardKey`) or a PIID/FAIN (`awardId`), which is looked up first.
+ */
+export async function getAwardDetail(id: string): Promise<AwardDetail> {
+  let key = id.trim();
+  if (!isAwardKey(key)) {
+    // The search takes one award type group at a time; stop at the first group with a match.
+    let found: string | undefined;
+    for (const group of LOOKUP_GROUPS) {
+      const res = await api.post<{ results?: Record<string, unknown>[] }>("/search/spending_by_award/", {
+        filters: { award_ids: [key], award_type_codes: awardTypes[group] },
+        fields: ["Award ID", "generated_internal_id"],
+        limit: 5,
+        page: 1,
+      });
+      const results = res.results ?? [];
+      const hit = results.find(r => String(r["Award ID"]).toUpperCase() === key.toUpperCase()) ?? results[0];
+      if (hit?.generated_internal_id) { found = String(hit.generated_internal_id); break; }
+    }
+    if (!found) throw new Error(`No award found with ID "${id}". Use the awardKey from usa_spending_by_award.`);
+    key = found;
+  }
+
+  type Code = { code?: string; description?: string } | undefined;
+  const d = await api.get<Record<string, any>>(`/awards/${encodeURIComponent(key)}/`);
+  const num = (v: unknown) => (v === null || v === undefined || v === "" ? null : Number(v));
+  const code = (c: Code) => (c?.code ? `${c.code}${c.description ? ` ${c.description}` : ""}` : null);
+  const pop = d.place_of_performance ?? {};
+  const place = [pop.city_name, pop.state_code, pop.zip5, pop.location_country_code === "USA" ? null : pop.country_name].filter(Boolean).join(", ");
+  const period = d.period_of_performance ?? {};
+  return {
+    awardKey: String(d.generated_unique_award_id ?? key),
+    awardId: d.piid ?? d.fain ?? d.uri ?? null,
+    category: d.category ?? null,
+    type: d.type_description ?? null,
+    description: d.description ?? null,
+    recipient: d.recipient?.recipient_name ?? null,
+    recipientUei: d.recipient?.recipient_uei ?? null,
+    parentRecipient: d.recipient?.parent_recipient_name ?? null,
+    totalObligation: num(d.total_obligation),
+    totalOutlay: num(d.total_outlay),
+    baseAndAllOptions: num(d.base_and_all_options),
+    subawardCount: num(d.subaward_count),
+    totalSubawardAmount: num(d.total_subaward_amount),
+    dateSigned: d.date_signed ?? null,
+    startDate: period.start_date ?? null,
+    endDate: period.end_date ?? null,
+    potentialEndDate: period.potential_end_date ? String(period.potential_end_date).slice(0, 10) : null,
+    awardingAgency: d.awarding_agency?.toptier_agency?.name ?? null,
+    awardingSubAgency: d.awarding_agency?.subtier_agency?.name ?? null,
+    fundingAgency: d.funding_agency?.toptier_agency?.name ?? null,
+    placeOfPerformance: place || null,
+    naics: code(d.naics_hierarchy?.base_code),
+    psc: code(d.psc_hierarchy?.base_code),
+    parentAwardId: d.parent_award?.piid ?? null,
+    url: `https://www.usaspending.gov/award/${encodeURIComponent(String(d.generated_unique_award_id ?? key))}`,
   };
 }
 

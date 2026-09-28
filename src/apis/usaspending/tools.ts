@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Tool } from "fastmcp";
 import {
   searchAwards,
+  getAwardDetail,
   spendingByAgency,
   spendingByState,
   topRecipients,
@@ -23,12 +24,13 @@ export const tools: Tool<any, any>[] = [
     description:
       "Search federal spending awards (contracts, grants, loans, direct payments). " +
       "Filter by keyword, agency, recipient, date range, award type, and amount.\n\n" +
-      "Award type groups: 'contracts', 'grants', 'loans', 'direct_payments'. " +
-      "Or use codes: 'A,B,C,D' (contracts), '02,03,04,05' (grants), '07,08' (loans), '06,10' (direct payments)",
+      "Award type groups: 'contracts' (default), 'grants', 'loans', 'direct_payments' — one group per search (a USAspending rule). " +
+      "Or use codes from one group: 'A,B,C,D' (contracts), '02,03,04,05' (grants), '07,08' (loans), '06,10' (direct payments).\n" +
+      "Each result's awardKey opens the full record in usa_award_detail.",
     annotations: { title: "USAspending: Search Awards", readOnlyHint: true },
     parameters: z.object({
       keyword: z.string().optional().describe("Keyword to search across award descriptions and recipient names"),
-      award_type: z.enum(["contracts", "grants", "loans", "direct_payments"]).optional().describe("Award type filter"),
+      award_type: z.enum(["contracts", "grants", "loans", "direct_payments"]).optional().describe("Award type group (default contracts)"),
       agency: z.string().optional().describe("Awarding agency name, e.g. 'Department of Defense'"),
       recipient: z.string().optional().describe("Recipient/company name to search for"),
       state: z.string().optional().describe("Two-letter state code, e.g. 'CA', 'TX'"),
@@ -48,9 +50,31 @@ export const tools: Tool<any, any>[] = [
         limit, page, sortField: sort_field,
       });
       if (!data.awards.length) return emptyResponse("No awards found matching the criteria.");
+      const more = data.hasNext ? `; more on page ${(page ?? 1) + 1}` : "";
       return listResponse(
-        `USAspending award search: ${data.total} total results, showing ${data.awards.length}`,
-        { items: data.awards, total: data.total },
+        `USAspending ${award_type ?? "contracts"} awards: showing ${data.awards.length}${data.total !== null ? ` of ${data.total}` : ""}${more}. ` +
+        "Use usa_award_detail with an awardKey for details.",
+        { items: data.awards, total: data.total, meta: { page: page ?? 1, hasNext: data.hasNext } },
+      );
+    },
+  },
+
+  {
+    name: "usa_award_detail",
+    description:
+      "Get one federal award in detail: recipient (and parent company), obligated and outlayed amounts, total potential value, " +
+      "sub-awards, signed/start/end dates, awarding and funding agencies, place of performance, NAICS industry and PSC product codes.\n" +
+      "Takes the awardKey from usa_spending_by_award (e.g. 'CONT_AWD_…', 'ASST_NON_…') or a contract PIID / grant FAIN.",
+    annotations: { title: "USAspending: Award Detail", readOnlyHint: true },
+    parameters: z.object({
+      award_id: z.string().min(3).describe("awardKey from usa_spending_by_award, or a PIID/FAIN like 'SPE7MX21C0002'"),
+    }),
+    execute: async ({ award_id }) => {
+      const award = await getAwardDetail(award_id);
+      const amount = award.totalObligation !== null ? `$${Math.round(award.totalObligation).toLocaleString("en-US")} obligated` : "amount n/a";
+      return recordResponse(
+        `${award.awardId ?? award.awardKey}: ${award.recipient ?? "unknown recipient"}, ${amount} (${award.awardingAgency ?? "unknown agency"})`,
+        award,
       );
     },
   },
