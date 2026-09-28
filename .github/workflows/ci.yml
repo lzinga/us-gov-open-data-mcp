@@ -91,6 +91,32 @@ jobs:
             echo "::warning title=npm audit::High or critical advisories in runtime dependencies. See the audit job log."
           fi
 
+  docs:
+    # Build the documentation site as the Pages deployment does, so generator
+    # errors and dead links show up before merge.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            docs/package-lock.json
+
+      - name: Install dependencies (builds dist via prepare)
+        run: npm ci
+
+      - name: Install the docs toolchain
+        run: npm run docs:install
+
+      - name: Build docs
+        run: npm run docs:build
+
   docker:
     # Build the image and check it runs as intended: non-root, refuses to
     # listen without a token, rejects unauthenticated requests, and becomes
