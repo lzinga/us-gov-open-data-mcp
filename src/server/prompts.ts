@@ -700,7 +700,7 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       `- fr_search_rules query related to ${topic} — Federal Register entries\n` +
       "- fr_executive_orders — any executive orders driving the regulation\n\n" +
       "WHO'S LOBBYING:\n" +
-      `- lobbying_search with issue_code matching ${topic} — who spent money on this?\n` +
+      `- lobbying_search registrant_name/client_name for the main commenters and trade groups found above, with the issue_code matching ${topic} — who spent money on this?\n` +
       "- Note lobbying spend trends before and after the rule was proposed\n\n" +
       "POTENTIAL IMPACT:\n" +
       "- Relevant FRED/BLS data for the industry affected\n" +

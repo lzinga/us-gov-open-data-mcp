@@ -359,12 +359,13 @@ export function recordResponse(summary: string, record: AnyRow, meta?: Record<st
  */
 export function listResponse(summary: string, opts: {
   items: AnyRow[];
-  total?: number;
+  /** Total matching items; `null` when the total is unknown. Defaults to items.length. */
+  total?: number | null;
   maxItems?: number;
   meta?: Record<string, unknown>;
 }): string {
   const { items, maxItems = DEFAULT_MAX_ITEMS, meta } = opts;
-  const total = opts.total ?? items.length;
+  const total = opts.total === null ? null : (opts.total ?? items.length);
 
   if (!items.length) return emptyResponse(summary);
 

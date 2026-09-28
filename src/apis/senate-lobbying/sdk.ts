@@ -2,7 +2,9 @@
  * Senate Lobbying Disclosure Act (LDA) SDK — lobbying filings, contributions, registrants, and clients.
  *
  * API docs: https://lda.gov/api/v1/ (Django REST framework, self-documenting)
- * No API key required. Returns paginated JSON.
+ * API key optional: anonymous access is limited to 15 requests/minute; set
+ * LDA_API_KEY (register at https://lda.gov/api/register/) for 120/minute.
+ * Returns paginated JSON (max 25 results per page).
  *
  * Usage:
  *   import { searchFilings, searchContributions } from "us-gov-open-data-mcp/sdk/senate-lobbying";
@@ -11,13 +13,27 @@
 
 import { createClient, qp } from "../../shared/client.js";
 
+const HAS_KEY = !!process.env.LDA_API_KEY?.trim();
+
 const api = createClient({
   baseUrl: "https://lda.gov/api/v1",
   name: "senate-lobbying",
-  rateLimit: { perSecond: 3, burst: 8 },
+  auth: { type: "header", envParams: { Authorization: "LDA_API_KEY" }, prefix: "Token " },
+  // lda.gov allows 15 req/min anonymously and 120 req/min with a key.
+  rateLimit: HAS_KEY ? { perSecond: 1.9, burst: 4 } : { perSecond: 0.2, burst: 3 },
   cacheTtlMs: 60 * 60 * 1000, // 1 hour
   timeoutMs: 30_000,
 });
+
+/** lda.gov caps page_size at 25. */
+export const LDA_MAX_PAGE_SIZE = 25;
+
+/**
+ * Most filings scanned when filtering by issue code. The LDA API has no
+ * issue-code filter, so matching happens client-side over the filings that
+ * match the server-side filters.
+ */
+export const ISSUE_SCAN_MAX_FILINGS = 200;
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -152,21 +168,96 @@ export async function searchFilings(opts: {
   filing_type?: string;
   registrant_name?: string;
   client_name?: string;
-  issue_code?: string;
   page_size?: number;
   page?: number;
 }): Promise<LdaPaginated<LdaFiling>> {
   const params = qp({
-    page_size: opts.page_size || 20,
+    page_size: Math.min(opts.page_size || 20, LDA_MAX_PAGE_SIZE),
     filing_year: opts.filing_year,
     filing_type: opts.filing_type,
     registrant_name: opts.registrant_name,
     client_name: opts.client_name,
-    filing_lobbying_activities__general_issue_code: opts.issue_code,
     page: opts.page,
   });
 
   return api.get<LdaPaginated<LdaFiling>>("/filings/", params);
+}
+
+/** Result of a client-side issue-code scan. */
+export interface IssueScanResult {
+  /** Matching filings (at most `limit`). */
+  filings: LdaFiling[];
+  /** Filings examined. */
+  scanned: number;
+  /** Matches found among the scanned filings (may exceed `filings.length`). */
+  matched: number;
+  /** Filings matching the server-side filters (before the issue-code filter). */
+  baseTotal: number;
+  /** True when the scan stopped before examining every base filing. */
+  truncated: boolean;
+}
+
+/**
+ * Filings that lobbied on a general issue code (e.g. "TAX", "HCR").
+ *
+ * The LDA API has no issue-code filter (unknown query parameters are silently
+ * ignored), so this pages through filings matching the server-side filters and
+ * keeps those whose lobbying activities include the code. Requires a
+ * registrant or client name to keep the scan small; examines at most
+ * ISSUE_SCAN_MAX_FILINGS filings. The total number of matches is unknown
+ * unless `truncated` is false.
+ */
+export async function searchFilingsByIssue(opts: {
+  issue_code: string;
+  filing_year?: number;
+  filing_type?: string;
+  registrant_name?: string;
+  client_name?: string;
+  limit?: number;
+}): Promise<IssueScanResult> {
+  if (!opts.registrant_name && !opts.client_name) {
+    throw new Error(
+      "issue_code filtering needs registrant_name or client_name: the LDA API has no issue-code filter, " +
+      "so matching filings are found by scanning a registrant's or client's filings.",
+    );
+  }
+  const code = opts.issue_code.toUpperCase();
+  const limit = opts.limit ?? 20;
+  const matches: LdaFiling[] = [];
+  let scanned = 0;
+  let baseTotal = 0;
+  let exhausted = false;
+
+  for (let page = 1; scanned < ISSUE_SCAN_MAX_FILINGS; page++) {
+    const res = await searchFilings({
+      filing_year: opts.filing_year,
+      filing_type: opts.filing_type,
+      registrant_name: opts.registrant_name,
+      client_name: opts.client_name,
+      page_size: LDA_MAX_PAGE_SIZE,
+      page,
+    });
+    baseTotal = res.count;
+    for (const filing of res.results ?? []) {
+      scanned++;
+      if (filing.lobbying_activities?.some(a => a.general_issue_code?.toUpperCase() === code)) {
+        matches.push(filing);
+      }
+    }
+    if (!res.next || !res.results?.length) {
+      exhausted = true;
+      break;
+    }
+    if (matches.length >= limit) break;
+  }
+
+  return {
+    filings: matches.slice(0, limit),
+    scanned,
+    matched: matches.length,
+    baseTotal,
+    truncated: !exhausted,
+  };
 }
 
 /** Get a specific filing by UUID — includes full lobbying activity detail. */
