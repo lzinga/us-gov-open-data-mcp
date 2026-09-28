@@ -110,20 +110,38 @@ async function fetchRawText(url: string): Promise<string | null> {
 
 // ─── Public API ──────────────────────────────────────────────────────
 
+/**
+ * Build a GovInfo search query. GovInfo only filters by collection, congress,
+ * or bill type through `field:value` terms inside the query string; the same
+ * names sent as separate body fields are silently ignored.
+ */
+export function buildSearchQuery(params: {
+  query: string;
+  collection?: string;
+  congress?: number;
+  billType?: string;
+}): string {
+  const terms: string[] = [];
+  if (params.collection) terms.push(`collection:${params.collection.toUpperCase()}`);
+  if (params.congress) terms.push(`congress:${params.congress}`);
+  if (params.billType) terms.push(`billtype:${params.billType.toLowerCase()}`);
+  if (!terms.length) return params.query;
+  return [...terms, `(${params.query})`].join(" AND ");
+}
+
 /** Search across all government publications. */
 export async function searchPublications(params: {
   query: string;
   collection?: string;
   congress?: number;
+  billType?: string;
   pageSize?: number;
 }): Promise<SearchResult> {
   const body: Record<string, unknown> = {
-    query: params.query,
+    query: buildSearchQuery(params),
     pageSize: params.pageSize ?? 10,
     offsetMark: "*",
   };
-  if (params.collection) body.collection = params.collection;
-  if (params.congress) body.congress = params.congress;
 
   const res = await api.post<{ count?: number; results?: Record<string, unknown>[] }>("/search", body);
 
