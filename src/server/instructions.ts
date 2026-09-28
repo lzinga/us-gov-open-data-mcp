@@ -26,8 +26,20 @@ export function authNote(m: Pick<ApiModule, "auth">): string {
  *   3. Code Mode guide (curated)
  *   4. Rules (curated)
  */
-export function buildInstructions(modules: ApiModule[]): string {
+export function buildInstructions(
+  modules: ApiModule[],
+  opts: { discovery?: boolean; toolCount?: number } = {},
+): string {
   const sections: string[] = [];
+
+  if (opts.discovery) {
+    sections.push(
+      "== TOOL DISCOVERY ==\n" +
+      `This server lists only find_tools, call_tool, code_mode and clear_cache. Its ${opts.toolCount ?? "data"} data tools ` +
+      "are reached through them: find_tools searches by keyword and returns names, descriptions and input schemas, " +
+      "and call_tool({ name, arguments }) runs one. Tool names mentioned below are run with call_tool.",
+    );
+  }
 
   // ── Section 1: Per-module blocks ──
   // Tool names aren't listed: clients already get them, with descriptions,

@@ -21,6 +21,7 @@
  *   node dist/server.js --modules fred,bls,treasury       # same via CLI flag
  *   node dist/server.js --domains economy,health          # every module in these domains (DOMAINS=…); unions with --modules
  *   node dist/server.js --hide-unconfigured               # skip modules whose required key isn't set (HIDE_UNCONFIGURED=1)
+ *   node dist/server.js --tool-mode discovery             # list 4 tools (find_tools, call_tool, …) instead of all (TOOL_MODE=…)
  *   node dist/server.js --list-modules                    # list all modules grouped by domain and exit
  *   node dist/server.js --list                            # alias for --list-modules
  *   node dist/server.js --list-modules --json             # same, as JSON (for scripting)
@@ -34,6 +35,7 @@ import { fileURLToPath } from "url";
 import { FastMCP, UserError } from "fastmcp";
 import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
+import { discoveryTools } from "./server/discovery.js";
 import { bearerAuthenticator, planHttpAuth, type HttpAuthPlan } from "./server/http-auth.js";
 import { createServerLogger } from "./server/logger.js";
 import { selectModules } from "./server/module-selection.js";
@@ -92,11 +94,17 @@ function parseArgs() {
     hideUnconfigured: args.includes("--hide-unconfigured") || process.env.HIDE_UNCONFIGURED === "1",
   };
   const listModules = args.includes("--list-modules") || args.includes("--list");
+  const toolMode = get("--tool-mode") ?? process.env.TOOL_MODE ?? "full";
 
-  return { transport, port, host, selection, listModules };
+  return { transport, port, host, selection, listModules, toolMode };
 }
 
-const { transport, port, host, selection, listModules } = parseArgs();
+const { transport, port, host, selection, listModules, toolMode } = parseArgs();
+
+if (toolMode !== "full" && toolMode !== "discovery") {
+  console.error(`Unknown tool mode "${toolMode}". Use "full" (default) or "discovery".`);
+  process.exit(1);
+}
 
 if (listModules) {
   const asJson = process.argv.includes("--json");
@@ -198,11 +206,17 @@ if (transport === "httpStream") {
 
 // ─── Server ──────────────────────────────────────────────────────────
 
+/** Old tool names → current names, from the loaded modules' `deprecatedAliases`. */
+const TOOL_ALIASES: Record<string, string> = Object.assign({}, ...activeModules.map(m => m.deprecatedAliases ?? {}));
+
+// Validated entry point for calling module tools from server-side features.
+const registry = buildToolRegistry(activeModules, TOOL_ALIASES);
+
 const server = new FastMCP({
   name: "US Government Open Data",
   version: PACKAGE_VERSION as `${number}.${number}.${number}`,
   logger,
-  instructions: buildInstructions(activeModules),
+  instructions: buildInstructions(activeModules, { discovery: toolMode === "discovery", toolCount: registry.size }),
   ...(httpAuth?.mode === "token" ? { authenticate: bearerAuthenticator(httpAuth.token) } : {}),
 });
 
@@ -231,37 +245,36 @@ const LOADED_MODULES = activeModules.map(m => m.name);
 const AVAILABLE_TOOLS = new Set(activeModules.flatMap(m => [...m.tools.map(t => t.name), ...Object.keys(m.deprecatedAliases ?? {})]));
 
 for (const mod of activeModules) {
-  const annotated = mod.tools.map(t => ({
-    ...t,
-    annotations: { ...DEFAULT_TOOL_ANNOTATIONS, ...(t.annotations ?? {}) },
-  }));
-  server.addTools(annotated as any);
+  if (toolMode === "full") {
+    const annotated = mod.tools.map(t => ({
+      ...t,
+      annotations: { ...DEFAULT_TOOL_ANNOTATIONS, ...(t.annotations ?? {}) },
+    }));
+    server.addTools(annotated as any);
+  }
   // Module prompts can mention other modules' tools too.
   if (mod.prompts?.length) server.addPrompts(await filterPrompts(mod.prompts, KNOWN_TOOLS, AVAILABLE_TOOLS, LOADED_MODULES) as any);
 }
 
-// ─── Tool registry and deprecated aliases ────────────────────────────
-
-/** Old tool names → current names, from the loaded modules' `deprecatedAliases`. */
-const TOOL_ALIASES: Record<string, string> = Object.assign({}, ...activeModules.map(m => m.deprecatedAliases ?? {}));
-
-// Validated entry point for calling module tools from server-side features.
-const registry = buildToolRegistry(activeModules, TOOL_ALIASES);
-
-// Each alias is served as its own tool (same schema and behavior) so clients
-// and saved prompts that use an old name keep working for one release.
-for (const [alias, canonical] of registry.aliasEntries()) {
-  const { tool } = registry.resolve(canonical)!;
-  server.addTool({
-    ...tool,
-    name: alias,
-    description: `[Deprecated — use ${canonical}] ${tool.description ?? ""}`,
-    annotations: {
-      ...DEFAULT_TOOL_ANNOTATIONS,
-      ...(tool.annotations ?? {}),
-      title: `${tool.annotations?.title ?? canonical} (deprecated)`,
-    },
-  } as any);
+if (toolMode === "full") {
+  // Each alias is served as its own tool (same schema and behavior) so clients
+  // and saved prompts that use an old name keep working for one release.
+  for (const [alias, canonical] of registry.aliasEntries()) {
+    const { tool } = registry.resolve(canonical)!;
+    server.addTool({
+      ...tool,
+      name: alias,
+      description: `[Deprecated — use ${canonical}] ${tool.description ?? ""}`,
+      annotations: {
+        ...DEFAULT_TOOL_ANNOTATIONS,
+        ...(tool.annotations ?? {}),
+        title: `${tool.annotations?.title ?? canonical} (deprecated)`,
+      },
+    } as any);
+  }
+} else {
+  // Discovery mode: the data tools are reached through find_tools + call_tool.
+  server.addTools(discoveryTools(registry, activeModules) as any);
 }
 
 // ─── clear_cache tool ────────────────────────────────────────────────

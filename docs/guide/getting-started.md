@@ -120,6 +120,23 @@ node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 Unknown module or domain names stop the server with the list of valid names, so a typo can't silently load a
 different set of tools. Prompts only mention tools that are loaded.
 
+### Discovery Mode
+
+With every module loaded, the tool list a client reads at startup is about 350 tools and 87K tokens of
+schemas. Discovery mode lists four tools instead (about 1K tokens):
+
+```bash
+node dist/server.js --tool-mode discovery
+# or
+TOOL_MODE=discovery npx us-gov-open-data-mcp
+```
+
+- `find_tools` searches the data tools by keyword and returns their names, descriptions and input schemas.
+- `call_tool({ name, arguments })` runs one, with the same validation and defaults as a direct call.
+- `code_mode` and `clear_cache` work as usual.
+
+It suits clients that struggle with long tool lists; with a few modules loaded, the default full mode is simpler.
+
 With all 42 modules, the server sends about 16K tokens of instructions to the LLM. With 3 modules, this drops to about 2K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
 To see all available module names without starting the server:
