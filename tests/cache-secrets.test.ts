@@ -3,7 +3,7 @@
  * and must clean up legacy files that may contain credentials.
  */
 
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, statSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -16,6 +16,14 @@ async function freshClientModule(cacheHome: string) {
   vi.stubEnv("XDG_CACHE_HOME", cacheHome);
   vi.resetModules();
   return import("../src/shared/client.js");
+}
+
+/** Concatenated contents of every cache entry file under the cache root. */
+function readAllEntries(root: string): string {
+  return readdirSync(root, { recursive: true, withFileTypes: true })
+    .filter(d => d.isFile())
+    .map(d => readFileSync(join(d.parentPath, d.name), "utf-8"))
+    .join("\n");
 }
 
 function stubFetch(body: unknown = { ok: true }) {
@@ -56,8 +64,7 @@ describe("cache keys exclude credentials", () => {
     expect(String(fetchFn.mock.calls[0][0])).toContain(`api_key=${SECRET}`);
 
     await flushDiskCache();
-    const file = diskCachePath()!;
-    const contents = readFileSync(file, "utf-8");
+    const contents = readAllEntries(diskCachePath()!);
     expect(contents).toContain("id=GDP");
     expect(contents).toContain("file_type=json");
     expect(contents).not.toContain(SECRET);
@@ -80,7 +87,7 @@ describe("cache keys exclude credentials", () => {
     expect(sentBody).toMatchObject({ registrationkey: SECRET, calculations: "true" });
 
     await flushDiskCache();
-    const contents = readFileSync(diskCachePath()!, "utf-8");
+    const contents = readAllEntries(diskCachePath()!);
     expect(contents).toContain("CUUR0000SA0");
     expect(contents).toContain("calculations");
     expect(contents).not.toContain(SECRET);
@@ -88,13 +95,15 @@ describe("cache keys exclude credentials", () => {
 });
 
 describe("legacy cache files", () => {
-  it("deletes cache.json from earlier versions (keys may contain credentials)", async () => {
+  it("deletes cache files from earlier versions (keys may contain credentials)", async () => {
     const dir = join(cacheHome, "us-gov-open-data-mcp");
     mkdirSync(dir, { recursive: true });
     const legacy = join(dir, "cache.json");
     const legacyPerModule = join(dir, "fred.json");
+    const v2 = join(dir, "cache.v2.json");
     writeFileSync(legacy, JSON.stringify({ fred: { [`https://x.test/?api_key=${SECRET}|`]: { data: 1, expires: Date.now() + 1e6, lastAccess: 0 } } }));
     writeFileSync(legacyPerModule, "{}");
+    writeFileSync(v2, "{}");
 
     const { createClient } = await freshClientModule(cacheHome);
     stubFetch();
@@ -103,20 +112,25 @@ describe("legacy cache files", () => {
 
     expect(existsSync(legacy)).toBe(false);
     expect(existsSync(legacyPerModule)).toBe(false);
+    expect(existsSync(v2)).toBe(false);
   });
 });
 
 describe.skipIf(!IS_POSIX)("private permissions (POSIX)", () => {
-  it("creates the cache directory 0700 and the cache file 0600", async () => {
+  it("creates the cache directories 0700 and the entry files 0600", async () => {
     const { createClient, flushDiskCache, diskCachePath } = await freshClientModule(cacheHome);
     stubFetch();
     const api = createClient({ baseUrl: "https://x.test", name: "perm" });
     await api.get("/a");
     await flushDiskCache();
 
-    const file = diskCachePath()!;
+    const root = diskCachePath()!;
+    const nsDir = join(root, "perm");
+    const [entry] = readdirSync(nsDir);
     expect(statSync(join(cacheHome, "us-gov-open-data-mcp")).mode & 0o777).toBe(0o700);
-    expect(statSync(file).mode & 0o777).toBe(0o600);
+    expect(statSync(root).mode & 0o777).toBe(0o700);
+    expect(statSync(nsDir).mode & 0o777).toBe(0o700);
+    expect(statSync(join(nsDir, entry)).mode & 0o777).toBe(0o600);
   });
 });
 

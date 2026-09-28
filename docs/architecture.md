@@ -31,7 +31,9 @@ src/
 `createClient(config)` returns an `ApiClient` with `.get()`, `.post()`, `.clearCache()`.
 
 Built-in:
-- **Disk-backed TTL cache** — survives MCP server restarts (`~/.cache/us-gov-open-data-mcp/`)
+- **Disk-backed TTL cache** — one file per response under `~/.cache/us-gov-open-data-mcp/v3/` (or
+  `$XDG_CACHE_HOME`), private to the user and never holding API keys. It survives restarts, is safe to share
+  between concurrent server processes, and is capped at 250 MB with least-recently-used eviction.
 - **Retry with exponential backoff** — 429, 502, 503, 504
 - **Token-bucket rate limiting** — per-client
 - **Timeout** (30s default)

@@ -1,37 +1,47 @@
 /**
- * Regression: clearing one module's cache must not wipe other modules' entries on disk.
+ * Regression: clearing one module's cache must not wipe other modules' entries.
  *
- * DiskCache.clear() used to delete the namespace from the in-memory store and
- * schedule a flush without ever loading the store from disk. When clear_cache
- * ran before any other cache access (or in tests), the flush wrote an empty
- * store over the cache file and every module's cached responses were lost.
+ * With the old single-file store, DiskCache.clear() could flush an unloaded,
+ * empty store over the cache file and lose every module's cached responses.
+ * Each namespace now has its own directory, and clearing removes only that one.
  */
 
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
-const cacheDir = join(process.env.XDG_CACHE_HOME!, "us-gov-open-data-mcp");
-const cacheFile = join(cacheDir, "cache.v2.json");
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("DiskCache.clear()", () => {
-  it("keeps other namespaces when clearing one before any cache read", async () => {
-    const future = Date.now() + 60 * 60 * 1000;
-    mkdirSync(cacheDir, { recursive: true });
-    writeFileSync(cacheFile, JSON.stringify({
-      alpha: { "https://a.test/x|": { data: { a: 1 }, expires: future, lastAccess: Date.now() } },
-      beta: { "https://b.test/y|": { data: { b: 2 }, expires: future, lastAccess: Date.now() } },
-    }));
-
-    // Import after seeding so the module's lazy load sees the file.
-    const { createClient, flushDiskCache } = await import("../src/shared/client.js");
-    const alpha = createClient({ baseUrl: "https://a.test", name: "alpha" });
+  it("keeps other namespaces when clearing one", async () => {
+    const fetchFn = vi.fn(async (url: string) => new Response(JSON.stringify({ url }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchFn);
+    const { createClient } = await import("../src/shared/client.js");
+    const alpha = createClient({ baseUrl: "https://a.test", name: "clear-alpha" });
+    const beta = createClient({ baseUrl: "https://b.test", name: "clear-beta" });
     alpha.clearCache();
-    await flushDiskCache();
+    beta.clearCache();
 
-    expect(existsSync(cacheFile)).toBe(true);
-    const onDisk = JSON.parse(readFileSync(cacheFile, "utf-8")) as Record<string, unknown>;
-    expect(onDisk.alpha).toBeUndefined();
-    expect(onDisk.beta).toBeDefined();
+    await alpha.get("/x");
+    await beta.get("/y");
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+
+    alpha.clearCache();
+    await alpha.get("/x"); // refetched
+    await beta.get("/y"); // still cached
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    expect(String(fetchFn.mock.calls[2][0])).toBe("https://a.test/x");
+  });
+
+  it("clears before any read without touching other namespaces on disk", async () => {
+    const { mkdirSync, writeFileSync, readdirSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const { diskCachePath, createClient } = await import("../src/shared/client.js");
+    const root = diskCachePath()!;
+    mkdirSync(join(root, "clear-gamma"), { recursive: true });
+    writeFileSync(join(root, "clear-gamma", "0".repeat(64) + ".json"), "{}");
+
+    createClient({ baseUrl: "https://d.test", name: "clear-delta" }).clearCache();
+    expect(readdirSync(join(root, "clear-gamma"))).toHaveLength(1);
   });
 });
