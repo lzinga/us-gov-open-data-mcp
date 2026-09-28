@@ -12,7 +12,7 @@ export default {
   toolPrefix: "fred_",
   auth: { envVar: "FRED_API_KEY", signup: "https://fredaccount.stlouisfed.org/apikeys" },
   workflow: "fred_search → fred_series_data to get values",
-  tips: "Popular: GDP, UNRATE, CPIAUCSL, FEDFUNDS, DGS10, MORTGAGE30US, M2SL, SP500",
+  tips: "Popular: GDP, UNRATE, CPIAUCSL, FEDFUNDS, DGS10, MORTGAGE30US, M2SL, SP500. Use units=pc1 for year-over-year % change (e.g. CPI inflation). fred_release_calendar shows when data comes out.",
   domains: ["economy", "finance", "housing"],
   crossRef: [
     { question: "debt/deficit", route: "fred_series_data with GDP, FYFSGDA188S (deficit as % of GDP)" },
