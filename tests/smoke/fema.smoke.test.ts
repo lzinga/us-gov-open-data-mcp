@@ -33,6 +33,23 @@ describe("FEMA NFIP claims (live)", () => {
     expect(res.meta.floodEvents.length).toBeGreaterThan(0);
     for (const event of res.meta.floodEvents) expect(event).toMatch(/\bEarl\b/);
   }, 60_000);
+
+  it("finds a word FEMA runs into a longer name ('Kona' in '2026-03-KonaStorm')", async () => {
+    const res = await callTool("fema", "fema_nfip_claims", { flood_event: "Kona", limit: 5 }) as {
+      data: { total: number }; meta: { floodEventMatch: string; floodEvents: string[] };
+    };
+    expect(res.meta.floodEventMatch).toBe("within names");
+    expect(res.data.total).toBeGreaterThan(100);
+    expect(res.meta.floodEvents).toContain("2026-03-KonaStorm");
+  }, 60_000);
+
+  it("accepts a FEMA event name pasted back with its storm type ('Hurricane Georges (Keys)')", async () => {
+    const res = await callTool("fema", "fema_nfip_claims", { flood_event: "Hurricane Georges (Keys)", limit: 5 }) as {
+      data: { total: number }; meta: { floodEvents: string[] };
+    };
+    expect(res.data.total).toBeGreaterThan(1000);
+    expect(res.meta.floodEvents).toEqual(["Hurricane Georges (Keys)"]);
+  }, 60_000);
 });
 
 describe("fema_query dataset versions (live)", () => {

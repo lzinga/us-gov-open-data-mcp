@@ -85,17 +85,19 @@ describe("fema_nfip_claims", () => {
 });
 
 describe("floodEventFilter", () => {
-  const filter = async (input: string) => (await import("../src/apis/fema/sdk.js")).floodEventFilter(input);
+  const filter = async (input: string, opts?: { substring?: boolean }) =>
+    (await import("../src/apis/fema/sdk.js")).floodEventFilter(input, opts);
 
-  /** Evaluate the generated filter (ORed eq/startswith/endswith/contains clauses) against event names. */
+  /** Real FEMA event names, to evaluate generated filters (ORed eq/startswith/endswith/contains clauses) against. */
   const EVENTS = [
     "Hurricane Harvey", "Hurricane Earl", "Early summer severe storms", "2025-08-Erin-HU", "Hurricane Erin",
     "2025 July TS Chantal", "Hurricane Ida", "Hurricane Idalia", "April Florida Flooding", "Hurricane Georges (Keys)",
-    "Vermont/New York Flooding", "2026-03-KonaStorm", "2025-12-AtmosphericRiver", "California Atmospheric River",
-    "December Nor'easter", "2025-10-Nor'easter", "Late spring severe storms", "2026-07-West Virginia-Flooding",
+    "Hurricane Georges (Panhandle)", "Vermont/New York Flooding", "2026-03-KonaStorm", "2025-12-AtmosphericRiver",
+    "California Atmospheric River", "December Nor'easter", "2025-10-Nor'easter", "Late spring severe storms",
+    "2026-07-West Virginia-Flooding", "2025-08-MilwaukeeMetro-Flood", 'The "Halloween" Storm',
   ];
-  async function matches(input: string): Promise<string[]> {
-    const expr = (await filter(input)).replace(/^\((.*)\)$/, "$1");
+  async function matches(input: string, opts?: { substring?: boolean }): Promise<string[]> {
+    const expr = (await filter(input, opts)).replace(/^\((.*)\)$/, "$1");
     const tests = expr.split(" or ").map(clause => {
       const m = /^(?:(contains|startswith|endswith)\(floodEvent,'((?:[^']|'')*)'\)|floodEvent eq '((?:[^']|'')*)')$/.exec(clause);
       if (!m) throw new Error(`unexpected clause: ${clause}`);
@@ -107,7 +109,7 @@ describe("floodEventFilter", () => {
     return EVENTS.filter(name => tests.some(t => t(name)));
   }
 
-  it("drops the storm type and matches a storm name as a whole word, in any capitalization", async () => {
+  it("drops the storm type and matches a one-word name as a whole word, in any capitalization", async () => {
     expect(await matches("Harvey")).toEqual(["Hurricane Harvey"]);
     expect(await matches("hurricane harvey")).toEqual(["Hurricane Harvey"]);
     expect(await matches("Hurricane Earl")).toEqual(["Hurricane Earl"]); // not "Early summer severe storms"
@@ -115,22 +117,94 @@ describe("floodEventFilter", () => {
     expect(await matches("Tropical Storm Chantal")).toEqual(["2025 July TS Chantal"]);
     expect(await matches("TS  chantal ")).toEqual(["2025 July TS Chantal"]);
     expect(await matches("ida")).toEqual(["Hurricane Ida"]); // not Idalia, not Florida
-    expect(await matches("Georges")).toEqual(["Hurricane Georges (Keys)"]);
+    expect(await matches("Georges")).toEqual(["Hurricane Georges (Keys)", "Hurricane Georges (Panhandle)"]);
     expect(await matches("Vermont")).toEqual(["Vermont/New York Flooding"]);
-  });
-
-  it("matches FEMA's hyphenated and space-less names", async () => {
     expect(await matches("KonaStorm")).toEqual(["2026-03-KonaStorm"]);
     expect(await matches("nor'easter")).toEqual(["December Nor'easter", "2025-10-Nor'easter"]);
-    expect(await matches("atmospheric river")).toEqual(["2025-12-AtmosphericRiver", "California Atmospheric River"]);
-    expect(await matches("west virginia")).toEqual(["2026-07-West Virginia-Flooding"]);
-  });
-
-  it("matches other phrases anywhere, in the capitalizations FEMA uses", async () => {
-    expect(await matches("late spring severe storms")).toEqual(["Late spring severe storms"]);
-    expect(await matches("Summer Severe")).toEqual(["Early summer severe storms"]);
     expect(await matches("storms")).toEqual(["Early summer severe storms", "Late spring severe storms"]);
     expect(await matches("Hurricane")).toEqual(EVENTS.filter(e => e.startsWith("Hurricane ")));
+  });
+
+  it("matches longer names anywhere, including FEMA's own names after a storm type", async () => {
+    expect(await matches("Hurricane Georges (Keys)")).toEqual(["Hurricane Georges (Keys)"]);
+    expect(await matches("hurricane georges (keys)")).toEqual(["Hurricane Georges (Keys)"]);
+    expect(await matches("atmospheric river")).toEqual(["2025-12-AtmosphericRiver", "California Atmospheric River"]);
+    expect(await matches("west virginia")).toEqual(["2026-07-West Virginia-Flooding"]);
+    expect(await matches("late spring severe storms")).toEqual(["Late spring severe storms"]);
+    expect(await matches("Summer Severe")).toEqual(["Early summer severe storms"]);
+    expect(await matches('the "halloween" storm')).toEqual(['The "Halloween" Storm']);
+  });
+
+  it("finds words FEMA runs into longer names only when asked for a substring match", async () => {
+    expect(await matches("Milwaukee")).toEqual([]);
+    expect(await matches("Milwaukee", { substring: true })).toEqual(["2025-08-MilwaukeeMetro-Flood"]);
+    expect(await matches("kona", { substring: true })).toEqual(["2026-03-KonaStorm"]);
+    expect(await matches("Halloween", { substring: true })).toEqual(['The "Halloween" Storm']);
+  });
+
+  it("stays well under OpenFEMA's limit of about 90 OR clauses", async () => {
+    for (const input of ["Hurricane Georges (Keys)", "hurricane sandy new jersey", "KonaStorm", "Hurricane O'Beryl", "HARVEY", "tRoPiCaL sToRm cHaNtAl"]) {
+      expect((await filter(input)).split(" or ").length, input).toBeLessThanOrEqual(48);
+    }
+  });
+});
+
+describe("getNfipClaims event matching", () => {
+  /** Stub the API: each request's $filter gets the next response from `counts`; returns the filters sent. */
+  function stubCounts(...counts: number[]) {
+    const filters: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (u: string) => {
+      filters.push(new URL(u).searchParams.get("$filter") ?? "");
+      const n = counts[filters.length - 1] ?? 0;
+      return new Response(JSON.stringify({ metadata: { count: n }, NfipClaims: n ? [{ ...RAW, floodEvent: "2026-03-KonaStorm" }] : [] }), { status: 200 });
+    }));
+    return filters;
+  }
+  const claims = async (opts: Record<string, unknown>) => (await import("../src/apis/fema/sdk.js")).getNfipClaims(opts);
+
+  it("matches inside names when no event has the word, and says so", async () => {
+    const filters = stubCounts(0, 0, 422);
+    const res = await claims({ state: "HI", floodEvent: "Kona" });
+    expect(res).toMatchObject({ total: 422, floodEventMatch: "within names" });
+    expect(filters[0]).toMatch(/^state eq 'HI' and \(floodEvent eq 'Kona' or /); // whole word, with the filters
+    expect(filters[1]).toMatch(/^\(floodEvent eq 'Kona' or /); // does any event have the word at all?
+    expect(filters[2]).toBe("state eq 'HI' and (contains(floodEvent,'Kona') or contains(floodEvent,'kona'))");
+  });
+
+  it("keeps an empty result when the word names an event outside the other filters", async () => {
+    const filters = stubCounts(0, 447);
+    const res = await claims({ state: "WY", floodEvent: "Hurricane Earl" });
+    expect(res).toMatchObject({ total: 0, claims: [], floodEventMatch: "whole word" });
+    expect(filters).toHaveLength(2); // no fallback to "Early summer storms"
+  });
+
+  it("falls back directly when there are no other filters", async () => {
+    const filters = stubCounts(0, 394);
+    expect(await claims({ floodEvent: "Milwaukee" })).toMatchObject({ total: 394, floodEventMatch: "within names" });
+    expect(filters).toHaveLength(2);
+    expect(filters[1]).toBe("(contains(floodEvent,'Milwaukee') or contains(floodEvent,'milwaukee'))");
+  });
+
+  it("does not fall back for longer names, or when the whole word matched", async () => {
+    let filters = stubCounts(0);
+    expect(await claims({ floodEvent: "Hurricane Nobody Special" })).toMatchObject({ total: 0, floodEventMatch: "anywhere" });
+    expect(filters).toHaveLength(1);
+    filters = stubCounts(447);
+    expect(await claims({ floodEvent: "Earl" })).toMatchObject({ total: 447, floodEventMatch: "whole word" });
+    expect(filters).toHaveLength(1);
+  });
+
+  it("reports the looser match in the tool summary", async () => {
+    stubCounts(0, 422);
+    const out = await call({ flood_event: "Kona" });
+    expect(out.summary).toMatch(/No event has "Kona" as a whole word, so it was matched inside event names$/);
+    expect(out.meta).toMatchObject({ floodEventMatch: "within names", floodEvents: ["2026-03-KonaStorm"] });
+  });
+
+  it("says when an event has claims, just not under the other filters", async () => {
+    stubCounts(0, 447);
+    const out = await call({ flood_event: "Hurricane Earl", state: "WY" });
+    expect(out.summary).toBe('No NFIP claims match these filters. "Hurricane Earl" has claims outside these place and year filters; widen them to see them.');
   });
 });
 
