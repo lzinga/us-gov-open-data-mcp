@@ -18,7 +18,7 @@ export const prompts: InputPrompt<any, any>[] = [
       `3. bea_gdp_by_state for ${state} — GDP and growth rate\n` +
       `4. bea_personal_income for ${state} — per capita income\n` +
       `5. usa_spending_by_state for ${state} — federal dollars received\n` +
-      `6. cdc_chronic_disease for ${state} — top health indicators\n\n` +
+      `6. cdc_places_health for ${state} (2-letter code) — county-level health indicators such as obesity, diabetes, and smoking\n\n` +
       "Present as a state fact sheet with demographics, economy, federal funding, and health."
     ); },
   },
