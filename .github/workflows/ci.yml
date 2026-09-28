@@ -38,3 +38,69 @@ jobs:
 
       - name: Test
         run: npm run test
+
+  docker:
+    # Build the image and check it runs as intended: non-root, refuses to
+    # listen without a token, rejects unauthenticated requests, and becomes
+    # healthy.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: docker build -t us-gov-open-data-mcp:ci .
+
+      - name: Refuses to start without MCP_AUTH_TOKEN
+        run: |
+          set +e
+          out=$(docker run --rm us-gov-open-data-mcp:ci 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          test "$code" -ne 0
+          echo "$out" | grep -q "Refusing to serve HTTP"
+
+      - name: Start with a token
+        run: |
+          TOKEN=$(openssl rand -hex 32)
+          echo "::add-mask::$TOKEN"
+          echo "TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          docker run -d --name mcp -e MCP_AUTH_TOKEN="$TOKEN" -e MODULES=fred -p 8080:8080 us-gov-open-data-mcp:ci
+
+      - name: Runs as a non-root user
+        run: |
+          uid=$(docker exec mcp id -u)
+          echo "uid=$uid"
+          test "$uid" != "0"
+
+      - name: Becomes healthy
+        run: |
+          for _ in $(seq 1 45); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' mcp)
+            if [ "$status" = "healthy" ]; then exit 0; fi
+            sleep 2
+          done
+          echo "health status: $status"
+          exit 1
+
+      - name: Rejects MCP requests without the token
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8080/mcp \
+            -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"1.0.0"}}}')
+          echo "status=$code"
+          test "$code" = "401"
+
+      - name: Completes an authenticated handshake
+        run: |
+          curl -sf -X POST http://127.0.0.1:8080/mcp -H "Authorization: Bearer $TOKEN" \
+            -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"1.0.0"}}}' \
+            | tee init.txt
+          grep -q '"serverInfo"' init.txt
+
+      - name: Container logs
+        if: always()
+        run: docker logs mcp || true
