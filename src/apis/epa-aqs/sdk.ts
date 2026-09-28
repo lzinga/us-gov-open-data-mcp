@@ -18,6 +18,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { stateAs } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -139,7 +140,7 @@ export async function getAirQuality(opts: {
     param: opts.param,
     bdate: opts.bdate,
     edate: opts.edate,
-    state: opts.state,
+    state: stateAs(opts.state, "fips"),
   };
   if (opts.county) params.county = opts.county;
 
@@ -183,7 +184,7 @@ export async function getAirMonitors(opts: {
     param: opts.param,
     bdate: opts.bdate,
     edate: opts.edate,
-    state: opts.state,
+    state: stateAs(opts.state, "fips"),
   };
   if (opts.county) params.county = opts.county;
 

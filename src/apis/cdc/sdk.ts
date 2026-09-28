@@ -12,6 +12,7 @@
 
 import { createClient } from "../../shared/client.js";
 import { integerValue, soqlContains, soqlString } from "../../shared/query-escape.js";
+import { stateAs } from "../../shared/geo.js";
 
 const api = createClient({
   baseUrl: "https://data.cdc.gov/resource",
@@ -69,7 +70,7 @@ export async function getLeadingCausesOfDeath(opts?: {
   state?: string; year?: number; limit?: number;
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
-  if (opts?.state) clauses.push(`state = ${soqlString(opts.state)}`);
+  if (opts?.state) clauses.push(`state = ${soqlString(stateAs(opts.state, "name"))}`);
   if (opts?.year) clauses.push(`year = ${soqlString(integerValue(opts.year, "year"))}`);
   return queryDataset(DATASETS.leading_death.id, {
     where: clauses.length ? clauses.join(" AND ") : undefined,
@@ -115,7 +116,7 @@ export async function getPlacesHealth(opts?: {
   state?: string; measure?: string; limit?: number;
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
-  if (opts?.state) clauses.push(`stateabbr = ${soqlString(opts.state.toUpperCase())}`);
+  if (opts?.state) clauses.push(`stateabbr = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.measure) clauses.push(`measureid = ${soqlString(opts.measure.toUpperCase())}`);
   return queryDataset(DATASETS.places_county.id, {
     where: clauses.length ? clauses.join(" AND ") : undefined,
@@ -130,7 +131,7 @@ export async function getPlacesCityHealth(opts?: {
   state?: string; measure?: string; city?: string; limit?: number;
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
-  if (opts?.state) clauses.push(`stateabbr = ${soqlString(opts.state.toUpperCase())}`);
+  if (opts?.state) clauses.push(`stateabbr = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.measure) {
     // The measure names a column (e.g. obesity_crudeprev), so only allow identifier characters.
     if (!/^[a-z0-9]+$/i.test(opts.measure)) throw new Error(`Invalid PLACES measure "${opts.measure}"`);
@@ -149,7 +150,7 @@ export async function getCovidData(opts?: {
   state?: string; limit?: number;
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
-  if (opts?.state) clauses.push(`state = ${soqlString(opts.state.toUpperCase())}`);
+  if (opts?.state) clauses.push(`state = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
   return queryDataset(DATASETS.covid_cases.id, {
     where: clauses.length ? clauses.join(" AND ") : undefined,
     order: "date_updated DESC",
@@ -163,7 +164,7 @@ export async function getWeeklyDeaths(opts?: {
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
   clauses.push(`group = 'By Week'`);
-  if (opts?.state) clauses.push(`state = ${soqlString(opts.state)}`);
+  if (opts?.state) clauses.push(`state = ${soqlString(stateAs(opts.state, "name"))}`);
   if (opts?.year) clauses.push(`year = ${soqlString(integerValue(opts.year, "year"))}`);
   return queryDataset(DATASETS.weekly_deaths.id, {
     where: clauses.join(" AND "),
@@ -178,7 +179,7 @@ export async function getDisabilityData(opts?: {
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
   clauses.push(`stratificationcategoryid1 = 'CAT1'`); // Overall (not by age/race subgroup)
-  if (opts?.state) clauses.push(`locationabbr = ${soqlString(opts.state.toUpperCase())}`);
+  if (opts?.state) clauses.push(`locationabbr = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.disabilityType) clauses.push(`response = ${soqlString(opts.disabilityType)}`);
   return queryDataset(DATASETS.disability.id, {
     where: clauses.join(" AND "),
@@ -200,7 +201,7 @@ export async function getDrugOverdoseData(opts?: {
   state?: string; year?: number; sex?: string; limit?: number;
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
-  if (opts?.state) clauses.push(`state = ${soqlString(opts.state)}`);
+  if (opts?.state) clauses.push(`state = ${soqlString(stateAs(opts.state, "name"))}`);
   if (opts?.year) clauses.push(`year = ${soqlString(integerValue(opts.year, "year"))}`);
   if (opts?.sex) clauses.push(`sex = ${soqlString(opts.sex)}`);
   return queryDataset(DATASETS.drug_overdose_state.id, {
@@ -216,7 +217,7 @@ export async function getNutritionObesityData(opts?: {
 }): Promise<CdcRecord[]> {
   const clauses: string[] = [];
   clauses.push(`data_value IS NOT NULL`);
-  if (opts?.state) clauses.push(`locationabbr = ${soqlString(opts.state.toUpperCase())}`);
+  if (opts?.state) clauses.push(`locationabbr = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.topic) clauses.push(`class LIKE ${soqlContains(opts.topic)}`);
   return queryDataset(DATASETS.nutrition_obesity.id, {
     where: clauses.join(" AND "),

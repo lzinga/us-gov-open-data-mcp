@@ -11,6 +11,7 @@ import {
   datasets,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
+import { stateAs } from "../../shared/geo.js";
 
 /** Convert a row array + headers into an object, coercing numeric values. */
 function rowToObject(headers: string[], row: string[]): Record<string, unknown> {
@@ -62,11 +63,11 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Census: Population by State", readOnlyHint: true },
     parameters: z.object({
       year: z.number().int().optional().describe("ACS year (default: 2023). Range: 2005-2023."),
-      state: z.string().optional().describe("Two-digit FIPS state code, e.g. '06' (CA), '48' (TX), '36' (NY). Omit or '*' for all."),
+      state: z.string().optional().describe("State: FIPS code, name or two-letter code, e.g. '06', 'California' or 'CA'. Omit or '*' for all."),
     }),
     execute: async ({ year, state }) => {
       const y = year || 2023;
-      const stateCode = state || "*";
+      const stateCode = !state || state.trim() === "*" ? "*" : stateAs(state, "fips");
       const data = await queryCensus(
         `${y}/acs/acs1`,
         "NAME,B01001_001E,B19013_001E,B01002_001E",

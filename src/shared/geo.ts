@@ -107,3 +107,12 @@ export function resolveState(input: string | number, param = "state"): UsState {
   }
   return state;
 }
+
+/**
+ * A state in the form an API expects, from a name, USPS code or FIPS code.
+ * Values that aren't a state (e.g. "United States", which some datasets
+ * use for national rows) pass through trimmed but otherwise unchanged.
+ */
+export function stateAs(input: string | number, form: keyof UsState): string {
+  return findState(input)?.[form] ?? String(input).trim();
+}

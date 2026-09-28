@@ -9,6 +9,7 @@
  */
 
 import { createClient, qp } from "../../shared/client.js";
+import { stateAs } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -178,7 +179,7 @@ export async function getElectricity(opts: {
     end: opts.end,
     length: opts.length,
     offset: opts.offset,
-    "facets[stateid][]": opts.state?.toUpperCase(),
+    "facets[stateid][]": opts.state ? stateAs(opts.state, "usps").toUpperCase() : undefined,
     "facets[sectorid][]": opts.sector?.toUpperCase(),
   });
 
@@ -227,7 +228,7 @@ export async function getStateEnergy(opts: {
     end: opts.end,
     length: opts.length,
     offset: opts.offset,
-    "facets[stateId][]": opts.state?.toUpperCase(),
+    "facets[stateId][]": opts.state ? stateAs(opts.state, "usps").toUpperCase() : undefined,
     "facets[seriesId][]": (opts.msn || "TETCB").toUpperCase(),
   });
 

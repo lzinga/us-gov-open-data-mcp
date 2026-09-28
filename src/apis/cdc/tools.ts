@@ -13,7 +13,7 @@ export const tools: Tool<any, any>[] = [
     description: "Get leading causes of death in the U.S. by state and year.\nData from 1999–2017. Causes include heart disease, cancer, kidney disease, etc.",
     annotations: { title: "CDC: Causes of Death", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Full state name: 'New York', 'California', 'Texas'. Omit for all states"),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all states."),
       year: z.number().int().optional().describe("Year (1999–2017). Omit for all years"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -78,7 +78,7 @@ export const tools: Tool<any, any>[] = [
       "Returns crude prevalence (%) by county.",
     annotations: { title: "CDC: County Health Indicators", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'. Omit for all."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
       measure: z.string().optional().describe("Measure ID: 'OBESITY', 'DIABETES', 'CSMOKING', 'DEPRESSION', 'BINGE', 'SLEEP', 'BPHIGH', 'LPA', 'ACCESS2', 'FOODINSECU', 'LONELINESS', 'HOUSINSECU'"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -99,7 +99,7 @@ export const tools: Tool<any, any>[] = [
       "Each row contains ALL measures for a city as separate columns (e.g. obesity_crudeprev, diabetes_crudeprev).",
     annotations: { title: "CDC: City Health Indicators", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'"),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'."),
       city: z.string().optional().describe("City name (partial match): 'Los Angeles', 'Chicago'"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -120,7 +120,7 @@ export const tools: Tool<any, any>[] = [
       "Includes percent_of_expected_deaths to detect excess mortality.",
     annotations: { title: "CDC: Weekly Death Surveillance", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Full state name: 'New York', 'California'. Omit for all."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
       year: z.number().int().optional().describe("Year (2020–present). Omit for all."),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -141,7 +141,7 @@ export const tools: Tool<any, any>[] = [
       "'Vision Disability', 'Self-care Disability', 'Independent Living Disability', 'No Disability'",
     annotations: { title: "CDC: Disability Prevalence", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code: 'NY', 'CA'. Omit for all."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
       disability_type: z.string().optional().describe("'Any Disability', 'Mobility Disability', 'Cognitive Disability', 'Hearing Disability', 'Vision Disability', 'Self-care Disability', 'Independent Living Disability'"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -161,7 +161,7 @@ export const tools: Tool<any, any>[] = [
       "Includes death rates by state, sex, race, and age group. Critical for opioid crisis analysis.",
     annotations: { title: "CDC: Drug Overdose Mortality", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Full state name: 'West Virginia', 'Ohio', 'New Hampshire'. Omit for all."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
       year: z.number().int().optional().describe("Year (1999\u20132016)"),
       sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Sex filter"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
@@ -182,7 +182,7 @@ export const tools: Tool<any, any>[] = [
       "Topics: 'Obesity', 'Physical Activity', 'Fruits and Vegetables'. Data by state, race, age, income, education.",
     annotations: { title: "CDC: Nutrition & Obesity", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code: 'NY', 'CA', 'TX'. Omit for all."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
       topic: z.string().optional().describe("'Obesity', 'Physical Activity', 'Fruits and Vegetables'"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
@@ -244,7 +244,7 @@ export const tools: Tool<any, any>[] = [
     description: "Get COVID-19 weekly case and death counts by state (data through early 2023).\nStates use two-letter abbreviations: 'NY', 'CA', 'TX'.",
     annotations: { title: "CDC: COVID-19 Data", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state abbreviation: 'NY', 'CA', 'TX'"),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'."),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
     execute: async ({ state, limit }) => {
