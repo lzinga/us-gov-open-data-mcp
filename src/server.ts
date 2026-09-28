@@ -41,6 +41,7 @@ import { createServerLogger } from "./server/logger.js";
 import { selectModules } from "./server/module-selection.js";
 import { filterPrompts } from "./server/prompt-filter.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
+import { budgetResult, maxResponseBytes } from "./server/response-budget.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import { DOMAINS, authEnvVars, requiresKey, type ApiModule } from "./shared/types.js";
@@ -244,9 +245,18 @@ const LOADED_MODULES = activeModules.map(m => m.name);
 /** Names of the tools this server actually serves. */
 const AVAILABLE_TOOLS = new Set(activeModules.flatMap(m => [...m.tools.map(t => t.name), ...Object.keys(m.deprecatedAliases ?? {})]));
 
+/** Size budget for results sent to the client (MAX_RESPONSE_BYTES; see response-budget.ts). */
+const MAX_RESPONSE = maxResponseBytes();
+
+/** The tool with its results held to the size budget. code_mode reads raw results via the registry. */
+function withBudget<T extends { execute: (args: any, ctx: any) => unknown }>(tool: T): T {
+  if (MAX_RESPONSE <= 0) return tool;
+  return { ...tool, execute: async (args: unknown, ctx: unknown) => budgetResult(await tool.execute(args, ctx), MAX_RESPONSE) };
+}
+
 for (const mod of activeModules) {
   if (toolMode === "full") {
-    const annotated = mod.tools.map(t => ({
+    const annotated = mod.tools.map(t => withBudget({
       ...t,
       annotations: { ...DEFAULT_TOOL_ANNOTATIONS, ...(t.annotations ?? {}) },
     }));
@@ -261,7 +271,7 @@ if (toolMode === "full") {
   // and saved prompts that use an old name keep working for one release.
   for (const [alias, canonical] of registry.aliasEntries()) {
     const { tool } = registry.resolve(canonical)!;
-    server.addTool({
+    server.addTool(withBudget({
       ...tool,
       name: alias,
       description: `[Deprecated — use ${canonical}] ${tool.description ?? ""}`,
@@ -270,11 +280,11 @@ if (toolMode === "full") {
         ...(tool.annotations ?? {}),
         title: `${tool.annotations?.title ?? canonical} (deprecated)`,
       },
-    } as any);
+    }) as any);
   }
 } else {
   // Discovery mode: the data tools are reached through find_tools + call_tool.
-  server.addTools(discoveryTools(registry, activeModules) as any);
+  server.addTools(discoveryTools(registry, activeModules).map(t => withBudget(t)) as any);
 }
 
 // ─── clear_cache tool ────────────────────────────────────────────────
