@@ -2,7 +2,7 @@
  * congress module metadata.
  */
 
-import { BILL_TYPES, CHAMBERS, AMENDMENT_TYPES, LAW_TYPES, REPORT_TYPES, HOUSE_COMMUNICATION_TYPES, SENATE_COMMUNICATION_TYPES } from "./sdk.js";
+import { BILL_TYPES, CHAMBERS, AMENDMENT_TYPES, LAW_TYPES, REPORT_TYPES, HOUSE_COMMUNICATION_TYPES, SENATE_COMMUNICATION_TYPES, congressNumbers, recentCongressesLabel } from "./sdk.js";
 import type { ModuleMeta } from "../../shared/types.js";
 
 export default {
@@ -18,7 +18,7 @@ export default {
     "congress_hearings or congress_committee_meetings for oversight activity → " +
     "congress_committee_reports for committee analysis → " +
     "cross-reference with FEC (donors), lobbying_search (who lobbied), and FRED (economic impact)",
-  tips: "Congress numbers: 119th (2025-2026), 118th (2023-2024), 117th (2021-2022). " +
+  tips: `Congress numbers: ${recentCongressesLabel(3)}. ` +
     "Bill types: hr, s, hjres, sjres, hconres, sconres, hres, sres. " +
     "House votes: use year param for historical (1990+). Senate votes: 101st Congress (1989) to present. " +
     "Report types: hrpt (House), srpt (Senate), erpt (Executive). " +
@@ -64,10 +64,7 @@ export default {
     reportTypes: REPORT_TYPES,
     houseCommunicationTypes: HOUSE_COMMUNICATION_TYPES,
     senateCommunicationTypes: SENATE_COMMUNICATION_TYPES,
-    congressNumbers: {
-      119: "2025-2026", 118: "2023-2024", 117: "2021-2022",
-      116: "2019-2020", 115: "2017-2018", 114: "2015-2016",
-    } as Record<number, string>,
+    congressNumbers,
     docs: {
       "API Docs": "https://api.congress.gov/",
       "Interactive Docs": "https://api.congress.gov/#/",

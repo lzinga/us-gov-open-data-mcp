@@ -65,9 +65,30 @@ async function optionalPart<T>(part: string, failures: PartialFailure[], promise
 }
 
 /** Current congress number based on date. */
-export function currentCongress(): number {
-  const year = new Date().getFullYear();
+export function currentCongress(now: Date = new Date()): number {
+  const year = now.getFullYear();
   return Math.floor((year - 1789) / 2) + 1;
+}
+
+/** English ordinal: 119 → "119th", 121 → "121st", 122 → "122nd". */
+export function ordinal(n: number): string {
+  const suffixes = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+}
+
+/** Calendar years a Congress spans, e.g. 119 → "2025-2026". */
+export function congressYears(congress: number): string {
+  const start = 1789 + (congress - 1) * 2;
+  return `${start}-${start + 1}`;
+}
+
+/** "119th (2025-2026), 118th (2023-2024), 117th (2021-2022)" for the most recent congresses. */
+export function recentCongressesLabel(count = 3, now: Date = new Date()): string {
+  const current = currentCongress(now);
+  return Array.from({ length: count }, (_, i) => current - i)
+    .map(n => `${ordinal(n)} (${congressYears(n)})`)
+    .join(", ");
 }
 
 // ─── Reference data ──────────────────────────────────────────────────
@@ -123,12 +144,11 @@ export const SENATE_COMMUNICATION_TYPES = {
   ec: "Executive Communication", pm: "Presidential Message", pom: "Petition or Memorial",
 } as const;
 
-/** Congress Numbers. */
-export const congressNumbers = {
-  119: "2025-2026", 118: "2023-2024", 117: "2021-2022",
-  116: "2019-2020", 115: "2017-2018", 114: "2015-2016",
-  113: "2013-2014", 112: "2011-2012", 111: "2009-2010",
-} as const;
+/** Congress number → calendar years, from the 111th through the current Congress. */
+export const congressNumbers: Record<number, string> = Object.fromEntries(
+  Array.from({ length: currentCongress() - 110 }, (_, i) => currentCongress() - i)
+    .map(n => [n, congressYears(n)]),
+);
 
 // ─── Public API ──────────────────────────────────────────────────────
 
@@ -362,7 +382,7 @@ function yearToCongress(year: number): { congress: number; session: 1 | 2 } {
 /**
  * Get House roll call votes.
  *
- * Primary source: Congress.gov API (currently 118th–119th Congress, beta).
+ * Primary source: Congress.gov API (118th Congress onward, beta).
  * Fallback: clerk.house.gov XML (coverage: 1990 to present) — fills gaps
  * where the API returns no data (e.g. older congresses).
  *
@@ -500,7 +520,7 @@ async function getHouseVotesFromClerk(opts: {
   return { votes, source: "clerk.house.gov" };
 }
 
-/** Primary: Fetch House votes from Congress.gov API (118th–119th Congress, beta). */
+/** Primary: Fetch House votes from Congress.gov API (118th Congress onward, beta). */
 async function getHouseVotesFromApi(opts: {
   congress?: number;
   session?: number;
@@ -1717,7 +1737,7 @@ function congressSessionToYear(congress: number, session: number): number {
  * Get Senate roll call votes from senate.gov XML data.
  *
  * Coverage: 101st Congress (1989) to present — far deeper than the Congress.gov API
- * which only has House votes for 118th-119th Congress.
+ * which only has House votes from the 118th Congress onward.
  *
  * Data source: https://www.senate.gov/general/XML.htm
  */
