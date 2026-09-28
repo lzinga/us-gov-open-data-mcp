@@ -43,4 +43,15 @@ describe("usgs water (live, Water Data APIs)", () => {
     expect(items.length).toBeGreaterThan(20);
     expect(items.every(i => i.readingCount === 1)).toBe(true);
   });
+
+  it("usgs_daily_water_data returns a year of daily means with a known historical value", async () => {
+    const res = await callTool("usgs", "usgs_daily_water_data", { sites: "01646500", start_dt: "2024-01-01", end_dt: "2024-12-31" });
+    const s = (res.data?.items ?? [])[0] as { dailyValueCount: number; earliestDate: string; latestDate: string; earliestValue: number };
+    expect(s.dailyValueCount).toBe(366); // 2024 is a leap year
+    expect(s.earliestDate).toBe("2024-01-01");
+    expect(s.latestDate).toBe("2024-12-31");
+    // Approved daily mean discharge on 2024-01-03 (seen in the API during migration): 6,860 cfs
+    const jan = await callTool("usgs", "usgs_daily_water_data", { sites: "01646500", start_dt: "2024-01-03", end_dt: "2024-01-03" });
+    expect((jan.data.items[0] as { latestValue: number }).latestValue).toBe(6860);
+  });
 });

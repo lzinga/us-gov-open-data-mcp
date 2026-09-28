@@ -532,42 +532,47 @@ export async function searchWaterSites(opts: {
 }
 
 /**
- * Get USGS daily value water data (historical daily averages).
- * Unlike instantaneous values (iv), these are aggregated daily means.
+ * Get USGS daily values (daily summaries of the continuous record; by
+ * default the daily mean, statistic 00003).
+ *
+ * With `sites`, returns the daily values in the window (default: last 30
+ * days). With only `stateCd`, returns daily values for every site in the
+ * state over the window, which can hit the observation limit for large
+ * states or long windows (`truncated`).
  *
  * Example:
- *   const data = await getDailyWaterData({ sites: '01646500', parameterCd: '00060', period: 'P30D' });
- *   const data = await getDailyWaterData({ stateCd: 'CA', parameterCd: '00065', startDT: '2024-01-01', endDT: '2024-12-31' });
+ *   const { series } = await getDailyWaterData({ sites: "01646500", parameterCd: "00060", period: "P30D" });
+ *   const { series } = await getDailyWaterData({ sites: "01646500", startDT: "2024-01-01", endDT: "2024-12-31" });
  */
 export async function getDailyWaterData(opts: {
+  /** Site numbers or monitoring-location IDs, comma-separated. */
   sites?: string;
+  /** State as USPS code, name, or FIPS (used when `sites` is omitted). */
   stateCd?: string;
-  countyCd?: string;
-  huc?: string;
   parameterCd?: string;
+  /** ISO 8601 duration, default P30D. */
   period?: string;
   startDT?: string;
   endDT?: string;
-  siteType?: string;
-  siteStatus?: "all" | "active" | "inactive";
+  /** Statistic code: 00003 mean (default), 00001 max, 00002 min, 00008 median. */
   statCd?: string;
-}): Promise<WaterResponse> {
-  const params: Record<string, string | number | undefined> = {
-    format: "json",
-    sites: opts.sites,
-    stateCd: opts.stateCd,
-    countyCd: opts.countyCd,
-    huc: opts.huc,
-    parameterCd: opts.parameterCd ?? "00060",
-    period: opts.period ?? "P30D",
-    startDT: opts.startDT,
-    endDT: opts.endDT,
-    siteType: opts.siteType,
-    siteStatus: opts.siteStatus ?? "active",
-    statCd: opts.statCd,
+}): Promise<{ series: WaterSeries[]; truncated: boolean }> {
+  const base = {
+    parameter_code: opts.parameterCd ?? "00060",
+    statistic_id: opts.statCd ?? "00003",
+    time: timeFilter(opts.period, opts.startDT, opts.endDT, "P30D"),
   };
-  if (opts.startDT || opts.endDT) delete params.period;
-  return waterApi.get<WaterResponse>("/dv/", params);
+  let location: Record<string, string>;
+  if (opts.sites) {
+    const ids = opts.sites.split(",").map(s => s.trim()).filter(Boolean).map(toMonitoringLocationId);
+    location = { monitoring_location_id: ids.join(",") };
+  } else if (opts.stateCd) {
+    location = { state_code: resolveState(opts.stateCd, "state_cd").fips };
+  } else {
+    throw new Error("Provide sites or state_cd to get daily water data.");
+  }
+  const { observations, truncated } = await fetchObservations("daily", { ...location, ...base });
+  return { series: await summarizeSeries(observations), truncated };
 }
 
 /**

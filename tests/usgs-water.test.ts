@@ -166,3 +166,38 @@ describe("usgs_water_data (continuous)", () => {
     expect(out.data.items[0]).toMatchObject({ siteCode: "01646500", latestValue: 3630 });
   });
 });
+
+describe("usgs_daily_water_data (daily)", () => {
+  it("requests daily means for the window and summarizes first/last/min/max/mean", async () => {
+    const calls = stubWaterData({
+      "/daily/items": () => ({
+        features: [
+          obs("USGS-01646500", "2026-09-25", "3560", { statistic_id: "00003" }),
+          obs("USGS-01646500", "2026-09-26", "3670", { statistic_id: "00003" }),
+          obs("USGS-01646500", "2026-09-27", "4470", { statistic_id: "00003" }),
+        ],
+      }),
+      "/monitoring-locations/items": names,
+    });
+    const { tools } = await import("../src/apis/usgs/tools.js");
+    const tool = tools.find(t => t.name === "usgs_daily_water_data")!;
+    const out = JSON.parse(await tool.execute({ sites: "01646500", period: "P3D" } as any, {} as any) as string);
+
+    const params = calls[0].url.searchParams;
+    expect(calls[0].url.pathname).toMatch(/\/daily\/items$/);
+    expect(params.get("statistic_id")).toBe("00003");
+    expect(params.get("time")).toBe("P3D");
+    expect(out.data.items[0]).toMatchObject({
+      siteCode: "01646500", siteName: "POTOMAC RIVER NEAR WASH, DC", dailyValueCount: 3,
+      earliestDate: "2026-09-25", earliestValue: 3560, latestDate: "2026-09-27", latestValue: 4470,
+      min: 3560, max: 4470, mean: 3900,
+    });
+  });
+
+  it("defaults to a 30-day window", async () => {
+    const calls = stubWaterData({ "/daily/items": () => ({ features: [] }), "/monitoring-locations/items": () => ({ features: [] }) });
+    const { getDailyWaterData } = await import("../src/apis/usgs/sdk.js");
+    await getDailyWaterData({ sites: "01646500" });
+    expect(calls[0].url.searchParams.get("time")).toBe("P30D");
+  });
+});
