@@ -137,6 +137,13 @@ TOOL_MODE=discovery npx us-gov-open-data-mcp
 
 It suits clients that struggle with long tool lists; with a few modules loaded, the default full mode is simpler.
 
+### Response Size
+
+Tool results over 150 KB are shortened before they reach the client, so one call can't flood the model's context:
+the largest arrays (table rows, list items) are cut to what fits, then long strings are clipped. The result stays
+valid JSON and carries a `truncatedToFit` note saying what was cut. `code_mode` still processes the full result.
+Set `MAX_RESPONSE_BYTES` to change the limit, or `0` to turn it off.
+
 With all 42 modules, the server sends about 16K tokens of instructions to the LLM. With 3 modules, this drops to about 2K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
 To see all available module names without starting the server:
