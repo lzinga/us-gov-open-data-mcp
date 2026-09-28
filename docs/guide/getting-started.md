@@ -15,6 +15,8 @@
 
 ### Quick Start
 
+Requires Node.js 22 or later.
+
 ```bash
 npx us-gov-open-data-mcp
 ```
