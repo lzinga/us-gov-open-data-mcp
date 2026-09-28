@@ -5,6 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { buildInstructions } from "../src/server/instructions.js";
 import { buildAnalysisPrompts } from "../src/server/prompts.js";
+import { filterPrompts } from "../src/server/prompt-filter.js";
 import { QUESTION_TYPES, DOMAINS } from "../src/shared/types.js";
 import type { ApiModule } from "../src/shared/types.js";
 
@@ -143,36 +144,8 @@ describe("buildInstructions", () => {
 // ─── buildAnalysisPrompts ─────────────────────────────────────────────
 
 describe("buildAnalysisPrompts", () => {
-  it("returns prompts when modules are loaded", () => {
-    const mod = mockModule();
-    const prompts = buildAnalysisPrompts([mod]);
-    expect(prompts.length).toBeGreaterThan(0);
-  });
-
-  it("filtering removes unavailable tool lines and keeps headers", async () => {
-    // Use a mock prompt to test filtering in isolation, not tied to any real prompt text
-    const mod = mockModule({
-      tools: [
-        { name: "available_tool", description: "exists", parameters: {}, execute: async () => "" } as any,
-      ],
-    });
-
-    // Simulate what filterUnavailableTools does: lines starting with "- snake_case"
-    // where the tool isn't loaded get removed
-    const prompts = buildAnalysisPrompts([mod]);
-
-    // Find any prompt and run it — we just need to verify it doesn't crash
-    const first = prompts[0];
-    expect(first).toBeDefined();
-    const args: Record<string, string> = {};
-    if (first.arguments) {
-      for (const arg of first.arguments) {
-        if (arg.required) args[arg.name] = "test";
-      }
-    }
-    const output = await first.load(args);
-    const text = typeof output === "string" ? output : String(output);
-    expect(text.length).toBeGreaterThan(0);
+  it("returns the analysis prompts (filtering is covered in prompt-filter.test.ts)", () => {
+    expect(buildAnalysisPrompts().length).toBeGreaterThan(0);
   });
 });
 
@@ -254,7 +227,7 @@ describe("Prompt integrity", () => {
   );
 
   it("every prompt has name, description, and load function", () => {
-    const prompts = buildAnalysisPrompts(allModules);
+    const prompts = buildAnalysisPrompts();
     for (const p of prompts) {
       expect(typeof p.name, `prompt missing name`).toBe("string");
       expect(p.name.length).toBeGreaterThan(0);
@@ -264,8 +237,9 @@ describe("Prompt integrity", () => {
   });
 
   it("all prompts produce output without errors, with and without modules", async () => {
-    const withAll = buildAnalysisPrompts(allModules);
-    const withNone = buildAnalysisPrompts([]);
+    const known = new Set(allModules.flatMap(m => m.tools.map(t => t.name)));
+    const withAll = await filterPrompts(buildAnalysisPrompts(), known, known);
+    const withNone = await filterPrompts(buildAnalysisPrompts(), known, new Set());
 
     for (const prompts of [withAll, withNone]) {
       for (const p of prompts) {
@@ -283,7 +257,7 @@ describe("Prompt integrity", () => {
   });
 
   it("prompt names are unique", () => {
-    const prompts = buildAnalysisPrompts(allModules);
+    const prompts = buildAnalysisPrompts();
     const names = prompts.map(p => p.name);
     const dupes = names.filter((n, i) => names.indexOf(n) !== i);
     expect(dupes, `Duplicate prompt names: ${dupes.join(", ")}`).toHaveLength(0);

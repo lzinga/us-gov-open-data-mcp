@@ -81,6 +81,27 @@ describe("stdio server (all modules)", () => {
 });
 
 describe("stdio server (selective loading)", () => {
+  it("prompts mention only loaded tools", async () => {
+    const session = await connectStdio({ args: ["--modules", "fred"] });
+    try {
+      const allTools = moduleDirs.flatMap(d => [
+        ...(getModule(d).tools as { name: string }[]).map(t => t.name),
+        ...Object.keys((getModule(d).deprecatedAliases as Record<string, string> | undefined) ?? {}),
+      ]);
+      const loaded = new Set((getModule("fred").tools as { name: string }[]).map(t => t.name));
+      const { prompts } = await session.client.listPrompts();
+      expect(prompts.length).toBeGreaterThan(0);
+      for (const p of prompts) {
+        const args = Object.fromEntries((p.arguments ?? []).map(a => [a.name, "test-value"]));
+        const text = JSON.stringify((await session.client.getPrompt({ name: p.name, arguments: args })).messages);
+        const offenders = allTools.filter(t => !loaded.has(t) && new RegExp(`\\b${t}\\b`).test(text));
+        expect(offenders, p.name).toEqual([]);
+      }
+    } finally {
+      await session.close();
+    }
+  }, 60_000);
+
   it("--modules loads only the requested modules", async () => {
     const session = await connectStdio({ args: ["--modules", "fred,treasury"] });
     try {

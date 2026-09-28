@@ -34,6 +34,7 @@ import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
 import { bearerAuthenticator, planHttpAuth, type HttpAuthPlan } from "./server/http-auth.js";
 import { createServerLogger } from "./server/logger.js";
+import { filterPrompts } from "./server/prompt-filter.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
@@ -217,13 +218,21 @@ const DEFAULT_TOOL_ANNOTATIONS = {
   destructiveHint: false,
 } as const;
 
+/** Names of every tool that could be loaded (all modules, plus deprecated aliases). */
+const KNOWN_TOOLS = new Set(MODULES.flatMap(m => [...m.tools.map(t => t.name), ...Object.keys(m.deprecatedAliases ?? {})]));
+/** Names of the loaded modules, which prompts may mention instead of a tool ("FRED series"). */
+const LOADED_MODULES = activeModules.map(m => m.name);
+/** Names of the tools this server actually serves. */
+const AVAILABLE_TOOLS = new Set(activeModules.flatMap(m => [...m.tools.map(t => t.name), ...Object.keys(m.deprecatedAliases ?? {})]));
+
 for (const mod of activeModules) {
   const annotated = mod.tools.map(t => ({
     ...t,
     annotations: { ...DEFAULT_TOOL_ANNOTATIONS, ...(t.annotations ?? {}) },
   }));
   server.addTools(annotated as any);
-  if (mod.prompts?.length) server.addPrompts(mod.prompts as any);
+  // Module prompts can mention other modules' tools too.
+  if (mod.prompts?.length) server.addPrompts(await filterPrompts(mod.prompts, KNOWN_TOOLS, AVAILABLE_TOOLS, LOADED_MODULES) as any);
 }
 
 // ─── Tool registry and deprecated aliases ────────────────────────────
@@ -282,7 +291,7 @@ server.addTool({
 
 // ─── Cross-cutting analysis prompts ──────────────────────────────────
 
-server.addPrompts(buildAnalysisPrompts(activeModules) as any);
+server.addPrompts(await filterPrompts(buildAnalysisPrompts(), KNOWN_TOOLS, AVAILABLE_TOOLS, LOADED_MODULES) as any);
 
 // ─── Code mode tool ──────────────────────────────────────────────────
 
