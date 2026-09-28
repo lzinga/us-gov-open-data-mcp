@@ -15,6 +15,7 @@ import {
   clearCache as sdkClearCache,
 } from "./sdk.js";
 import { listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
+import { stateAs } from "../../shared/geo.js";
 
 function fmrToRecord(data: Record<string, unknown>): Record<string, unknown> {
   const basic = data.basicdata as Record<string, unknown> | undefined;
@@ -49,7 +50,7 @@ export const tools: Tool<any, any>[] = [
       "Get HUD Fair Market Rents (FMR) for a county, metro area, or entire state. Shows monthly rent by bedroom count (efficiency through 4-bedroom). FMR determines Section 8 voucher amounts.",
     annotations: { title: "HUD: Fair Market Rents", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().max(2).optional().describe("Two-letter state code for state-wide FMR data (e.g. CA, TX)"),
+      state: z.string().optional().describe("State for state-wide FMR data: name, two-letter code or FIPS code (e.g. 'California', 'CA', '06')"),
       entity_id: z.string().optional().describe("County FIPS or CBSA code for specific area FMR (get from hud_list_counties)"),
       year: z.number().optional().describe("Fiscal year (e.g. 2024). Defaults to current year."),
     }),
@@ -79,7 +80,7 @@ export const tools: Tool<any, any>[] = [
       "Get HUD Income Limits for a county, metro area, or entire state. Shows Very Low, Extremely Low, and Low income thresholds by household size (1-8 persons). Used for affordable housing eligibility.",
     annotations: { title: "HUD: Income Limits", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().max(2).optional().describe("Two-letter state code for state-wide income limits"),
+      state: z.string().optional().describe("State for state-wide income limits: name, two-letter code or FIPS code (e.g. 'Texas', 'TX', '48')"),
       entity_id: z.string().optional().describe("County FIPS or CBSA code (get from hud_list_counties)"),
       year: z.number().optional().describe("Fiscal year (e.g. 2024). Defaults to current year."),
     }),
@@ -118,13 +119,13 @@ export const tools: Tool<any, any>[] = [
     description: "List counties in a state with their FIPS codes. Use FIPS codes as entity_id in hud_fair_market_rents and hud_income_limits.",
     annotations: { title: "HUD: Counties", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().max(2).describe("Two-letter state code (e.g. CA, TX, NY)"),
+      state: z.string().describe("State: name, two-letter code or FIPS code (e.g. 'New York', 'NY', '36')"),
     }),
     execute: async (args) => {
       const counties = await listCounties(args.state);
       if (!counties.length) return emptyResponse(`No counties found for state '${args.state}'.`);
       return listResponse(
-        `${counties.length} county/area(s) in ${args.state.toUpperCase()}`,
+        `${counties.length} county/area(s) in ${stateAs(args.state, "usps").toUpperCase()}`,
         { items: counties.map(c => ({ ...c })), total: counties.length },
       );
     },

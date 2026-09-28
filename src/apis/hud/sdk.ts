@@ -10,6 +10,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { stateAs } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ export async function listStates(): Promise<HudState[]> {
  * List counties in a state.
  */
 export async function listCounties(stateId: string): Promise<HudCounty[]> {
-  const res = (await api.get(`/fmr/listCounties/${encodeURIComponent(stateId.toUpperCase())}`)) as HudCounty[] | unknown;
+  const res = (await api.get(`/fmr/listCounties/${encodeURIComponent(stateAs(stateId, "usps").toUpperCase())}`)) as HudCounty[] | unknown;
   return Array.isArray(res) ? res : [];
 }
 
@@ -125,7 +126,7 @@ export async function getFairMarketRents(entityId: string, year?: number): Promi
 export async function getStateFairMarketRents(stateCode: string, year?: number): Promise<FairMarketRent> {
   const params: Record<string, string> = {};
   if (year) params.year = String(year);
-  const res = (await api.get(`/fmr/statedata/${encodeURIComponent(stateCode.toUpperCase())}`, params)) as FairMarketRent | unknown;
+  const res = (await api.get(`/fmr/statedata/${encodeURIComponent(stateAs(stateCode, "usps").toUpperCase())}`, params)) as FairMarketRent | unknown;
   return (typeof res === "object" && res !== null ? res : {}) as FairMarketRent;
 }
 
@@ -145,7 +146,7 @@ export async function getIncomeLimits(entityId: string, year?: number): Promise<
 export async function getStateIncomeLimits(stateCode: string, year?: number): Promise<IncomeLimit> {
   const params: Record<string, string> = {};
   if (year) params.year = String(year);
-  const res = (await api.get(`/il/statedata/${encodeURIComponent(stateCode.toUpperCase())}`, params)) as IncomeLimit | unknown;
+  const res = (await api.get(`/il/statedata/${encodeURIComponent(stateAs(stateCode, "usps").toUpperCase())}`, params)) as IncomeLimit | unknown;
   return (typeof res === "object" && res !== null ? res : {}) as IncomeLimit;
 }
 

@@ -25,7 +25,7 @@ export const tools: Tool<any, any>[] = [
       "Search FEMA disaster declarations (since 1953). Filter by state, year, incident type, or declaration type. Returns disaster name, type, affected area, programs declared.",
     annotations: { title: "FEMA: Disaster Declarations", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().max(2).optional().describe("Two-letter state code (e.g. TX, FL, CA)"),
+      state: z.string().optional().describe("State: name, two-letter code or FIPS code (e.g. 'Texas', 'TX', '48')"),
       year: z.number().optional().describe("Filter by year of declaration"),
       incident_type: z.string().optional().describe("Incident type: Hurricane, Flood, Fire, Severe Storm(s), Tornado, Earthquake, Snow, Biological"),
       declaration_type: z.string().optional().describe("DR=Major Disaster, EM=Emergency, FM=Fire Management"),
@@ -52,7 +52,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "FEMA: Housing Assistance", readOnlyHint: true },
     parameters: z.object({
       disaster_number: z.number().optional().describe("FEMA disaster number (from disaster declarations)"),
-      state: z.string().max(2).optional().describe("Two-letter state code"),
+      state: z.string().optional().describe("State: name, two-letter code or FIPS code (e.g. 'Florida', 'FL', '12')"),
       county: z.string().optional().describe("County name"),
       top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Number of records to skip"),
@@ -76,7 +76,7 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "FEMA: Public Assistance", readOnlyHint: true },
     parameters: z.object({
       disaster_number: z.number().optional().describe("FEMA disaster number"),
-      state: z.string().max(2).optional().describe("Two-letter state code"),
+      state: z.string().optional().describe("State: name, two-letter code or FIPS code (e.g. 'Florida', 'FL', '12')"),
       top: z.number().default(50).describe("Max results (default 50)"),
       skip: z.number().optional().describe("Number of records to skip"),
     }),

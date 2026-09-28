@@ -15,6 +15,7 @@ import {
   type EiaObservation,
 } from "./sdk.js";
 import { timeseriesResponse, emptyResponse } from "../../shared/response.js";
+import { stateAs } from "../../shared/geo.js";
 
 function formatObservations(data: EiaObservation[], limit?: number) {
   const rows = limit ? data.slice(0, limit) : data;
@@ -84,7 +85,7 @@ export const tools: Tool<any, any>[] = [
       "Data types: 'price' (cents/kWh), 'revenue' (M$), 'sales' (MWh), 'customers'",
     annotations: { title: "EIA: Electricity Prices & Generation", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code (e.g., 'CA', 'TX'). Omit for national."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code (e.g. 'California', 'CA', '06'). Omit for national."),
       sector: z.enum(["RES", "COM", "IND", "ALL"]).optional().describe("Sector: RES=residential, COM=commercial, IND=industrial, ALL=default"),
       data_type: z.enum(["price", "revenue", "sales", "customers"]).optional().describe("Data type (default: price in cents/kWh)"),
       frequency: z.enum(["monthly", "annual"]).optional().describe("Frequency (default: monthly)"),
@@ -108,14 +109,14 @@ export const tools: Tool<any, any>[] = [
       }));
 
       return timeseriesResponse(
-        `EIA electricity ${data_type || "price"}${state ? ` (${state.toUpperCase()})` : ""}: ${observations.length} observations`,
+        `EIA electricity ${data_type || "price"}${state ? ` (${stateAs(state, "usps").toUpperCase()})` : ""}: ${observations.length} observations`,
         {
           rows: observations,
           dateKey: "period",
           valueKey: "value",
           extraFields: ["state", "sector", "units"],
           seriesKeys: ["series", "state", "sector"],
-          meta: { dataType: data_type || "price", state: state?.toUpperCase() || null },
+          meta: { dataType: data_type || "price", state: state ? stateAs(state, "usps").toUpperCase() : null },
         },
       );
     },
@@ -176,7 +177,7 @@ export const tools: Tool<any, any>[] = [
       "- NUETB: Nuclear energy consumption",
     annotations: { title: "EIA: State Energy Profile", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("Two-letter state code (e.g., 'CA'). Omit for all states."),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code (e.g. 'California', 'CA', '06'). Omit for all states."),
       msn: z.string().optional().describe(
         "MSN energy data code. 'TETCB' (total consumption, default), 'TETCD' (per capita), " +
         "'TEPRB' (production), 'RETCB' (renewables), 'PATCB' (petroleum)",
@@ -201,14 +202,14 @@ export const tools: Tool<any, any>[] = [
       }));
 
       return timeseriesResponse(
-        `EIA state energy (${msn || "TETCB"})${state ? ` for ${state.toUpperCase()}` : ""}: ${observations.length} observations`,
+        `EIA state energy (${msn || "TETCB"})${state ? ` for ${stateAs(state, "usps").toUpperCase()}` : ""}: ${observations.length} observations`,
         {
           rows: observations,
           dateKey: "period",
           valueKey: "value",
           extraFields: ["state", "units", "series"],
           seriesKeys: ["series", "state", "sector"],
-          meta: { msn: msn || "TETCB", state: state?.toUpperCase() || null },
+          meta: { msn: msn || "TETCB", state: state ? stateAs(state, "usps").toUpperCase() : null },
         },
       );
     },

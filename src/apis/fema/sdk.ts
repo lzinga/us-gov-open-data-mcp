@@ -11,6 +11,7 @@
 
 import { createClient } from "../../shared/client.js";
 import { integerValue, odataString } from "../../shared/query-escape.js";
+import { stateAs } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -207,7 +208,7 @@ export async function getDisasterDeclarations(opts?: {
   if (opts?.skip) params.$skip = String(opts.skip);
 
   const filters: string[] = [];
-  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
+  if (opts?.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.year) {
     const year = integerValue(opts.year, "year");
     filters.push(`declarationDate ge '${year}-01-01T00:00:00.000z'`);
@@ -240,7 +241,7 @@ export async function getHousingAssistance(opts?: {
 
   const filters: string[] = [];
   if (opts?.disasterNumber) filters.push(`disasterNumber eq ${odataString(integerValue(opts.disasterNumber, "disaster_number"))}`);
-  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
+  if (opts?.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (opts?.county) filters.push(`county eq ${odataString(opts.county)}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
@@ -266,7 +267,7 @@ export async function getPublicAssistance(opts?: {
 
   const filters: string[] = [];
   if (opts?.disasterNumber) filters.push(`disasterNumber eq ${odataString(integerValue(opts.disasterNumber, "disaster_number"))}`);
-  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
+  if (opts?.state) filters.push(`state eq ${odataString(stateAs(opts.state, "usps").toUpperCase())}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
   const res = await api.get("/PublicAssistanceGrantAwardActivities", params);

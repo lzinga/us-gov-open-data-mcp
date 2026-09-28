@@ -21,7 +21,7 @@ export const tools: Tool<any, any>[] = [
       "Requires AQS_API_KEY and AQS_EMAIL. Signup: https://aqs.epa.gov/data/api/signup",
     annotations: { title: "EPA: Air Quality (AQS)", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().describe("2-digit state FIPS code with leading zero: '06' (CA), '48' (TX), '37' (NC)"),
+      state: z.string().describe("State: FIPS code, name or two-letter code, e.g. '06', 'California' or 'CA'; '37' is North Carolina"),
       param: z.string().describe(`AQS parameter code: ${describeEnum(AQS_PARAMS as Record<string, string>)}. Up to 5 comma-separated.`),
       bdate: z.string().describe("Begin date YYYYMMDD: '20240101'"),
       edate: z.string().describe("End date YYYYMMDD (must be same year as bdate): '20241231'"),
@@ -48,7 +48,7 @@ export const tools: Tool<any, any>[] = [
       "Requires AQS_API_KEY and AQS_EMAIL.",
     annotations: { title: "EPA: Daily Air Quality (AQS)", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().describe("2-digit state FIPS code: '06' (CA), '48' (TX)"),
+      state: z.string().describe("State: FIPS code, name or two-letter code, e.g. '06', 'California' or 'CA'"),
       param: z.string().describe(`AQS parameter code: ${describeEnum(AQS_PARAMS as Record<string, string>)}`),
       bdate: z.string().describe("Begin date YYYYMMDD"),
       edate: z.string().describe("End date YYYYMMDD (same year as bdate)"),
@@ -73,7 +73,7 @@ export const tools: Tool<any, any>[] = [
       "Useful for finding what is being measured and where. Requires AQS_API_KEY and AQS_EMAIL.",
     annotations: { title: "EPA: Air Monitors (AQS)", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().describe("2-digit state FIPS code: '06' (CA), '48' (TX)"),
+      state: z.string().describe("State: FIPS code, name or two-letter code, e.g. '06', 'California' or 'CA'"),
       param: z.string().describe(`AQS parameter code: ${describeEnum(AQS_PARAMS as Record<string, string>)}`),
       bdate: z.string().describe("Begin date YYYYMMDD"),
       edate: z.string().describe("End date YYYYMMDD"),
