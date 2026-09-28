@@ -3,17 +3,22 @@
  */
 
 import { z } from "zod";
-import type { Tool } from "fastmcp";
+import { UserError, type Tool } from "fastmcp";
 import {
   getSeriesData,
   searchPopularSeries,
   getStateEmploymentSeries,
   getAvailableTopics,
+  lausSeries,
+  oewsSeries,
+  LAUS_MEASURES,
+  OEWS_MEASURES,
   cpiSeries,
   industrySeries,
   type BlsSeries,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
+import { keysEnum } from "../../shared/enum-utils.js";
 
 function summarizeSeriesData(s: BlsSeries) {
   const obs = s.data.map(d => ({
@@ -93,18 +98,38 @@ export const tools: Tool<any, any>[] = [
       "- CES0500000003: Average hourly earnings, total private\n" +
       "- JTS000000000000000JOR: Job openings rate (JOLTS)\n" +
       "- PRS85006092: Nonfarm business labor productivity\n\n" +
-      "Series ID prefixes: CES (jobs by industry), LNS (unemployment), CU (CPI), WP (PPI), OE (wages), JT (JOLTS)",
+      "Series ID prefixes: CES (jobs by industry), LNS (unemployment), CU (CPI), WP (PPI), OE (wages), JT (JOLTS)\n\n" +
+      "Series can also be built for you:\n" +
+      "- laus_areas: local unemployment (LAUS) for states or 5-digit county FIPS codes, with laus_measure\n" +
+      "- oews_occupations: wages or employment by occupation (OEWS, annual) for SOC codes like '15-1252' (software developers), " +
+      "'29-1141' (registered nurses), with oews_measure, nationally or in oews_state",
     annotations: { title: "BLS: Get Series Data", readOnlyHint: true },
     parameters: z.object({
-      series_ids: z.string().describe(
-        "Comma-separated BLS series IDs (max 50). Example: 'CES0000000001,LNS14000000,CUUR0000SA0'",
+      series_ids: z.string().optional().describe(
+        "Comma-separated BLS series IDs (max 50 in total). Example: 'CES0000000001,LNS14000000,CUUR0000SA0'",
       ),
+      laus_areas: z.string().optional().describe("States (name or code) or 5-digit county FIPS codes, comma-separated: 'TX, California, 06037'"),
+      laus_measure: z.enum(keysEnum(LAUS_MEASURES)).default("unemployment_rate").describe("LAUS measure (default unemployment_rate)"),
+      oews_occupations: z.string().optional().describe("SOC occupation codes, comma-separated: '15-1252, 29-1141'"),
+      oews_measure: z.enum(keysEnum(OEWS_MEASURES)).default("annual_median_wage").describe("OEWS measure (default annual_median_wage)"),
+      oews_state: z.string().optional().describe("State for OEWS (name or code); omit for national"),
       start_year: z.number().int().optional().describe("Start year (default: 3 years ago). Max 20 year range with API key, 10 without."),
       end_year: z.number().int().optional().describe("End year (default: current year)"),
     }),
-    execute: async ({ series_ids, start_year, end_year }) => {
-      const ids = series_ids.split(",").map((s: string) => s.trim()).filter(Boolean);
-      if (!ids.length) return emptyResponse("No series IDs provided.");
+    execute: async ({ series_ids, laus_areas, laus_measure, oews_occupations, oews_measure, oews_state, start_year, end_year }) => {
+      const labels = new Map<string, string>();
+      const list = (s?: string) => (s ?? "").split(",").map(x => x.trim()).filter(Boolean);
+      for (const area of list(laus_areas)) {
+        const s = lausSeries(area, laus_measure);
+        labels.set(s.id, s.label);
+      }
+      for (const occ of list(oews_occupations)) {
+        const s = oewsSeries(occ, oews_measure, oews_state);
+        labels.set(s.id, s.label);
+      }
+      const ids = [...new Set([...list(series_ids), ...labels.keys()])];
+      if (!ids.length) return emptyResponse("No series requested: give series_ids, laus_areas or oews_occupations.");
+      if (ids.length > 50) throw new UserError(`BLS allows 50 series per request; this asks for ${ids.length}.`);
 
       const defaultStart = new Date().getFullYear() - 3;
       const data = await getSeriesData(ids, {
@@ -120,6 +145,7 @@ export const tools: Tool<any, any>[] = [
       const allObs = series.flatMap(s =>
         s.data.map(d => ({
           seriesId: s.seriesID,
+          label: labels.get(s.seriesID) ?? null,
           period: `${d.year}-${d.period}`,
           periodName: d.periodName,
           year: Number(d.year),
@@ -131,7 +157,9 @@ export const tools: Tool<any, any>[] = [
         `BLS data: ${series.length} series returned${messages ? ` (${messages})` : ""}`,
         {
           rows: allObs,
-          columns: ["seriesId", "period", "periodName", "year", "value", "pctChange12Mo"],
+          columns: labels.size
+            ? ["seriesId", "label", "period", "periodName", "year", "value", "pctChange12Mo"]
+            : ["seriesId", "period", "periodName", "year", "value", "pctChange12Mo"],
           meta: messages ? { notes: messages } : undefined,
         },
       );
