@@ -21,7 +21,7 @@ export function authNote(m: Pick<ApiModule, "auth">): string {
  * Build the full MCP instructions string from module metadata.
  *
  * Structure:
- *   1. Per-module blocks (displayName, description, tools, workflow, tips, auth)
+ *   1. Per-module blocks (displayName, description, workflow, tips, auth)
  *   2. Auto-generated cross-reference routing table (from crossRef metadata)
  *   3. Code Mode guide (curated)
  *   4. Rules (curated)
@@ -30,12 +30,13 @@ export function buildInstructions(modules: ApiModule[]): string {
   const sections: string[] = [];
 
   // ── Section 1: Per-module blocks ──
+  // Tool names aren't listed: clients already get them, with descriptions,
+  // from tools/list, and the lists were over 10% of these instructions.
   for (const m of modules) {
     sections.push(
       [
         `== ${m.displayName.toUpperCase()} ==`,
         m.description,
-        `Tools: ${m.tools.map((t) => t.name).join(", ")}`,
         m.workflow && `Workflow: ${m.workflow}`,
         m.tips,
         authNote(m),

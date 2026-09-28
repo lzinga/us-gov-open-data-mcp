@@ -120,7 +120,7 @@ node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 Unknown module or domain names stop the server with the list of valid names, so a typo can't silently load a
 different set of tools. Prompts only mention tools that are loaded.
 
-With all 41 modules, the server sends ~14K tokens of instructions to the LLM. With 3 modules, this drops to ~3K. Use selective loading when you only need a few data sources and want to minimize context overhead.
+With all 42 modules, the server sends about 16K tokens of instructions to the LLM. With 3 modules, this drops to about 2K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
 To see all available module names without starting the server:
 

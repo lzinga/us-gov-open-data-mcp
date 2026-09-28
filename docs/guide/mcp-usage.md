@@ -1,12 +1,12 @@
 # MCP Usage
 
-With the MCP server running, you can ask AI assistants natural language questions. The server provides ~14K tokens of instructions that teach the LLM how to route questions to the right tools across 40+ APIs.
+With the MCP server running, you can ask AI assistants natural language questions. The server provides ~16K tokens of instructions that teach the LLM how to route questions to the right tools across 40+ APIs.
 
 ## How It Works
 
 When the MCP server connects to a client (VS Code, Claude Desktop, Cursor), it sends:
 
-1. **Instructions** (~14K tokens) — module descriptions, a cross-reference routing table, and analysis rules. This stays in the model's context for the entire session.
+1. **Instructions** (~16K tokens) — module descriptions, a cross-reference routing table, and analysis rules. This stays in the model's context for the entire session.
 2. **300+ tool definitions** — each with name, description, and parameter schema.
 
 The routing table tells the LLM which specific tools + parameters to combine for each question type. For example, when you ask about the deficit, the model reads:
