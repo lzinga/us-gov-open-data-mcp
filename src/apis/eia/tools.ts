@@ -68,6 +68,7 @@ export const tools: Tool<any, any>[] = [
           dateKey: "period",
           valueKey: "value",
           extraFields: ["units", "series", "state", "sector"],
+          seriesKeys: ["series", "state", "sector"],
           total,
           meta: { product: product || "crude", frequency: frequency || "monthly" },
         },
@@ -113,6 +114,7 @@ export const tools: Tool<any, any>[] = [
           dateKey: "period",
           valueKey: "value",
           extraFields: ["state", "sector", "units"],
+          seriesKeys: ["series", "state", "sector"],
           meta: { dataType: data_type || "price", state: state?.toUpperCase() || null },
         },
       );
@@ -151,6 +153,7 @@ export const tools: Tool<any, any>[] = [
           dateKey: "period",
           valueKey: "value",
           extraFields: ["units", "series", "state", "sector"],
+          seriesKeys: ["series", "state", "sector"],
         },
       );
     },
@@ -204,6 +207,7 @@ export const tools: Tool<any, any>[] = [
           dateKey: "period",
           valueKey: "value",
           extraFields: ["state", "units", "series"],
+          seriesKeys: ["series", "state", "sector"],
           meta: { msn: msn || "TETCB", state: state?.toUpperCase() || null },
         },
       );
@@ -252,6 +256,7 @@ export const tools: Tool<any, any>[] = [
           dateKey: "period",
           valueKey: "value",
           extraFields: ["units", "series"],
+          seriesKeys: ["series", "state", "sector"],
           meta: { frequency: frequency || "monthly" },
         },
       );
