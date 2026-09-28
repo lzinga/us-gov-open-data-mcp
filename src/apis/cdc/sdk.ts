@@ -25,17 +25,19 @@ const api = createClient({
 
 /** Available datasets with Socrata endpoint IDs. */
 export const DATASETS = {
-  leading_death: { id: "bi63-dtpu", name: "Leading Causes of Death", description: "U.S. leading causes of death by state and year (1999–present)" },
+  leading_death: { id: "bi63-dtpu", name: "Leading Causes of Death", description: "U.S. leading causes of death by state and year (1999–2017, final; no newer release on data.cdc.gov)" },
   life_expectancy: { id: "w9j2-ggv5", name: "Life Expectancy", description: "Life expectancy at birth by race (All Races, Black, White) and sex (1900–2018)" },
   mortality_rates: { id: "489q-934x", name: "Provisional Mortality Rates", description: "Quarterly age-adjusted death rates by cause, sex, and state (2020–present)" },
   places_county: { id: "swc5-untb", name: "PLACES: County Health", description: "County-level health indicators: obesity, diabetes, smoking, depression, sleep, etc. (BRFSS-based)" },
   places_city: { id: "dxpw-cm5u", name: "PLACES: City Health", description: "City-level health indicators: obesity, diabetes, smoking, depression, sleep, etc. (BRFSS-based)" },
-  covid_cases: { id: "pwn4-m3yp", name: "COVID-19 Cases & Deaths", description: "COVID-19 weekly cases and deaths by state (through early 2023)" },
+  covid_cases: { id: "pwn4-m3yp", name: "COVID-19 Cases & Deaths (archived)", description: "COVID-19 weekly cases and deaths by state, archived in 2023 after national case reporting ended; current COVID-19 deaths are in weekly_deaths" },
   covid_conditions: { id: "hk9y-quqm", name: "COVID-19 Conditions", description: "COVID-19 deaths by contributing condition, age group, and state" },
   weekly_deaths: { id: "r8kw-7aab", name: "Weekly Death Surveillance", description: "Provisional weekly death counts by state: COVID-19, pneumonia, influenza, total deaths (updated weekly, 2020–present)" },
   disability: { id: "s2qv-b27b", name: "Disability Prevalence", description: "Disability status and types by state: mobility, cognitive, hearing, vision, self-care (BRFSS)" },
   weekly_deaths_by_cause: { id: "muzy-jte6", name: "Weekly Deaths by Cause", description: "Weekly deaths by state and cause: heart disease, cancer, diabetes, stroke, COVID, respiratory (2020–2023)" },
   drug_overdose_state: { id: "xbxb-epbu", name: "Drug Poisoning Mortality by State", description: "Drug poisoning/overdose death rates by state, sex, race, and age (1999–2016)" },
+  drug_overdose_provisional: { id: "xkb8-kh2a", name: "Provisional Drug Overdose Deaths", description: "VSRR provisional 12-month-ending drug overdose death counts by state and drug (2015–present, monthly)" },
+  life_expectancy_state: { id: "it4f-frdc", name: "State Life Expectancy by Sex", description: "Life expectancy at birth by state and sex (2021; also 2018–2020)" },
   nutrition_obesity: { id: "hn4x-zwk7", name: "Nutrition, Physical Activity & Obesity", description: "Adult obesity, physical inactivity, and fruit/vegetable consumption by state from BRFSS" },
   death_rates_historical: { id: "6rkc-nb2q", name: "Historical Death Rates by Cause", description: "Age-adjusted death rates for major causes (heart disease, cancer, stroke, etc.) since 1900" },
   birth_indicators: { id: "76vv-a7x8", name: "Quarterly Birth Indicators", description: "Provisional quarterly birth rates, teen births, preterm births, cesarean rates by race/ethnicity" },
@@ -92,6 +94,32 @@ export async function getLifeExpectancy(opts?: {
     order: "year DESC",
     limit: opts?.limit ?? 200,
   });
+}
+
+/** State life expectancy releases; each year is its own dataset with its own field names. */
+const STATE_LIFE_EXPECTANCY: Record<number, { id: string; stateField: string; valueField: string }> = {
+  2018: { id: "a5a8-jsrq", stateField: "state", valueField: "leb" },
+  2019: { id: "ncvk-7amm", stateField: "state", valueField: "leb" },
+  2020: { id: "ss2j-8ajj", stateField: "state", valueField: "le" },
+  2021: { id: "it4f-frdc", stateField: "area", valueField: "leb" },
+};
+export const STATE_LIFE_EXPECTANCY_YEARS = Object.keys(STATE_LIFE_EXPECTANCY).map(Number);
+
+/** Life expectancy at birth by state and sex (2018–2021; default the latest), highest first. */
+export async function getStateLifeExpectancy(opts: {
+  state?: string; year?: number; sex?: "Total" | "Male" | "Female";
+} = {}): Promise<{ year: number; state: string; sex: string; lifeExpectancy: number | null; standardError: number | null }[]> {
+  const year = opts.year ?? Math.max(...STATE_LIFE_EXPECTANCY_YEARS);
+  const ds = STATE_LIFE_EXPECTANCY[year];
+  if (!ds) throw new Error(`State life expectancy is available for ${STATE_LIFE_EXPECTANCY_YEARS.join(", ")}, not ${year}.`);
+  const clauses: string[] = [];
+  if (opts.state) clauses.push(`${ds.stateField} = ${soqlString(stateAs(opts.state, "name"))}`);
+  if (opts.sex) clauses.push(`sex = ${soqlString(opts.sex)}`);
+  const rows = await queryDataset(ds.id, { where: clauses.length ? clauses.join(" AND ") : undefined, limit: 500 });
+  const num = (v: unknown) => (v === undefined || v === null || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
+  return rows
+    .map(r => ({ year, state: String(r[ds.stateField]), sex: String(r.sex), lifeExpectancy: num(r[ds.valueField]), standardError: num(r.se) }))
+    .sort((a, b) => (b.lifeExpectancy ?? -1) - (a.lifeExpectancy ?? -1));
 }
 
 /** Provisional mortality rates by cause, sex, and state (dataset 489q-934x, quarterly, 2020–present). */
@@ -209,6 +237,45 @@ export async function getDrugOverdoseData(opts?: {
     order: "year DESC",
     limit: opts?.limit ?? 200,
   });
+}
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** Drug types in the provisional overdose counts (the `indicator` field). */
+export const OVERDOSE_INDICATORS = [
+  "Number of Drug Overdose Deaths",
+  "Opioids (T40.0-T40.4,T40.6)",
+  "Synthetic opioids, excl. methadone (T40.4)",
+  "Heroin (T40.1)",
+  "Natural & semi-synthetic opioids (T40.2)",
+  "Methadone (T40.3)",
+  "Cocaine (T40.5)",
+  "Psychostimulants with abuse potential (T43.6)",
+] as const;
+
+/**
+ * Provisional drug overdose death counts (VSRR), 12 months ending in each
+ * month, by state (or "US") and drug, 2015 to about six months ago. Newest
+ * first.
+ */
+export async function getProvisionalOverdoseDeaths(opts?: {
+  state?: string; year?: number; indicator?: string; limit?: number;
+}): Promise<CdcRecord[]> {
+  const clauses: string[] = [`period = '12 month-ending'`];
+  if (opts?.state) clauses.push(`state = ${soqlString(stateAs(opts.state, "usps").toUpperCase())}`);
+  if (opts?.year) clauses.push(`year = ${soqlString(integerValue(opts.year, "year"))}`);
+  clauses.push(`indicator = ${soqlString(opts?.indicator ?? OVERDOSE_INDICATORS[0])}`);
+  const rows = await queryDataset(DATASETS.drug_overdose_provisional.id, {
+    select: "state, state_name, year, month, indicator, data_value, predicted_value, percent_complete, footnote",
+    where: clauses.join(" AND "),
+    order: "year DESC",
+    // Months are names, so sort them here: fetch whole years, then trim.
+    limit: 5000,
+  });
+  const monthIndex = (r: CdcRecord) => MONTHS.indexOf(String(r.month));
+  return rows
+    .sort((a, b) => Number(b.year) - Number(a.year) || monthIndex(b) - monthIndex(a) || String(a.state).localeCompare(String(b.state)))
+    .slice(0, opts?.limit ?? 200);
 }
 
 /** Nutrition, physical activity, and obesity by state from BRFSS. */

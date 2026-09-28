@@ -4,13 +4,13 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { getLeadingCausesOfDeath, getLifeExpectancy, getMortalityRates, getPlacesHealth, getPlacesCityHealth, getCovidData, getWeeklyDeaths, getDisabilityData, getDrugOverdoseData, getNutritionObesityData, getHistoricalDeathRates, getBirthIndicators, queryDataset, DATASETS } from "./sdk.js";
+import { getLeadingCausesOfDeath, getLifeExpectancy, getStateLifeExpectancy, getMortalityRates, getPlacesHealth, getPlacesCityHealth, getCovidData, getWeeklyDeaths, getDisabilityData, getDrugOverdoseData, getProvisionalOverdoseDeaths, OVERDOSE_INDICATORS, getNutritionObesityData, getHistoricalDeathRates, getBirthIndicators, queryDataset, DATASETS } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 
 export const tools: Tool<any, any>[] = [
   {
     name: "cdc_causes_of_death",
-    description: "Get leading causes of death in the U.S. by state and year.\nData from 1999–2017. Causes include heart disease, cancer, kidney disease, etc.",
+    description: "Get leading causes of death in the U.S. by state and year, 1999–2017 (the final release; NCHS publishes no newer version of this table).\nCauses include heart disease, cancer, kidney disease, etc. For 2020–present use cdc_mortality_rates (rates by cause) or cdc_weekly_deaths (counts).",
     annotations: { title: "CDC: Causes of Death", readOnlyHint: true },
     parameters: z.object({
       state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all states."),
@@ -29,15 +29,31 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "cdc_life_expectancy",
-    description: "Get U.S. life expectancy at birth by race and sex (1900–2018).\nRaces: 'All Races', 'Black', 'White'. Sex: 'Both Sexes', 'Male', 'Female'.\nNote: Data goes through 2018. For more recent mortality trends, use cdc_mortality_rates.",
+    description: "Get life expectancy at birth.\n" +
+      "- National, by race and sex, 1900–2018 (the default). Races: 'All Races', 'Black', 'White'.\n" +
+      "- By state and sex, 2018–2021: give `state` (a state, or 'all' for every state ranked).\n" +
+      "For more recent mortality trends, use cdc_mortality_rates.",
     annotations: { title: "CDC: Life Expectancy", readOnlyHint: true },
     parameters: z.object({
-      year: z.number().int().optional().describe("Year (1900–2018)"),
-      race: z.enum(["All Races", "Black", "White"]).optional().describe("Race filter"),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code, or 'all', for state-level data (2018–2021)"),
+      year: z.number().int().optional().describe("Year: 1900–2018 nationally; 2018–2021 by state (default 2021)"),
+      race: z.enum(["All Races", "Black", "White"]).optional().describe("Race filter (national data only)"),
       sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Sex filter"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
-    execute: async ({ year, race, sex, limit }) => {
+    execute: async ({ state, year, race, sex, limit }) => {
+      if (state) {
+        const rows = await getStateLifeExpectancy({
+          state: state.trim().toLowerCase() === "all" ? undefined : state,
+          year,
+          sex: sex === "Both Sexes" ? "Total" : sex,
+        });
+        if (!rows.length) return emptyResponse(`No state life expectancy data found for ${state}.`);
+        return tableResponse(
+          `Life expectancy at birth by state (${rows[0].year}): ${rows.length} records`,
+          { rows: rows.slice(0, limit), total: rows.length, meta: { source: "NCHS U.S. State Life Expectancy by Sex" } },
+        );
+      }
       const data = await getLifeExpectancy({ year, race, sex, limit });
       if (!data.length) return emptyResponse("No life expectancy data found.");
       return tableResponse(
@@ -157,20 +173,33 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "cdc_drug_overdose",
-    description: "Get drug poisoning/overdose mortality by state (1999\u20132016).\\n" +
-      "Includes death rates by state, sex, race, and age group. Critical for opioid crisis analysis.",
+    description: "Get drug overdose deaths by state. Critical for opioid crisis analysis.\n" +
+      "- source='provisional' (default): provisional 12-month-ending death counts by drug, monthly from 2015 to about " +
+      "six months ago. Drugs: " + OVERDOSE_INDICATORS.join("; ") + ". State 'US' is the national total.\n" +
+      "- source='historical': final death rates by state, sex, race and age group, 1999–2016.",
     annotations: { title: "CDC: Drug Overdose Mortality", readOnlyHint: true },
     parameters: z.object({
-      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'. Omit for all."),
-      year: z.number().int().optional().describe("Year (1999\u20132016)"),
-      sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Sex filter"),
+      source: z.enum(["provisional", "historical"]).default("provisional").describe("'provisional' (2015–present, default) or 'historical' (1999–2016)"),
+      state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'; 'US' for the national total. Omit for all."),
+      year: z.number().int().optional().describe("Year (2015–present provisional; 1999–2016 historical)"),
+      drug: z.string().optional().describe("Provisional only: drug indicator, default 'Number of Drug Overdose Deaths' (all drugs)"),
+      sex: z.enum(["Both Sexes", "Male", "Female"]).optional().describe("Historical only: sex filter"),
       limit: z.number().int().max(1000).default(200).describe("Max records (default 200)"),
     }),
-    execute: async ({ state, year, sex, limit }) => {
+    execute: async ({ source, state, year, drug, sex, limit }) => {
+      if (source === "provisional") {
+        const data = await getProvisionalOverdoseDeaths({ state, year, indicator: drug, limit });
+        if (!data.length) return emptyResponse(`No provisional overdose data found${state ? ` for ${state}` : ""}${year ? ` in ${year}` : ""}.`);
+        const latest = data[0];
+        return tableResponse(
+          `Provisional drug overdose deaths (${drug ?? OVERDOSE_INDICATORS[0]}, 12 months ending): ${data.length} records, latest ${latest.month} ${latest.year}`,
+          { rows: data, meta: { source: "NCHS VSRR Provisional Drug Overdose Death Counts", note: "predicted_value adjusts for pending investigations" } },
+        );
+      }
       const data = await getDrugOverdoseData({ state, year, sex, limit });
       if (!data.length) return emptyResponse(`No drug overdose data found${state ? ` for ${state}` : ""}.`);
       return tableResponse(
-        `Drug overdose mortality: ${data.length} records${state ? ` for ${state}` : ""}${year ? ` (${year})` : ""}`,
+        `Drug overdose mortality (1999–2016): ${data.length} records${state ? ` for ${state}` : ""}${year ? ` (${year})` : ""}`,
         { rows: data },
       );
     },
@@ -241,7 +270,7 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "cdc_covid",
-    description: "Get COVID-19 weekly case and death counts by state (data through early 2023).\nStates use two-letter abbreviations: 'NY', 'CA', 'TX'.",
+    description: "Get COVID-19 weekly case and death counts by state, ARCHIVED: national case reporting ended in 2023, so this stops in May 2023.\nFor current COVID-19 deaths use cdc_weekly_deaths.",
     annotations: { title: "CDC: COVID-19 Data", readOnlyHint: true },
     parameters: z.object({
       state: z.string().optional().describe("State name, two-letter code or FIPS code: 'New York', 'NY' or '36'."),
