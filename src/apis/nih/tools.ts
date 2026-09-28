@@ -10,10 +10,8 @@ import {
   getSpendingByCategory,
   getProjectsByAgency,
   NIH_AGENCIES,
-  SPENDING_CATEGORIES,
   ACTIVITY_CODES,
   FUNDING_MECHANISMS,
-  clearCache as sdkClearCache,
   type NihProject,
 } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";

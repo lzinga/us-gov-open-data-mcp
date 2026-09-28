@@ -66,7 +66,7 @@ describe("congress vote XML via the shared client", () => {
 
     const clerk = calls.filter(c => c.url.hostname === "clerk.house.gov");
     expect(clerk).toHaveLength(1);
-    expect((clerk[0].init?.headers as Record<string, string>)["User-Agent"]).toMatch(/^us-gov-open-data-mcp\//);
+    expect((clerk[0].init!.headers as Record<string, string>)["User-Agent"]).toMatch(/^us-gov-open-data-mcp\//);
     expect(clerk[0].init?.signal).toBeInstanceOf(AbortSignal);
 
     await getHouseVotes({ year: 2010, vote_number: 5 });

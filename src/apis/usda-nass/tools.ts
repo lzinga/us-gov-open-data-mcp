@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { queryStats, getCropProduction, getLivestockData, getPriceReceived, getParamValues, getCount } from "./sdk.js";
+import { queryStats, getCropProduction, getLivestockData, getPriceReceived, } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 
 export const tools: Tool<any, any>[] = [

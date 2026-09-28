@@ -6,16 +6,13 @@ import { z } from "zod";
 import type { Tool } from "fastmcp";
 import {
   searchSchools,
-  getSchoolById,
   querySchools,
   getMostExpensive,
   getHighestEarners,
   getHighestGraduationRates,
-  POPULAR_FIELDS,
   OWNERSHIP,
-  DEGREE_TYPES,
 } from "./sdk.js";
-import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
+import { tableResponse, emptyResponse } from "../../shared/response.js";
 
 function formatSchool(r: Record<string, unknown>) {
   return {

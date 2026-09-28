@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { searchFoods, getFood, listFoods, DATA_TYPES } from "./sdk.js";
+import { searchFoods, getFood, listFoods, } from "./sdk.js";
 import { listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 
 function formatNutrient(n: { nutrientName?: string; value?: number; amount?: number; unitName?: string }) {

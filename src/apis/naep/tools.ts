@@ -14,11 +14,7 @@ import {
   gapVariableAcrossYears,
   gapVariableAcrossJurisdictions,
   getAvailableVariables,
-  SUBJECTS,
-  SUBSCALES,
-  VARIABLES,
   STAT_TYPES,
-  JURISDICTIONS,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";

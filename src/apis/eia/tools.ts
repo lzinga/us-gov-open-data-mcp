@@ -14,8 +14,6 @@ import {
   getFacetValues,
   queryRoute,
   normalizeRoute,
-  sedsMsnCodes,
-  routes,
   type EiaObservation,
 } from "./sdk.js";
 import { timeseriesResponse, emptyResponse, recordResponse, tableResponse } from "../../shared/response.js";

@@ -29,9 +29,9 @@
  */
 
 import "dotenv/config";
-import { readdirSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { readdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { FastMCP, UserError } from "fastmcp";
 import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";

@@ -9,12 +9,6 @@ import {
   getPressRelease,
   searchBlogEntries,
   getBlogEntry,
-  summarizePressRelease,
-  COMPONENTS,
-  TOPICS,
-  clearCache as sdkClearCache,
-  type DojPressRelease,
-  type DojBlogEntry,
 } from "./sdk.js";
 import { listResponse, recordResponse, emptyResponse, cleanHtml } from "../../shared/response.js";
 
@@ -22,30 +16,11 @@ function parseUnixDate(unixStr: string | undefined): string {
   if (!unixStr) return "?";
   try {
     const ts = parseInt(unixStr, 10);
-    if (isNaN(ts)) return unixStr;
+    if (Number.isNaN(ts)) return unixStr;
     return new Date(ts * 1000).toISOString().slice(0, 10);
   } catch {
     return unixStr;
   }
-}
-
-function summarizeBlog(blog: DojBlogEntry): string {
-  const parts: string[] = [];
-  parts.push(blog.title ?? "Untitled");
-  const date = parseUnixDate(blog.date);
-  if (date !== "?") parts.push(`Date: ${date}`);
-  const components = blog.component?.map(c => c.name).join(", ");
-  if (components) parts.push(`Component: ${components}`);
-  if (blog.topic) {
-    const cleanTopic = cleanHtml(blog.topic);
-    if (cleanTopic) parts.push(`Topic: ${cleanTopic}`);
-  }
-  if (blog.url) parts.push(`URL: ${blog.url}`);
-  if (blog.teaser) {
-    const cleanTeaser = cleanHtml(blog.teaser).slice(0, 300);
-    if (cleanTeaser) parts.push(`Summary: ${cleanTeaser}`);
-  }
-  return parts.join("\n");
 }
 
 export const tools: Tool<any, any>[] = [

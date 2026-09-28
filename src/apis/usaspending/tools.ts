@@ -13,8 +13,6 @@ import {
   spendingOverTime,
   agencyOverview,
   currentFiscalYear,
-  awardTypes,
-  agencyCodes,
 } from "./sdk.js";
 import { tableResponse, timeseriesResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 

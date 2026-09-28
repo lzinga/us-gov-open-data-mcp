@@ -89,7 +89,7 @@ describe("auth", () => {
     await client({ auth }).post("/data", { seriesid: ["A"] });
     expect(JSON.parse(calls[0].init?.body as string)).toEqual({ seriesid: ["A"], catalog: "true", registrationkey: "k1" });
     expect(calls[0].init?.method).toBe("POST");
-    expect((calls[0].init?.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
+    expect((calls[0].init!.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
 
     vi.stubEnv("CORE_TEST_BODY_KEY", "");
     await client({ auth }).post("/data", { seriesid: ["A"] });

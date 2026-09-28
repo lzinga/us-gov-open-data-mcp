@@ -100,6 +100,7 @@ export interface FemaRegion {
 }
 
 /** Fema List Response. */
+// biome-ignore lint/correctness/noUnusedVariables: T is unused, but kept so existing FemaListResponse<X> annotations still compile.
 export interface FemaListResponse<T> {
   metadata?: {
     count?: number;

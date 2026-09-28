@@ -8,7 +8,6 @@ import {
   searchDatasets,
   queryDataset,
   queryByKey,
-  clearCache as sdkClearCache,
   DATASETS,
 } from "./sdk.js";
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";

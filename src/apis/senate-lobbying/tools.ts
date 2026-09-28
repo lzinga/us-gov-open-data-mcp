@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { UserError, type Tool } from "fastmcp";
-import { searchFilings, searchFilingsByIssue, getFilingDetail, searchContributions, searchRegistrants, searchClients, searchLobbyists, FILING_TYPES, ISSUE_CODES, ISSUE_SCAN_MAX_FILINGS } from "./sdk.js";
+import { searchFilings, searchFilingsByIssue, getFilingDetail, searchContributions, searchRegistrants, searchLobbyists, FILING_TYPES, ISSUE_CODES, ISSUE_SCAN_MAX_FILINGS } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";
 

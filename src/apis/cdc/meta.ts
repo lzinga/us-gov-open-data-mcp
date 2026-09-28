@@ -25,7 +25,7 @@ export default {
   ],
   reference: {
   datasets: Object.fromEntries(
-    Object.entries(DATASETS).map(([k, v]) => [v.id, `${v.name}: ${v.description}`])
+    Object.entries(DATASETS).map(([, v]) => [v.id, `${v.name}: ${v.description}`])
   ),
   docs: {
     "CDC Open Data": "https://data.cdc.gov/",

@@ -13,16 +13,12 @@ import {
   getSizeStats,
   getFieldValueStats,
   getFieldSizeStats,
-  getVersion,
-  clearCache as sdkClearCache,
   type Study,
 } from "./sdk.js";
 import {
   TRIAL_STATUSES,
   TRIAL_PHASES,
   STUDY_TYPES,
-  INTERVENTION_TYPES,
-  AGENCY_CLASSES,
   FIELD_STATS_TYPES,
   SEARCH_DEFAULT_FIELDS,
 } from "./types.js";

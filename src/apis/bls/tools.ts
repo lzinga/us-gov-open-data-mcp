@@ -20,21 +20,6 @@ import {
 import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
 import { keysEnum } from "../../shared/enum-utils.js";
 
-function summarizeSeriesData(s: BlsSeries) {
-  const obs = s.data.map(d => ({
-    period: `${d.year}-${d.period}`,
-    periodName: d.periodName,
-    year: Number(d.year),
-    value: Number(d.value) || null,
-    pctChange12Mo: d.calculations?.pct_changes?.["12"] ? Number(d.calculations.pct_changes["12"]) : null,
-  }));
-  return {
-    seriesId: s.seriesID,
-    observations: s.data.length,
-    data: obs,
-  };
-}
-
 function computeYoy(s: BlsSeries, labels: Record<string, string>) {
   const label = labels[s.seriesID] ?? s.seriesID;
   const latest = s.data[0];

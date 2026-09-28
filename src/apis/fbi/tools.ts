@@ -16,7 +16,6 @@ import {
   getNibrsData,
   getUseOfForceFederal,
   getUseOfForceNational,
-  getUseOfForceState,
   SUMMARIZED_OFFENSES,
   ARREST_OFFENSES,
   NIBRS_OFFENSES,

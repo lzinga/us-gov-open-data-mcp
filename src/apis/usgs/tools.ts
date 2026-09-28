@@ -16,7 +16,6 @@ import {
   WATER_SITES_DEFAULT_LIMIT,
   WATER_SITES_MAX_LIMIT,
   ALERT_LEVELS,
-  clearCache as sdkClearCache,
   type EarthquakeFeature,
 } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";

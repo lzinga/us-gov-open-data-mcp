@@ -89,7 +89,7 @@ describe("getClimateData with NOAA_API_KEY", () => {
     const { getClimateData } = await import("../src/apis/noaa/sdk.js");
     const res = await getClimateData({ datasetId: "GHCND", stationId: "GHCND:USW00094728", startDate: "2024-01-01", endDate: "2024-01-01" });
     expect(calls[0].url.pathname).toBe("/cdo-web/api/v2/data");
-    expect((calls[0].init?.headers as Record<string, string>).token).toBe("cdo-test-token");
+    expect((calls[0].init!.headers as Record<string, string>).token).toBe("cdo-test-token");
     expect(res).toMatchObject({ source: "cdo", count: 1 });
   });
 });

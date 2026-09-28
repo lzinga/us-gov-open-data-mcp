@@ -7,11 +7,7 @@ import type { Tool } from "fastmcp";
 import {
   getTransportStats,
   getBorderCrossings,
-  TRANSPORT_FIELDS,
   BORDER_MEASURES,
-  DATASETS,
-  clearCache as sdkClearCache,
-  type TransportStatsRecord,
 } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";
