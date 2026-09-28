@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version override (leave empty for auto CalVer: YYYY.M.D)'
+        description: 'Version override as X.Y.Z (leave empty for CalVer YYYY.M.D, UTC). Needed for a second release on the same day.'
         required: false
         type: string
 
@@ -13,45 +13,44 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      # Releases are cut from main only; the version bump is pushed back to it.
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run Prepare Release from main (got $GITHUB_REF)."
+          exit 1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22'
+          fetch-depth: 0 # all tags, for the version check
+          persist-credentials: false # the write token is only given to the push step
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
 
       - name: Install dependencies
         run: npm ci
 
       - name: Determine version
         id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            BASE=$(date -u +'%Y.%-m.%-d')
-            EXISTING=$(npm view us-gov-open-data-mcp versions --json 2>/dev/null || echo "[]")
-            if echo "$EXISTING" | grep -q "\"$BASE\""; then
-              SUFFIX=2
-              while echo "$EXISTING" | grep -q "\"$BASE-$SUFFIX\""; do
-                SUFFIX=$((SUFFIX + 1))
-              done
-              echo "version=$BASE-$SUFFIX" >> $GITHUB_OUTPUT
-            else
-              echo "version=$BASE" >> $GITHUB_OUTPUT
-            fi
-          fi
-          echo "Publishing version: $(grep version $GITHUB_OUTPUT | cut -d= -f2)"
+        env:
+          VERSION_OVERRIDE: ${{ inputs.version }}
+        run: node scripts/release-version.mjs
 
       - name: Set version
-        run: npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Build
         run: npm run build
@@ -59,19 +58,24 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Commit version bump & tag
+      - name: Commit version bump, tag, and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
-          git diff --cached --quiet || git commit -m "release: v${{ steps.version.outputs.version }}"
-          git tag -f "v${{ steps.version.outputs.version }}"
-          git push origin HEAD --tags --force
+          git diff --cached --quiet || git commit -m "release: v$VERSION"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          # No --force: the push fails if main moved during the run or the tag
+          # already exists, and --atomic updates both refs or neither.
+          git push --atomic "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/main" "refs/tags/v$VERSION"
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
-          draft: true
-          generate_release_notes: true
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "v$VERSION" --draft --verify-tag --title "v$VERSION" --generate-notes
