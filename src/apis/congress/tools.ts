@@ -119,7 +119,7 @@ import {
   type CongressHouseRequirement,
   type CongressSenateCommunication,
 } from "./sdk.js";
-import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
+import { tableResponse, listResponse, recordResponse, emptyResponse, cleanHtml } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";
 
 function summarizeBill(b: CongressBill) {
@@ -560,7 +560,7 @@ export const tools: Tool<any, any>[] = [
             versionCode: s.versionCode ?? null,
             actionDate: s.actionDate ?? null,
             actionDesc: s.actionDesc ?? null,
-            text: s.text ?? null,
+            text: s.text ? cleanHtml(s.text) : null,
             updateDate: s.updateDate ?? null,
           })),
         },
@@ -1194,7 +1194,7 @@ export const tools: Tool<any, any>[] = [
           items: data.summaries.map(s => ({
             actionDate: s.actionDate ?? null,
             actionDesc: s.actionDesc ?? null,
-            text: s.text ?? null,
+            text: s.text ? cleanHtml(s.text) : null,
             updateDate: s.updateDate ?? null,
             bill: s.bill ? {
               congress: s.bill.congress ?? null,
@@ -2462,7 +2462,7 @@ export const tools: Tool<any, any>[] = [
           },
           summaries: data.summaries.map(s => ({
             version: s.actionDesc ?? null,
-            text: s.text ?? null,
+            text: s.text ? cleanHtml(s.text) : null,
             date: s.actionDate ?? null,
           })),
           committees: data.committees.map(c => ({
