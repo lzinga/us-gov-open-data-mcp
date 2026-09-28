@@ -56,8 +56,25 @@ export interface TimeseriesStats {
   min: number | null;
   max: number | null;
   mean: number | null;
+  /** Chronologically first observation. */
   first: { date: string; value: number } | null;
+  /** Chronologically last observation. */
   last: { date: string; value: number } | null;
+  /** last − first. */
+  change: number | null;
+  /** (last − first) / |first| × 100; null when first is 0. */
+  changePct: number | null;
+  /**
+   * Compound annual growth rate (%) between first and last. Only when both
+   * values are positive, dates are parseable, and they span at least a year.
+   */
+  cagrPct: number | null;
+  /**
+   * Direction of the least-squares fit over the whole window (dates are used
+   * as the x-axis when they parse; otherwise observation order).
+   * increasing/decreasing: fitted change ≥ 5% of the series' scale and R² ≥ 0.3;
+   * volatile: no consistent direction and dispersion ≥ 10% of scale; stable: otherwise.
+   */
   trend: "increasing" | "decreasing" | "stable" | "volatile" | null;
 }
 
@@ -141,6 +158,31 @@ function collectKeys(objects: AnyRow[]): string[] {
 }
 
 /**
+ * Parse a period label into a UTC timestamp (ms), or null when unrecognized.
+ * Handles: YYYY, YYYY-MM, YYYY-MM-DD[Thh:mm...], "YYYY Qn" / "YYYY-Qn" / "YYYYQn",
+ * "YYYYMnn" / "YYYY-Mnn", and fiscal years "FY2024" (FY starts Oct 1 of the prior year).
+ */
+export function parsePeriod(label: string): number | null {
+  const s = label.trim();
+  let m: RegExpExecArray | null;
+  if ((m = /^(\d{4})$/.exec(s))) return Date.UTC(+m[1], 0, 1);
+  if ((m = /^(\d{4})-(\d{2})$/.exec(s))) return Date.UTC(+m[1], +m[2] - 1, 1);
+  if ((m = /^(\d{4})[-\s]?Q([1-4])$/i.exec(s))) return Date.UTC(+m[1], (+m[2] - 1) * 3, 1);
+  if ((m = /^(\d{4})-?M(\d{2})$/i.exec(s))) return Date.UTC(+m[1], +m[2] - 1, 1);
+  if ((m = /^FY\s?(\d{4})$/i.exec(s))) return Date.UTC(+m[1] - 1, 9, 1);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const t = Date.parse(s.length === 10 ? `${s}T00:00:00Z` : s);
+    return Number.isNaN(t) ? null : t;
+  }
+  return null;
+}
+
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+/** Round to 6 significant digits for compact output. */
+const sig = (n: number) => Number(n.toPrecision(6));
+
+/**
  * Compute stats for a numeric time-series.
  * Handles string values (coerced to number), skips "." and empty strings (FRED convention).
  */
@@ -149,18 +191,21 @@ function computeStats(
   dateKey: string,
   valueKey: string,
 ): TimeseriesStats {
-  const valid: { date: string; value: number }[] = [];
+  const valid: { date: string; value: number; t: number | null }[] = [];
   for (const obj of objects) {
     const raw = obj[valueKey];
     const num = typeof raw === "number" ? raw : Number(raw);
     const date = String(obj[dateKey] ?? "");
     if (!isNaN(num) && raw !== "" && raw !== "." && raw !== null && raw !== undefined) {
-      valid.push({ date, value: num });
+      valid.push({ date, value: num, t: parsePeriod(date) });
     }
   }
 
   if (!valid.length) {
-    return { count: 0, min: null, max: null, mean: null, first: null, last: null, trend: null };
+    return {
+      count: 0, min: null, max: null, mean: null, first: null, last: null,
+      change: null, changePct: null, cagrPct: null, trend: null,
+    };
   }
 
   let min = Infinity, max = -Infinity, sum = 0;
@@ -169,71 +214,85 @@ function computeStats(
     if (value > max) max = value;
     sum += value;
   }
+  const meanRaw = sum / valid.length;
 
-  const mean = Number((sum / valid.length).toPrecision(6));
+  // Chronological order: by parsed time when every date parses, else by label.
+  const timeAware = valid.every(v => v.t !== null);
+  const sorted = [...valid].sort((a, b) =>
+    timeAware ? (a.t as number) - (b.t as number) : a.date.localeCompare(b.date),
+  );
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
 
-  // Find first/last by date (single pass — avoids O(n log n) sort)
-  let first = valid[0], last = valid[0];
-  for (let i = 1; i < valid.length; i++) {
-    if (valid[i].date < first.date) first = valid[i];
-    if (valid[i].date > last.date) last = valid[i];
+  const change = last.value - first.value;
+  const changePct = first.value !== 0 ? (change / Math.abs(first.value)) * 100 : null;
+
+  let cagrPct: number | null = null;
+  if (timeAware && first.value > 0 && last.value > 0) {
+    const years = ((last.t as number) - (first.t as number)) / MS_PER_YEAR;
+    if (years >= 1) cagrPct = ((last.value / first.value) ** (1 / years) - 1) * 100;
   }
 
-  // For trend detection, we need chronological order — sort a copy
-  const sorted = [...valid].sort((a, b) => a.date.localeCompare(b.date));
-  const trend = detectTrend(sorted.map(s => s.value));
+  // x-axis: years since the first observation when dates parse, else index.
+  const xs = sorted.map((p, i) => (timeAware ? ((p.t as number) - (first.t as number)) / MS_PER_YEAR : i));
+  const trend = detectTrend(xs, sorted.map(p => p.value), meanRaw, max - min);
 
   return {
     count: valid.length,
-    min: Number(min.toPrecision(6)),
-    max: Number(max.toPrecision(6)),
-    mean,
-    first,
-    last,
+    min: sig(min),
+    max: sig(max),
+    mean: sig(meanRaw),
+    first: { date: first.date, value: first.value },
+    last: { date: last.date, value: last.value },
+    change: sig(change),
+    changePct: changePct === null ? null : Number(changePct.toFixed(2)),
+    cagrPct: cagrPct === null ? null : Number(cagrPct.toFixed(2)),
     trend,
   };
 }
 
 /**
- * Simple trend detection using linear regression sign + R².
- * Returns null if fewer than 3 points.
+ * Classify the direction of a series from its least-squares fit.
+ *
+ * The fitted change across the whole window (slope × span) is compared with
+ * the series' scale (|mean|, or half the range for series centred near zero),
+ * so the result doesn't depend on how many observations there are — the old
+ * per-step threshold labelled 10 years of steadily rising monthly CPI "stable".
  */
-function detectTrend(values: number[]): "increasing" | "decreasing" | "stable" | "volatile" | null {
-  if (values.length < 3) return null;
+function detectTrend(
+  xs: number[],
+  ys: number[],
+  mean: number,
+  range: number,
+): "increasing" | "decreasing" | "stable" | "volatile" | null {
+  const n = ys.length;
+  if (n < 3) return null;
 
-  const n = values.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  const meanX = xs.reduce((a, b) => a + b, 0) / n;
+  let sxx = 0, sxy = 0, ssTot = 0;
   for (let i = 0; i < n; i++) {
-    sumX += i;
-    sumY += values[i];
-    sumXY += i * values[i];
-    sumX2 += i * i;
+    sxx += (xs[i] - meanX) ** 2;
+    sxy += (xs[i] - meanX) * (ys[i] - mean);
+    ssTot += (ys[i] - mean) ** 2;
   }
+  if (sxx === 0 || ssTot === 0) return "stable";
 
-  const denom = n * sumX2 - sumX * sumX;
-  if (denom === 0) return "stable";
+  const slope = sxy / sxx;
+  let ssRes = 0;
+  for (let i = 0; i < n; i++) {
+    const fitted = mean + slope * (xs[i] - meanX);
+    ssRes += (ys[i] - fitted) ** 2;
+  }
+  const r2 = 1 - ssRes / ssTot;
 
-  const slope = (n * sumXY - sumX * sumY) / denom;
+  const scale = Math.max(Math.abs(mean), range / 2, Number.EPSILON);
+  const fittedChange = slope * (xs[n - 1] - xs[0]);
+  const relChange = fittedChange / scale;
+  const dispersion = Math.sqrt(ssTot / n) / scale;
 
-  // R² for consistency check
-  const ssRes = values.reduce((acc, y, i) => {
-    const yHat = (sumY / n) + slope * (i - sumX / n);
-    return acc + (y - yHat) ** 2;
-  }, 0);
-  const ssTot = values.reduce((acc, y) => acc + (y - sumY / n) ** 2, 0);
-  const r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
-
-  // Low R² means noisy/volatile
-  if (r2 < 0.3) return "volatile";
-
-  // Relative slope: how steep relative to the mean
-  const meanVal = sumY / n;
-  const relSlope = meanVal !== 0 ? slope / Math.abs(meanVal) : slope;
-
-  // Threshold: <1% per-step relative change = stable
-  if (Math.abs(relSlope) < 0.01) return "stable";
-
-  return slope > 0 ? "increasing" : "decreasing";
+  if (r2 >= 0.3 && Math.abs(relChange) >= 0.05) return fittedChange > 0 ? "increasing" : "decreasing";
+  if (dispersion >= 0.1) return "volatile";
+  return "stable";
 }
 
 /** Strip null/undefined values from an object (recursive for nested objects). */
@@ -260,23 +319,37 @@ function stripNulls(obj: AnyRow): Record<string, unknown> {
  *
  * Converts array-of-objects to columnar format + computes stats.
  * Columns default to [dateKey, valueKey, ...extraFields].
+ *
+ * When rows can hold several series (e.g. EIA prices for many states), pass
+ * `seriesKeys`: stats are then computed per series (`seriesStats`) instead of
+ * across a meaningless mix of series.
  */
 export function timeseriesResponse(summary: string, opts: {
   rows: AnyRow[];
   dateKey: string;
   valueKey: string;
   extraFields?: string[];
+  /** Fields that identify a series within the rows. */
+  seriesKeys?: string[];
   total?: number;
   maxRows?: number;
   meta?: Record<string, unknown>;
 }): string {
-  const { rows, dateKey, valueKey, extraFields, maxRows = DEFAULT_MAX_ROWS, meta } = opts;
+  const { rows, dateKey, valueKey, extraFields, seriesKeys, maxRows = DEFAULT_MAX_ROWS, meta } = opts;
   const total = opts.total ?? rows.length;
 
   if (!rows.length) return emptyResponse(summary);
 
-  // Compute stats from ALL rows (before truncation)
-  const stats = computeStats(rows, dateKey, valueKey);
+  // Group rows into series when the caller says rows may mix series.
+  const groups = new Map<string, AnyRow[]>();
+  if (seriesKeys?.length) {
+    for (const row of rows) {
+      const label = seriesKeys.map(k => row[k]).filter(v => v !== undefined && v !== null && v !== "").join(" | ") || "(all)";
+      const group = groups.get(label);
+      if (group) group.push(row);
+      else groups.set(label, [row]);
+    }
+  }
 
   // Build column order
   const columnOrder = [dateKey, valueKey, ...(extraFields ?? [])];
@@ -284,22 +357,40 @@ export function timeseriesResponse(summary: string, opts: {
   // Convert to columnar
   const columnar = toColumnar(rows, columnOrder, maxRows);
 
-  const response: Record<string, unknown> = {
-    summary,
-    dataType: "timeseries",
-    stats,  // Keep nulls — they're meaningful (e.g. trend:null = not enough data)
-    data: {
-      columns: columnar.columns,
-      rows: columnar.rows,
-      total,
-      truncated: columnar.truncated,
-    },
+  const response: Record<string, unknown> = { summary, dataType: "timeseries" };
+
+  // Compute stats from ALL rows (before truncation). Keep nulls — they're
+  // meaningful (e.g. trend:null = not enough data).
+  if (groups.size > 1) {
+    response.stats = null;
+    const multiPoint = [...groups.entries()].filter(([, g]) => g.length > 1);
+    if (!multiPoint.length) {
+      response.statsNote = `${groups.size} series with one observation each; no per-series trends.`;
+    } else {
+      const entries = multiPoint.slice(0, MAX_SERIES_STATS);
+      response.seriesStats = Object.fromEntries(entries.map(([label, g]) => [label, computeStats(g, dateKey, valueKey)]));
+      response.statsNote = multiPoint.length > MAX_SERIES_STATS
+        ? `${groups.size} series in response; stats shown for the first ${MAX_SERIES_STATS} with 2+ observations.`
+        : `${groups.size} series in response; stats are per series${multiPoint.length < groups.size ? " (series with 2+ observations)" : ""}.`;
+    }
+  } else {
+    response.stats = computeStats(rows, dateKey, valueKey);
+  }
+
+  response.data = {
+    columns: columnar.columns,
+    rows: columnar.rows,
+    total,
+    truncated: columnar.truncated,
   };
 
   if (meta) response.meta = stripNulls(meta);
 
   return JSON.stringify(response);
 }
+
+/** Most series given individual stats in one timeseries response. */
+const MAX_SERIES_STATS = 25;
 
 /**
  * Table response — for tabular data with multiple columns (Census, FDIC, FDA, DOL, etc.)
