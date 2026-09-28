@@ -27,11 +27,12 @@ import "dotenv/config";
 import { readdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { FastMCP } from "fastmcp";
+import { FastMCP, UserError } from "fastmcp";
 import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
 import { createServerLogger } from "./server/logger.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
+import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import { DOMAINS, type ApiModule } from "./shared/types.js";
 
@@ -226,21 +227,16 @@ server.addPrompts(buildAnalysisPrompts(activeModules) as any);
 
 /**
  * Tool-name alias map. Resolves old/legacy names to current canonical names
- * inside `code_mode` so cached client prompts and saved system messages keep
- * working after a tool rename. Empty today — populate when a tool is renamed.
+ * so cached client prompts and saved system messages keep working after a
+ * tool rename. Empty today — populate when a tool is renamed.
  */
 const TOOL_ALIASES: Record<string, string> = {
   // Example for future use:
   // "fda_search_events": "fda_drug_events",
 };
 
-// Build a lookup map of all registered tools for code_mode to call
-const allToolMap = new Map<string, (args: Record<string, unknown>) => Promise<unknown>>();
-for (const mod of activeModules) {
-  for (const tool of mod.tools) {
-    allToolMap.set(tool.name, (tool as any).execute);
-  }
-}
+// Validated entry point for calling module tools from server-side features.
+const registry = buildToolRegistry(activeModules, TOOL_ALIASES);
 
 server.addTool({
   name: "code_mode",
@@ -278,24 +274,26 @@ server.addTool({
     ),
   }),
   execute: async ({ tool: toolName, tool_args: toolArgs, code }, { reportProgress }) => {
-    // Resolve any deprecated alias to the current canonical name
-    const resolvedName = TOOL_ALIASES[toolName] ?? toolName;
-    const toolFn = allToolMap.get(resolvedName);
-    if (!toolFn) {
-      const available = [...allToolMap.keys()].sort().join(", ");
-      return `Error: tool '${toolName}' not found. Available tools: ${available}`;
-    }
-
     await reportProgress({ progress: 0, total: 2 });
 
-    // Call the underlying tool
-    let rawResult: string;
-    try {
-      const result = await toolFn(toolArgs ?? {});
-      rawResult = typeof result === "string" ? result : JSON.stringify(result);
-    } catch (err) {
-      return `Error calling '${toolName}': ${(err as Error).message}`;
+    // Call the underlying tool with the same schema validation (defaults,
+    // bounds, enums) FastMCP applies to direct calls.
+    const call = await registry.invoke(toolName, toolArgs ?? {});
+    if (!call.ok) {
+      if (call.kind === "unknown_tool") {
+        const hints = registry.suggest(toolName);
+        throw new UserError(
+          `Tool '${toolName}' not found.` +
+          (hints.length ? ` Did you mean: ${hints.join(", ")}?` : " Use tools/list for available names."),
+        );
+      }
+      if (call.kind === "invalid_args") {
+        throw new UserError(`${call.message}. Fix tool_args and try again.`);
+      }
+      throw new UserError(`Error calling '${toolName}': ${call.message}`);
     }
+    const result = call.result;
+    const rawResult = typeof result === "string" ? result : JSON.stringify(result);
 
     await reportProgress({ progress: 1, total: 2 });
 
@@ -309,11 +307,11 @@ server.addTool({
       const previewLen = Math.min(200, rawResult.length);
       const preview = rawResult.length > 200 ? rawResult.slice(0, 200) + "…" : rawResult;
       const argsJson = JSON.stringify(toolArgs ?? {});
-      return (
+      throw new UserError(
         `Script error: ${error}\n\n` +
         `Called '${toolName}' with args ${argsJson} — returned ${(beforeBytes / 1024).toFixed(1)}KB. ` +
         `Fix the script and try again. The DATA variable contains the tool's raw response as a string.\n\n` +
-        `DATA preview (first ${previewLen} chars):\n${preview}`
+        `DATA preview (first ${previewLen} chars):\n${preview}`,
       );
     }
 

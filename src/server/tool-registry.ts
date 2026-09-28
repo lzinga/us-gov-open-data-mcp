@@ -121,6 +121,27 @@ export class ToolRegistry {
     return [...this.aliases.entries()];
   }
 
+  /**
+   * Canonical names that look like `name` — shared underscore-separated
+   * tokens or substring matches — best first. For "did you mean" hints.
+   */
+  suggest(name: string, limit = 8): string[] {
+    const query = name.toLowerCase();
+    const tokens = new Set(query.split(/[^a-z0-9]+/).filter(Boolean));
+    const scored: [string, number][] = [];
+    for (const candidate of this.tools.keys()) {
+      const parts = candidate.split("_");
+      let score = parts.filter(p => tokens.has(p)).length * 2;
+      if (candidate.includes(query) || query.includes(candidate)) score += 3;
+      if (parts[0] && tokens.has(parts[0])) score += 1;
+      if (score > 0) scored.push([candidate, score]);
+    }
+    return scored
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, limit)
+      .map(([n]) => n);
+  }
+
   /** All registered tools. */
   entries(): RegisteredTool[] {
     return [...this.tools.values()];
