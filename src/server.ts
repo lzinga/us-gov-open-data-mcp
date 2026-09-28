@@ -41,6 +41,7 @@ import { createServerLogger } from "./server/logger.js";
 import { selectModules } from "./server/module-selection.js";
 import { filterPrompts } from "./server/prompt-filter.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
+import { modulesWithReference, referenceUri, renderReference } from "./server/reference-resources.js";
 import { budgetResult, maxResponseBytes } from "./server/response-budget.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
 import { executeInSandbox } from "./shared/sandbox.js";
@@ -493,9 +494,26 @@ server.addResource({
       if (m.workflow) md += `**Workflow:** ${m.workflow}\n\n`;
     }
 
+    const withReference = modulesWithReference(activeModules);
+    if (withReference.length) {
+      md += `## Reference Data\n\n`;
+      md += `Code tables and documentation links, one resource per module:\n\n`;
+      md += withReference.map(m => `- \`${referenceUri(m.name)}\` — ${m.displayName}`).join("\n");
+      md += `\n`;
+    }
+
     return { text: md };
   },
 });
+
+for (const m of modulesWithReference(activeModules)) {
+  server.addResource({
+    uri: referenceUri(m.name),
+    name: `${m.displayName} reference`,
+    mimeType: "text/markdown",
+    load: async () => ({ text: renderReference(m) }),
+  });
+}
 
 // ─── Start ───────────────────────────────────────────────────────────
 
