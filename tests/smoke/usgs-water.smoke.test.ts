@@ -23,4 +23,24 @@ describe("usgs water (live, Water Data APIs)", () => {
     const sameAsLegacy = ["01646500", "01638500", "01594440"].filter(s => siteNos.has(s));
     expect(sameAsLegacy.length).toBeGreaterThan(0);
   });
+
+  it("usgs_water_data returns a day of discharge readings for the Potomac at Little Falls", async () => {
+    const res = await callTool("usgs", "usgs_water_data", { sites: "01646500", parameter_cd: "00060", period: "P1D" });
+    const items = (res.data?.items ?? []) as { siteCode: string; siteName: string; unit: string; latestValue: number; readingCount: number; latestDateTime: string }[];
+    expect(items.length).toBe(1);
+    const s = items[0];
+    expect(s.siteCode).toBe("01646500");
+    expect(s.siteName).toMatch(/POTOMAC/);
+    expect(s.unit).toBe("ft^3/s");
+    expect(s.readingCount).toBeGreaterThan(24); // 5–15 minute readings over a day
+    expect(typeof s.latestValue).toBe("number");
+    expect(Date.now() - Date.parse(s.latestDateTime)).toBeLessThan(3 * 24 * 3600 * 1000);
+  });
+
+  it("usgs_water_data with only a state returns current readings from many sites", async () => {
+    const res = await callTool("usgs", "usgs_water_data", { state_cd: "MD", parameter_cd: "00060" });
+    const items = (res.data?.items ?? []) as { siteCode: string; readingCount: number }[];
+    expect(items.length).toBeGreaterThan(20);
+    expect(items.every(i => i.readingCount === 1)).toBe(true);
+  });
 });

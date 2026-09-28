@@ -269,41 +269,177 @@ export async function getSignificantEarthquakes(): Promise<EarthquakeResponse> {
   );
 }
 
+/** One observation from the continuous or daily collections. */
+export interface WaterObservation {
+  monitoringLocationId: string;
+  /** Identifies one sensor/record series; a site can have several per parameter. */
+  timeSeriesId: string | null;
+  parameterCode: string;
+  statisticId: string | null;
+  time: string;
+  value: number | null;
+  unit: string | null;
+  approvalStatus: string | null;
+}
+
+/** Summary of one time series (site × parameter × statistic). */
+export interface WaterSeries {
+  monitoringLocationId: string;
+  siteNo: string;
+  siteName: string | null;
+  parameterCode: string;
+  statisticId: string | null;
+  unit: string | null;
+  count: number;
+  earliest: { time: string; value: number | null } | null;
+  latest: { time: string; value: number | null } | null;
+  min: number | null;
+  max: number | null;
+  mean: number | null;
+}
+
+/** Most observations fetched per request (the API pages at 10 by default). */
+export const WATER_OBSERVATION_LIMIT = 10_000;
+
+/** Most site IDs resolved to names in one request. */
+const MAX_NAME_LOOKUP = 250;
+
+/** Build the `time` filter: an ISO 8601 duration ("P7D") or an interval ("2024-01-01/2024-01-31"). */
+function timeFilter(period: string | undefined, start: string | undefined, end: string | undefined, fallback: string): string {
+  if (start || end) return `${start ?? ".."}/${end ?? ".."}`;
+  return period ?? fallback;
+}
+
+/** Fetch observations from a Water Data API collection, oldest first. */
+async function fetchObservations(
+  collection: "continuous" | "latest-continuous" | "daily",
+  params: Record<string, string | number | undefined>,
+): Promise<{ observations: WaterObservation[]; truncated: boolean }> {
+  const res = await waterDataApi.get<{ features?: { properties?: Record<string, unknown> }[] }>(
+    `${OGC}/${collection}/items`,
+    {
+      f: "json",
+      skipGeometry: "true",
+      sortby: "time",
+      limit: WATER_OBSERVATION_LIMIT,
+      properties: "time_series_id,monitoring_location_id,parameter_code,statistic_id,time,value,unit_of_measure,approval_status",
+      ...params,
+    },
+  );
+  const features = res.features ?? [];
+  const observations = features.map((f): WaterObservation => {
+    const p = f.properties ?? {};
+    const raw = p.value;
+    const num = raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    return {
+      monitoringLocationId: String(p.monitoring_location_id ?? ""),
+      timeSeriesId: (p.time_series_id as string) ?? null,
+      parameterCode: String(p.parameter_code ?? ""),
+      statisticId: (p.statistic_id as string) ?? null,
+      time: String(p.time ?? ""),
+      value: num !== null && Number.isFinite(num) ? num : null,
+      unit: (p.unit_of_measure as string) ?? null,
+      approvalStatus: (p.approval_status as string) ?? null,
+    };
+  });
+  return { observations, truncated: features.length >= WATER_OBSERVATION_LIMIT };
+}
+
+/** Look up monitoring-location names for up to MAX_NAME_LOOKUP IDs. */
+async function siteNames(ids: string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(ids)].slice(0, MAX_NAME_LOOKUP);
+  if (!unique.length) return new Map();
+  const res = await waterDataApi.get<{ features?: { id?: string; properties?: Record<string, unknown> }[] }>(
+    `${OGC}/monitoring-locations/items`,
+    { f: "json", skipGeometry: "true", id: unique.join(","), limit: unique.length, properties: "monitoring_location_name" },
+  );
+  const names = new Map<string, string>();
+  for (const f of res.features ?? []) {
+    const id = String(f.id ?? f.properties?.id ?? "");
+    const name = f.properties?.monitoring_location_name;
+    if (id && typeof name === "string") names.set(id, name);
+  }
+  return names;
+}
+
+/** Group observations into per-series summaries, adding site names. */
+async function summarizeSeries(observations: WaterObservation[]): Promise<WaterSeries[]> {
+  const groups = new Map<string, WaterObservation[]>();
+  for (const o of observations) {
+    const key = `${o.monitoringLocationId}|${o.parameterCode}|${o.statisticId ?? ""}|${o.timeSeriesId ?? ""}`;
+    const group = groups.get(key);
+    if (group) group.push(o);
+    else groups.set(key, [o]);
+  }
+  let names = new Map<string, string>();
+  try {
+    names = await siteNames(observations.map(o => o.monitoringLocationId));
+  } catch {
+    // Names are a convenience; the data is still valid without them.
+  }
+  return [...groups.values()].map(group => {
+    const sorted = [...group].sort((a, b) => a.time.localeCompare(b.time));
+    const values = sorted.map(o => o.value).filter((v): v is number => v !== null);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    return {
+      monitoringLocationId: first.monitoringLocationId,
+      siteNo: siteNumber(first.monitoringLocationId),
+      siteName: names.get(first.monitoringLocationId) ?? null,
+      parameterCode: first.parameterCode,
+      statisticId: first.statisticId,
+      unit: first.unit,
+      count: sorted.length,
+      earliest: { time: first.time, value: first.value },
+      latest: { time: last.time, value: last.value },
+      min: values.length ? Math.min(...values) : null,
+      max: values.length ? Math.max(...values) : null,
+      mean: values.length ? Number((values.reduce((a, b) => a + b, 0) / values.length).toPrecision(6)) : null,
+    };
+  });
+}
+
 /**
- * Get USGS water data (streamflow, water level, temperature, etc.) from monitoring sites.
+ * Get real-time ("continuous", formerly instantaneous-value) water data.
+ *
+ * With `sites`, returns every reading in the time window (default: last day).
+ * With only `stateCd`, returns the latest reading of each reporting site in
+ * the state (the window is ignored). The continuous collection allows at
+ * most three years per request.
  *
  * Example:
- *   const data = await getWaterData({ sites: "01646500", parameterCd: "00060" });
- *   const data = await getWaterData({ stateCd: "CA", parameterCd: "00060", period: "P7D" });
+ *   const { series } = await getWaterData({ sites: "01646500", parameterCd: "00060" });
+ *   const { series } = await getWaterData({ stateCd: "CA", parameterCd: "00060" });
  */
 export async function getWaterData(opts: {
+  /** Site numbers or monitoring-location IDs, comma-separated. */
   sites?: string;
+  /** State as USPS code, name, or FIPS (used when `sites` is omitted). */
   stateCd?: string;
-  countyCd?: string;
-  huc?: string;
   parameterCd?: string;
+  /** ISO 8601 duration, default P1D. */
   period?: string;
   startDT?: string;
   endDT?: string;
-  siteType?: string;
-  siteStatus?: "all" | "active" | "inactive";
-}): Promise<WaterResponse> {
-  const params: Record<string, string | number | undefined> = {
-    format: "json",
-    sites: opts.sites,
-    stateCd: opts.stateCd,
-    countyCd: opts.countyCd,
-    huc: opts.huc,
-    parameterCd: opts.parameterCd ?? "00060",
-    period: opts.period ?? "P1D",
-    startDT: opts.startDT,
-    endDT: opts.endDT,
-    siteType: opts.siteType,
-    siteStatus: opts.siteStatus ?? "active",
-  };
-  // Remove period if explicit date range is given
-  if (opts.startDT || opts.endDT) delete params.period;
-  return waterApi.get<WaterResponse>("/iv/", params);
+}): Promise<{ series: WaterSeries[]; truncated: boolean; mode: "window" | "latest" }> {
+  const parameterCode = opts.parameterCd ?? "00060";
+  if (opts.sites) {
+    const ids = opts.sites.split(",").map(s => s.trim()).filter(Boolean).map(toMonitoringLocationId);
+    const { observations, truncated } = await fetchObservations("continuous", {
+      monitoring_location_id: ids.join(","),
+      parameter_code: parameterCode,
+      time: timeFilter(opts.period, opts.startDT, opts.endDT, "P1D"),
+    });
+    return { series: await summarizeSeries(observations), truncated, mode: "window" };
+  }
+  if (opts.stateCd) {
+    const { observations, truncated } = await fetchObservations("latest-continuous", {
+      state_code: resolveState(opts.stateCd, "state_cd").fips,
+      parameter_code: parameterCode,
+    });
+    return { series: await summarizeSeries(observations), truncated, mode: "latest" };
+  }
+  throw new Error("Provide sites or state_cd to get water data.");
 }
 
 /** A USGS monitoring location (from the Water Data APIs). */

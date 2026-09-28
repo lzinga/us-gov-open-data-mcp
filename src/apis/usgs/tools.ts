@@ -115,18 +115,19 @@ export const tools: Tool<any, any>[] = [
     description:
       "Get real-time water data (streamflow, gage height, temperature) from USGS monitoring sites.\n" +
       "13,000+ stations nationwide. Parameter codes: 00060=discharge (cfs), 00065=gage height (ft), 00010=water temp (°C).\n" +
-      "Query by site ID, state, county, or hydrologic unit code (HUC).",
+      "With sites: every reading in the time window (default last day; up to 3 years per request).\n" +
+      "With only state_cd: the latest reading at each reporting site in the state (current conditions).",
     annotations: { title: "USGS: Water Data", readOnlyHint: true },
     parameters: z.object({
       sites: z.string().optional().describe("USGS site number(s), comma-separated: '01646500' or '01646500,01647000'"),
-      state_cd: z.string().optional().describe("Two-letter state code: 'CA', 'TX', 'NY'"),
+      state_cd: z.string().optional().describe("State (code, name, or FIPS) — returns the latest reading per site when sites is omitted"),
       parameter_cd: z.string().optional().describe("Parameter code: '00060' (discharge), '00065' (gage height), '00010' (temp). Default: 00060"),
       period: z.string().optional().describe("ISO 8601 duration: 'P1D' (1 day, default), 'P7D' (7 days), 'P30D' (30 days)"),
       start_dt: z.string().optional().describe("Start date: '2024-01-01' (overrides period)"),
       end_dt: z.string().optional().describe("End date: '2024-01-31'"),
     }),
     execute: async (args) => {
-      const data = await getWaterData({
+      const { series, truncated, mode } = await getWaterData({
         sites: args.sites,
         stateCd: args.state_cd,
         parameterCd: args.parameter_cd,
@@ -134,23 +135,26 @@ export const tools: Tool<any, any>[] = [
         startDT: args.start_dt,
         endDT: args.end_dt,
       });
-      const series = data?.value?.timeSeries ?? [];
       if (!series.length) return emptyResponse("No water data found for the specified criteria.");
 
-      const items = series.map((ts: any) => {
-        const values = ts.values?.[0]?.value ?? [];
-        const latest = values[values.length - 1];
-        return {
-          siteName: ts.sourceInfo?.siteName ?? null,
-          siteCode: ts.sourceInfo?.siteCode?.[0]?.value ?? null,
-          variable: ts.variable?.variableName ?? null,
-          unit: ts.variable?.unit?.unitCode ?? null,
-          latestValue: latest?.value ?? null,
-          latestDateTime: latest?.dateTime ?? null,
-          readingCount: values.length,
-        };
-      });
-      return listResponse(`${series.length} water time series found`, { items, total: series.length });
+      const items = series.map(s => ({
+        siteName: s.siteName,
+        siteCode: s.siteNo,
+        parameterCode: s.parameterCode,
+        variable: (WATER_PARAMS as Record<string, string>)[s.parameterCode] ?? null,
+        unit: s.unit,
+        latestValue: s.latest?.value ?? null,
+        latestDateTime: s.latest?.time ?? null,
+        readingCount: s.count,
+        min: mode === "window" ? s.min : undefined,
+        max: mode === "window" ? s.max : undefined,
+      }));
+      return listResponse(
+        mode === "latest"
+          ? `Latest readings at ${series.length} reporting site(s)${truncated ? " (limit reached)" : ""}`
+          : `${series.length} water time series found${truncated ? " (observation limit reached; narrow the time window)" : ""}`,
+        { items, total: series.length, meta: { source: `USGS Water Data APIs (${mode === "latest" ? "latest-continuous" : "continuous"})` } },
+      );
     },
   },
 
