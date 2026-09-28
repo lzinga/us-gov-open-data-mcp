@@ -7,10 +7,11 @@ import type { Tool } from "fastmcp";
 import {
   queryCensus,
   searchVariables,
+  getPlaceProfile,
   commonVariables,
   datasets,
 } from "./sdk.js";
-import { tableResponse, listResponse, emptyResponse } from "../../shared/response.js";
+import { tableResponse, listResponse, emptyResponse, recordResponse } from "../../shared/response.js";
 import { stateAs } from "../../shared/geo.js";
 
 /** Convert a row array + headers into an object, coercing numeric values. */
@@ -26,6 +27,33 @@ function rowToObject(headers: string[], row: string[]): Record<string, unknown> 
 }
 
 export const tools: Tool<any, any>[] = [
+  {
+    name: "census_place_profile",
+    description:
+      "Key facts for a state, county, city/town or ZIP code from the Census American Community Survey (5-year estimates): " +
+      "population, median household income, median age, poverty rate, unemployment rate, median home value, median rent, " +
+      "and share with a bachelor's degree or higher.\n" +
+      "Give a state alone, a state + county, a state + place (city/town name), or a zcta (ZIP). " +
+      "Names are matched to Census names, e.g. place 'Los Angeles' → 'Los Angeles city, California'.",
+    annotations: { title: "Census: Place Profile", readOnlyHint: true },
+    parameters: z.object({
+      state: z.string().optional().describe("State name, two-letter code or FIPS code (needed unless zcta is given)"),
+      county: z.string().optional().describe("County name ('Los Angeles'), 3-digit county FIPS ('037') or 5-digit FIPS ('06037')"),
+      place: z.string().optional().describe("City, town or CDP name ('Austin') or 5-digit place FIPS code"),
+      zcta: z.string().optional().describe("5-digit ZIP code (ZIP Code Tabulation Area)"),
+      year: z.number().int().min(2009).optional().describe("ACS 5-year release year (default: the latest)"),
+    }),
+    execute: async ({ state, county, place, zcta, year }) => {
+      const profile = await getPlaceProfile({ state, county, place, zcta, year });
+      return recordResponse(
+        `${profile.name}: population ${profile.population?.toLocaleString("en-US") ?? "n/a"}, median household income ` +
+        `${profile.medianHouseholdIncome !== null ? `$${profile.medianHouseholdIncome.toLocaleString("en-US")}` : "n/a"} (ACS ${profile.year} 5-year)`,
+        profile,
+        { source: `Census ACS 5-year (${profile.year - 4}–${profile.year})`, rates: "percent; poverty and unemployment are shares of their ACS universes" },
+      );
+    },
+  },
+
   {
     name: "census_query",
     description:
