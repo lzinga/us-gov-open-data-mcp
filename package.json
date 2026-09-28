@@ -141,7 +141,7 @@
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.11"
   },
   "readme": "./README.md"
 }
