@@ -61,6 +61,19 @@ describe("stdio server (all modules)", () => {
     const res = await session.client.readResource({ uri: "govdata://reference" });
     const text = (res.contents[0] as { text?: string }).text ?? "";
     expect(text).toContain("# US Government Open Data — API Reference");
+    expect(text).toContain("## Reference Data");
+    expect(text).toContain("`govdata://congress/reference`");
+  });
+
+  it("serves per-module reference resources", async () => {
+    const { resources } = await session.client.listResources();
+    const uris = resources.map(r => r.uri);
+    expect(uris).toContain("govdata://fbi/reference");
+    expect(uris).not.toContain("govdata://census/reference"); // no reference data
+    const res = await session.client.readResource({ uri: "govdata://congress/reference" });
+    const text = (res.contents[0] as { text?: string }).text ?? "";
+    expect(text).toContain("# Congress.gov — reference data");
+    expect(text).toContain("| `hr` |");
   });
 
   it("lists and renders prompts", async () => {
