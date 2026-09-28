@@ -204,20 +204,21 @@ export const tools: Tool<any, any>[] = [
   {
     name: "usgs_daily_water_data",
     description:
-      "Get USGS daily value water data (historical daily averages).\n" +
-      "Unlike real-time instantaneous values, these are aggregated daily means — better for trend analysis.\n" +
-      "Parameter codes: 00060=discharge (cfs), 00065=gage height (ft), 00010=water temp (°C).",
+      "Get USGS daily values (daily means of the continuous record) for trend analysis.\n" +
+      "Unlike real-time readings, these are one value per day — better for multi-month or multi-year trends.\n" +
+      "Parameter codes: 00060=discharge (cfs), 00065=gage height (ft), 00010=water temp (°C).\n" +
+      "With only state_cd, returns every site in the state (keep the window short).",
     annotations: { title: "USGS: Daily Water Data", readOnlyHint: true },
     parameters: z.object({
       sites: z.string().optional().describe("USGS site number(s): '01646500'"),
-      state_cd: z.string().optional().describe("Two-letter state code: 'CA', 'TX'"),
+      state_cd: z.string().optional().describe("State (code, name, or FIPS) — all sites in the state when sites is omitted"),
       parameter_cd: z.string().optional().describe("Parameter code: '00060' (discharge), '00065' (gage height). Default: 00060"),
       period: z.string().optional().describe("ISO 8601 duration: 'P30D' (default), 'P90D', 'P365D'"),
       start_dt: z.string().optional().describe("Start date: '2024-01-01' (overrides period)"),
       end_dt: z.string().optional().describe("End date: '2024-12-31'"),
     }),
     execute: async (args) => {
-      const data = await getDailyWaterData({
+      const { series, truncated } = await getDailyWaterData({
         sites: args.sites,
         stateCd: args.state_cd,
         parameterCd: args.parameter_cd,
@@ -225,26 +226,27 @@ export const tools: Tool<any, any>[] = [
         startDT: args.start_dt,
         endDT: args.end_dt,
       });
-      const series = data?.value?.timeSeries ?? [];
       if (!series.length) return emptyResponse("No daily water data found.");
 
-      const items = series.map((ts: any) => {
-        const values = ts.values?.[0]?.value ?? [];
-        const latest = values[values.length - 1];
-        const earliest = values[0];
-        return {
-          siteName: ts.sourceInfo?.siteName ?? null,
-          siteCode: ts.sourceInfo?.siteCode?.[0]?.value ?? null,
-          variable: ts.variable?.variableName ?? null,
-          unit: ts.variable?.unit?.unitCode ?? null,
-          dailyValueCount: values.length,
-          latestValue: latest?.value ?? null,
-          latestDate: latest?.dateTime?.split("T")[0] ?? null,
-          earliestValue: earliest?.value ?? null,
-          earliestDate: earliest?.dateTime?.split("T")[0] ?? null,
-        };
-      });
-      return listResponse(`${series.length} daily water time series found`, { items, total: series.length });
+      const items = series.map(s => ({
+        siteName: s.siteName,
+        siteCode: s.siteNo,
+        parameterCode: s.parameterCode,
+        variable: (WATER_PARAMS as Record<string, string>)[s.parameterCode] ?? null,
+        unit: s.unit,
+        dailyValueCount: s.count,
+        latestValue: s.latest?.value ?? null,
+        latestDate: s.latest?.time?.split("T")[0] ?? null,
+        earliestValue: s.earliest?.value ?? null,
+        earliestDate: s.earliest?.time?.split("T")[0] ?? null,
+        min: s.min,
+        max: s.max,
+        mean: s.mean,
+      }));
+      return listResponse(
+        `${series.length} daily water time series found${truncated ? " (observation limit reached; narrow the window or sites)" : ""}`,
+        { items, total: series.length, meta: { source: "USGS Water Data APIs (daily)", statistic: "00003 (daily mean)" } },
+      );
     },
   },
 
