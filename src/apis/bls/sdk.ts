@@ -11,6 +11,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { resolveState } from "../../shared/geo.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -196,6 +197,59 @@ export function getStateEmploymentSeries(stateCode: string): BlsPopularSeries[] 
 export function getAvailableTopics(): string[] {
   const cats = new Set(popularSeries.map(s => s.category));
   return [...cats, "state_employment"];
+}
+
+// ─── Series ID builders: LAUS (local unemployment) and OEWS (wages by occupation) ───
+
+/** LAUS measure codes. */
+export const LAUS_MEASURES = {
+  unemployment_rate: "03",
+  unemployment: "04",
+  employment: "05",
+  labor_force: "06",
+} as const;
+export type LausMeasure = keyof typeof LAUS_MEASURES;
+
+/**
+ * LAUS series for a state (name, code or FIPS; seasonally adjusted) or a
+ * county (5-digit FIPS; counties are only published unadjusted).
+ */
+export function lausSeries(area: string, measure: LausMeasure = "unemployment_rate"): { id: string; label: string } {
+  const a = area.trim();
+  const words = measure.replace(/_/g, " ");
+  if (/^\d{5}$/.test(a)) {
+    return { id: `LAUCN${a}00000000${LAUS_MEASURES[measure]}`, label: `County ${a} ${words} (not seasonally adjusted)` };
+  }
+  const state = resolveState(a, "LAUS area");
+  return { id: `LASST${state.fips}00000000000${LAUS_MEASURES[measure]}`, label: `${state.name} ${words} (seasonally adjusted)` };
+}
+
+/** OEWS datatype codes. */
+export const OEWS_MEASURES = {
+  employment: "01",
+  hourly_mean_wage: "03",
+  annual_mean_wage: "04",
+  hourly_median_wage: "08",
+  annual_median_wage: "13",
+  annual_10th_percentile_wage: "11",
+  annual_90th_percentile_wage: "15",
+} as const;
+export type OewsMeasure = keyof typeof OEWS_MEASURES;
+
+/**
+ * OEWS series for an occupation (SOC code, e.g. "15-1252" software
+ * developers), nationally or in one state, across all industries. OEWS is
+ * annual, so each series has one value per survey year.
+ */
+export function oewsSeries(occupation: string, measure: OewsMeasure = "annual_median_wage", state?: string): { id: string; label: string } {
+  const soc = occupation.trim().replace("-", "");
+  if (!/^\d{6}$/.test(soc)) throw new Error(`Invalid SOC occupation code "${occupation}": use the form "15-1252".`);
+  const st = state ? resolveState(state, "OEWS state") : undefined;
+  const area = st ? `S${st.fips}00000` : "N0000000";
+  return {
+    id: `OEU${area}000000${soc}${OEWS_MEASURES[measure]}`,
+    label: `SOC ${soc.slice(0, 2)}-${soc.slice(2)} ${measure.replace(/_/g, " ")}, ${st ? st.name : "United States"}`,
+  };
 }
 
 // ─── CPI series IDs + labels (used by cpi_breakdown tool) ───────────
