@@ -144,6 +144,11 @@ the largest arrays (table rows, list items) are cut to what fits, then long stri
 valid JSON and carries a `truncatedToFit` note saying what was cut. `code_mode` still processes the full result.
 Set `MAX_RESPONSE_BYTES` to change the limit, or `0` to turn it off.
 
+### Sources
+
+Every tool result lists the upstream requests behind it in `meta.sources`: the URL (API keys are never included),
+when the data was fetched, and `cached: true` when it came from the local cache. Composite tools list up to 10.
+
 With all 42 modules, the server sends about 16K tokens of instructions to the LLM. With 3 modules, this drops to about 2K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 
 To see all available module names without starting the server:

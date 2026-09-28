@@ -13,6 +13,7 @@
  */
 
 import { CacheStore, DiskCache, resolveCacheRoot } from "./disk-cache.js";
+import { recordSource } from "./request-context.js";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -431,8 +432,13 @@ export function createClient(config: ClientConfig): ApiClient {
       ? `json:${emptyBodyAsNull ? "empty-as-null" : "strict"}`
       : responseType;
     const cacheKey = `${cacheIdentity}|${cacheResponseType}`;
+    // The identity starts with the URL without credentials; that's what sources report.
+    const source = { url: cacheIdentity.slice(0, cacheIdentity.indexOf("|")), method: (init?.method === "POST" ? "POST" : "GET") as "GET" | "POST" };
     const cached = await cache.get(cacheKey);
-    if (cached !== undefined) return cached.data as T;
+    if (cached !== undefined) {
+      recordSource({ ...source, fetchedAt: cached.fetchedAt, cached: true });
+      return cached.data as T;
+    }
 
     const res = await fetchRetry(url, init, timeoutMs, limiter, name, configMaxRetries, deadlineMs);
 
@@ -453,7 +459,9 @@ export function createClient(config: ClientConfig): ApiClient {
 
     if (responseType === "text") {
       const text = (await readBody(res, "text", name)) as string;
-      cache.set(cacheKey, text);
+      const fetchedAt = Date.now();
+      cache.set(cacheKey, text, fetchedAt);
+      recordSource({ ...source, fetchedAt, cached: false });
       return text as T;
     }
 
@@ -481,7 +489,9 @@ export function createClient(config: ClientConfig): ApiClient {
       if (err) throw new Error(`${name}: ${err}`);
     }
 
-    cache.set(cacheKey, data);
+    const fetchedAt = Date.now();
+    cache.set(cacheKey, data, fetchedAt);
+    recordSource({ ...source, fetchedAt, cached: false });
     return data as T;
   }
 
