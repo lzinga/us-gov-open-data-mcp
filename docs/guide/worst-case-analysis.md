@@ -10,9 +10,9 @@ title: "Worst Case Negative Impact"
 
 ## What Is a "Conflict of Interest"?
 
-A conflict of interest happens when a politician votes on something that directly benefits people or companies who give them money. It doesn't mean they broke the law ΓÇö it means the public should ask: **"Did they vote this way because it was right, or because their donors wanted it?"**
+A conflict of interest happens when a politician votes on something that directly benefits people or companies who give them money. It doesn't mean they broke the law — it means the public should ask: **"Did they vote this way because it was right, or because their donors wanted it?"**
 
-In both cases below, there's no proof of corruption ΓÇö but the pattern of **money flowing in ΓåÆ votes going out ΓåÆ the public paying the price** is documented across multiple independent government databases.
+In both cases below, there's no proof of corruption — but the pattern of **money flowing in → votes going out → the public paying the price** is documented across multiple independent government databases.
 
 ---
 
@@ -20,9 +20,9 @@ In both cases below, there's no proof of corruption ΓÇö but the pattern of **
 
 ## Who Is Mike Crapo?
 
-Mike Crapo is a Republican senator from Idaho who has been in Congress since 1993. During the 115th Congress (2017-2018), he was the **Chairman of the Senate Banking Committee** ΓÇö the committee that oversees every bank in America.
+Mike Crapo is a Republican senator from Idaho who has been in Congress since 1993. During the 115th Congress (2017-2018), he was the **Chairman of the Senate Banking Committee** — the committee that oversees every bank in America.
 
-**What "Chairman of the Banking Committee" means:** This is one of the most powerful positions in the Senate. The chairman decides which banking bills get a vote, which ones die, and how they're written. Every bank, investment firm, and financial company in America cares deeply about who holds this chair ΓÇö because this person controls the rules that govern their industry.
+**What "Chairman of the Banking Committee" means:** This is one of the most powerful positions in the Senate. The chairman decides which banking bills get a vote, which ones die, and how they're written. Every bank, investment firm, and financial company in America cares deeply about who holds this chair — because this person controls the rules that govern their industry.
 
 ## What He Did
 
@@ -30,11 +30,11 @@ In 2017, Crapo introduced **S.2155**, officially called the *"Economic Growth, R
 
 ### What the Bill Changed (In Plain English)
 
-After the 2008 crash that destroyed the economy, Congress passed the **Dodd-Frank Act** (2010) which said: any bank with **$50 billion or more** in assets is "systemically important" ΓÇö meaning if it fails, it could take down the whole economy. These banks had to:
+After the 2008 crash that destroyed the economy, Congress passed the **Dodd-Frank Act** (2010) which said: any bank with **$50 billion or more** in assets is "systemically important" — meaning if it fails, it could take down the whole economy. These banks had to:
 
-- **Do stress tests** ΓÇö prove they could survive another recession
-- **File "living wills"** ΓÇö a plan for how to shut down safely if they fail
-- **Hold extra cash reserves** ΓÇö so they don't run out of money in a crisis
+- **Do stress tests** — prove they could survive another recession
+- **File "living wills"** — a plan for how to shut down safely if they fail
+- **Hold extra cash reserves** — so they don't run out of money in a crisis
 
 **S.2155 raised this threshold from $50 billion to $250 billion.** This means banks with $50B to $250B in assets no longer had to follow any of these safety rules. They were free to take bigger risks with less oversight.
 
@@ -51,13 +51,13 @@ The FEC (Federal Election Commission) tracks every dollar raised by every federa
 
 **What "PAC money" means:** A PAC (Political Action Committee) is a fund that collects money from employees and executives of a company or industry and bundles it together to give to politicians. When a bank's PAC gives money to a senator, it's because the bank wants that senator to vote in ways that benefit the bank.
 
-**The key number:** Over his career, Crapo consistently received **40-64% of his campaign funds from PACs** ΓÇö with his highest PAC dependency (63.7%) in 2004 when he was already on the Banking Committee. The chairman of the committee that regulates banks was funded, in large part, by the banks he regulated.
+**The key number:** Over his career, Crapo consistently received **40-64% of his campaign funds from PACs** — with his highest PAC dependency (63.7%) in 2004 when he was already on the Banking Committee. The chairman of the committee that regulates banks was funded, in large part, by the banks he regulated.
 
 *Source: FEC Candidate ID S8ID00027*
 
-### The Direct Money Trail: Named Banking PACs ΓåÆ Crapo
+### The Direct Money Trail: Named Banking PACs → Crapo
 
-The FEC tracks every disbursement from every PAC to every candidate. Here are the **specific, named banking company PACs** that gave money directly to "Mike Crapo for US Senate" during 2015-2017 ΓÇö the period surrounding S.2155:
+The FEC tracks every disbursement from every PAC to every candidate. Here are the **specific, named banking company PACs** that gave money directly to "Mike Crapo for US Senate" during 2015-2017 — the period surrounding S.2155:
 
 | Banking PAC | Date | Amount | Description |
 |-------------|------|--------|-------------|
@@ -83,11 +83,11 @@ The FEC tracks every disbursement from every PAC to every candidate. Here are th
 | **Bank of America Federal PAC** | Sep 7, 2016 | $2,000 | 2016 General |
 | | | **$47,500** | **Total from 5 banking PACs** |
 
-**In plain English:** The five biggest banks and their trade group ΓÇö the same companies that lobbied for S.2155 and would directly benefit from it ΓÇö gave the bill's author **$47,500 in direct, traceable PAC donations** during the two years surrounding the bill. That's not total industry PAC money (which was much more). That's just the named donations we can trace from these five PACs alone.
+**In plain English:** The five biggest banks and their trade group — the same companies that lobbied for S.2155 and would directly benefit from it — gave the bill's author **$47,500 in direct, traceable PAC donations** during the two years surrounding the bill. That's not total industry PAC money (which was much more). That's just the named donations we can trace from these five PACs alone.
 
-**Note the timing:** Wells Fargo gave $1,500 on March 3, 2017. S.2155 was introduced later that year. Goldman Sachs gave $1,000 on November 21, 2017. The bill passed the Senate on March 14, 2018. Citigroup gave $2,500 on August 14, 2017 ΓÇö right in the middle of the bill's development.
+**Note the timing:** Wells Fargo gave $1,500 on March 3, 2017. S.2155 was introduced later that year. Goldman Sachs gave $1,000 on November 21, 2017. The bill passed the Senate on March 14, 2018. Citigroup gave $2,500 on August 14, 2017 — right in the middle of the bill's development.
 
-*Source: FEC Committee Disbursement Records ΓÇö Committee IDs: C00004275 (ABA), C00034595 (Wells Fargo), C00008474 (Citigroup), C00350744 (Goldman Sachs), C00364778 (Bank of America)*
+*Source: FEC Committee Disbursement Records — Committee IDs: C00004275 (ABA), C00034595 (Wells Fargo), C00008474 (Citigroup), C00350744 (Goldman Sachs), C00364778 (Bank of America)*
 
 ## Who Lobbied for the Bill
 
@@ -101,7 +101,7 @@ The **American Bankers Association** (ABA) is the banking industry's main lobbyi
 | 2017 | ~**$11.04M** | **S.2155 introduced by Crapo** |
 | 2018 | ~$9.35M | S.2155 passed and signed into law |
 
-The ABA spent **$11 million** the year the bill was introduced ΓÇö a 19% increase over the prior year. Their lobbying disclosures list their issues as: Banking, Financial Institutions, Consumer Issues, Housing, Taxation ΓÇö all directly related to S.2155.
+The ABA spent **$11 million** the year the bill was introduced — a 19% increase over the prior year. Their lobbying disclosures list their issues as: Banking, Financial Institutions, Consumer Issues, Housing, Taxation — all directly related to S.2155.
 
 Individual banks also lobbied heavily in 2018 (the year S.2155 passed):
 
@@ -134,7 +134,7 @@ Every single Republican voted yes. Not one defected. Sixteen Democrats also cros
 
 ## What Happened Next: The 2023 Banking Crisis
 
-Five years after S.2155 became law, **three banks in the exact $50BΓÇô$250B asset range that the bill deregulated** collapsed in the largest banking crisis since 2008:
+Five years after S.2155 became law, **three banks in the exact $50B–$250B asset range that the bill deregulated** collapsed in the largest banking crisis since 2008:
 
 | Bank | Total Assets | Date Failed | Cost to FDIC |
 |------|-------------|-------------|--------------|
@@ -145,13 +145,13 @@ Five years after S.2155 became law, **three banks in the exact $50BΓÇô$250B a
 
 **What "cost to FDIC" means:** The FDIC (Federal Deposit Insurance Corporation) is the government agency that insures bank deposits. When a bank fails, the FDIC pays depositors their money back. The $34.8 billion cost was ultimately paid by fees on other banks and, indirectly, by consumers through higher banking fees.
 
-**The connection:** Under the original Dodd-Frank rules, all three of these banks would have been required to do stress tests and hold more capital reserves. S.2155 specifically removed those requirements for banks in their size range. Whether the failures would have been prevented is debatable ΓÇö but the safety checks that might have caught the problems earlier were gone.
+**The connection:** Under the original Dodd-Frank rules, all three of these banks would have been required to do stress tests and hold more capital reserves. S.2155 specifically removed those requirements for banks in their size range. Whether the failures would have been prevented is debatable — but the safety checks that might have caught the problems earlier were gone.
 
 *Source: FDIC Bank Failures Database*
 
 ## Who Profited from the Wreckage
 
-**JPMorgan Chase** ΓÇö the largest bank in America ΓÇö acquired First Republic Bank's $213 billion in assets at a steep discount in a government-assisted deal.
+**JPMorgan Chase** — the largest bank in America — acquired First Republic Bank's $213 billion in assets at a steep discount in a government-assisted deal.
 
 After the acquisition, JPMorgan's lobbying spending increased:
 
@@ -170,14 +170,14 @@ Here's the chain of events, all documented in public government data:
 2. **The Chairman of Banking receives 40-64% of his campaign funds from PACs** over his career
 3. **He writes and sponsors a bill** that removes safety requirements from mid-size banks
 4. **Every member of his party votes yes**, plus 16 from the other party
-5. **Five years later, three banks in the exact deregulated range fail** ΓÇö costing $34.8 billion
+5. **Five years later, three banks in the exact deregulated range fail** — costing $34.8 billion
 6. **The largest bank in America acquires the wreckage at a discount** and increases its own lobbying by 32%
 
 ### Suspicious or OK?
 
 **Why it looks suspicious:** The person who wrote the bill was funded by the industry it benefited. The lobbying spend spiked during the year the bill was introduced. The exact category of banks the bill freed from oversight are the ones that failed. The failure enriched even larger banks.
 
-**Why it might be OK:** Crapo genuinely believed smaller banks were over-regulated by rules designed for mega-banks like JPMorgan. Community banks really did struggle with compliance costs. The 2023 failures had other causes too ΓÇö the Federal Reserve raised interest rates from 0% to 5.33% in just 18 months, and Silicon Valley Bank made spectacularly bad bets on long-term bonds without hedging. S.2155 didn't *cause* the failures ΓÇö it removed safeguards that *might* have caught the problems sooner.
+**Why it might be OK:** Crapo genuinely believed smaller banks were over-regulated by rules designed for mega-banks like JPMorgan. Community banks really did struggle with compliance costs. The 2023 failures had other causes too — the Federal Reserve raised interest rates from 0% to 5.33% in just 18 months, and Silicon Valley Bank made spectacularly bad bets on long-term bonds without hedging. S.2155 didn't *cause* the failures — it removed safeguards that *might* have caught the problems sooner.
 
 ---
 
@@ -189,16 +189,16 @@ Cory Booker is a Democratic senator from New Jersey who has been in the Senate s
 
 **Why New Jersey matters for this story:** New Jersey is the **pharmaceutical capital of the United States**. Some of the largest drug companies in the world are headquartered there:
 
-- **Johnson & Johnson** ΓÇö New Brunswick, NJ
-- **Merck & Co.** ΓÇö Rahway, NJ (moved from Kenilworth in 2023)
-- **Bristol-Myers Squibb** ΓÇö major NJ operations
+- **Johnson & Johnson** — New Brunswick, NJ
+- **Merck & Co.** — Rahway, NJ (moved from Kenilworth in 2023)
+- **Bristol-Myers Squibb** — major NJ operations
 - **Numerous other pharma companies, research labs, and manufacturing plants** employ hundreds of thousands of NJ residents
 
-The pharmaceutical industry is one of the largest employers in New Jersey. A senator from NJ who votes against pharma interests risks angering a major part of their state's economy ΓÇö and their donor base.
+The pharmaceutical industry is one of the largest employers in New Jersey. A senator from NJ who votes against pharma interests risks angering a major part of their state's economy — and their donor base.
 
 ## What He Did
 
-On **January 11, 2017, at 11:06 PM**, the Senate voted on **Klobuchar Amendment #178** ΓÇö a proposal that would have allowed Americans to import prescription drugs from Canada, where the exact same medications cost **40-90% less**.
+On **January 11, 2017, at 11:06 PM**, the Senate voted on **Klobuchar Amendment #178** — a proposal that would have allowed Americans to import prescription drugs from Canada, where the exact same medications cost **40-90% less**.
 
 ### What "Drug Importation" Means (In Plain English)
 
@@ -217,19 +217,19 @@ The Klobuchar amendment would have created a system where Americans could legall
 | Republican | **12** | 39 |
 | Democrat | 32 | **13** |
 | Independent | 2 | 0 |
-| **Total** | **46** | **52** ΓÇö REJECTED |
+| **Total** | **46** | **52** — REJECTED |
 
 The amendment **failed by 6 votes**. If just 4 of the 13 Democrats who voted "No" had voted "Yes" instead, Americans would have had access to cheaper drugs starting in 2017.
 
 **Cory Booker was one of the 13 Democrats who voted No.**
 
-A Democratic senator ΓÇö from the state where pharma companies are headquartered ΓÇö voted against letting Americans buy cheaper drugs. He did this alongside 39 Republicans. Together, they killed the amendment.
+A Democratic senator — from the state where pharma companies are headquartered — voted against letting Americans buy cheaper drugs. He did this alongside 39 Republicans. Together, they killed the amendment.
 
 *Source: Senate.gov Roll Call Vote XML, 115th Congress Session 1, Vote #20*
 
 ## The Pharma Lobbying Machine
 
-Here's how much the pharmaceutical industry spent on lobbying during this period ΓÇö just from the organizations whose filings we can verify:
+Here's how much the pharmaceutical industry spent on lobbying during this period — just from the organizations whose filings we can verify:
 
 ### PhRMA (Pharmaceutical Research and Manufacturers of America)
 This is the main lobbying group for brand-name drug companies.
@@ -237,12 +237,12 @@ This is the main lobbying group for brand-name drug companies.
 | Year | PhRMA Lobbying Spend | Change |
 |------|---------------------|--------|
 | 2016 | ~$20.9M | Baseline |
-| 2017 | ~**$25.4M** | **+22% ΓÇö the year of the vote** |
+| 2017 | ~**$25.4M** | **+22% — the year of the vote** |
 | 2018 | ~$27.5M | +8% |
 | 2019 | ~$28.8M | +5% (peak) |
 | 2020 | ~$25.5M | -11% (pandemic) |
 
-PhRMA spent **$25.4 million lobbying in 2017 alone** ΓÇö the year the drug importation amendment was killed. That's $69,600 per day, every day of the year.
+PhRMA spent **$25.4 million lobbying in 2017 alone** — the year the drug importation amendment was killed. That's $69,600 per day, every day of the year.
 
 ### Individual Drug Companies (2017 Lobbying)
 
@@ -254,7 +254,7 @@ PhRMA spent **$25.4 million lobbying in 2017 alone** ΓÇö the year the drug im
 | Merck & Co. | ~$6.23M | **Rahway, NJ** |
 | **Total (just these 4)** | **~$51.4M** | |
 
-**Merck alone ΓÇö a New Jersey company ΓÇö spent $6.23 million on lobbying** the same year Booker, their home-state senator, voted against cheaper drug imports.
+**Merck alone — a New Jersey company — spent $6.23 million on lobbying** the same year Booker, their home-state senator, voted against cheaper drug imports.
 
 *Source: Senate LDA Filings*
 
@@ -265,11 +265,11 @@ PhRMA spent **$25.4 million lobbying in 2017 alone** ΓÇö the year the drug im
 | 2014 (first full Senate race) | $18,368,139 | **$1,880,427** | 10.2% |
 | 2020 (re-election) | $8,290,751 | **$667,416** | 8.0% |
 
-Booker's PAC percentage is lower than Crapo's ΓÇö but $1.88 million in PAC money is still significant. And PAC money is only one channel. Drug companies also donate through individual executives, "bundlers" (people who collect donations from many executives), and independent expenditure groups that don't have to disclose donors.
+Booker's PAC percentage is lower than Crapo's — but $1.88 million in PAC money is still significant. And PAC money is only one channel. Drug companies also donate through individual executives, "bundlers" (people who collect donations from many executives), and independent expenditure groups that don't have to disclose donors.
 
 *Source: FEC Candidate ID S4NJ00185*
 
-### The Direct Money Trail: Named Pharma PACs ΓåÆ Booker
+### The Direct Money Trail: Named Pharma PACs → Booker
 
 Just like with Crapo, FEC disbursement records show the **specific pharmaceutical company PACs** that gave money directly to "Cory Booker for Senate":
 
@@ -286,11 +286,11 @@ Just like with Crapo, FEC disbursement records show the **specific pharmaceutica
 | **Merck PAC** | Oct 11, 2014 | $5,000 | Contribution |
 | | | **$30,000** | **Total from 2 pharma PACs** |
 
-**In plain English:** Two of the largest pharmaceutical companies in the world ΓÇö one headquartered in Booker's home state (Merck, Rahway NJ) ΓÇö gave his campaign **$30,000 in direct, traceable PAC donations** during his first Senate race. That's just from two companies. The broader pharma PAC universe contributed more.
+**In plain English:** Two of the largest pharmaceutical companies in the world — one headquartered in Booker's home state (Merck, Rahway NJ) — gave his campaign **$30,000 in direct, traceable PAC donations** during his first Senate race. That's just from two companies. The broader pharma PAC universe contributed more.
 
-**Note the timeline:** Pfizer gave $10,000 across two donations in 2013, before Booker even won his first full Senate term. Merck, the NJ company, gave $12,500 across four donations in 2013-2014. When the drug importation vote came up in January 2017, these were established donor relationships. Neither Pfizer nor Merck PACs made traceable disbursements to Booker during the 2018 or 2020 cycles ΓÇö suggesting the relationship may have cooled after the public backlash over his vote.
+**Note the timeline:** Pfizer gave $10,000 across two donations in 2013, before Booker even won his first full Senate term. Merck, the NJ company, gave $12,500 across four donations in 2013-2014. When the drug importation vote came up in January 2017, these were established donor relationships. Neither Pfizer nor Merck PACs made traceable disbursements to Booker during the 2018 or 2020 cycles — suggesting the relationship may have cooled after the public backlash over his vote.
 
-*Source: FEC Committee Disbursement Records ΓÇö Committee IDs: C00016683 (Pfizer PAC), C00097485 (Merck PAC)*
+*Source: FEC Committee Disbursement Records — Committee IDs: C00016683 (Pfizer PAC), C00097485 (Merck PAC)*
 
 ## What It Cost Americans
 
@@ -300,7 +300,7 @@ Americans pay dramatically more for prescription drugs than people in every othe
 
 | Country | Health Spending Per Person (2023) | vs. United States |
 |---------|----------------------------------|-------------------|
-| **United States** | **$13,473** | ΓÇö |
+| **United States** | **$13,473** | — |
 | Germany | $6,395 | 2.1x less |
 | Canada | $6,187 | **2.2x less** |
 | United Kingdom | $5,407 | 2.5x less |
@@ -309,7 +309,7 @@ Americans pay dramatically more for prescription drugs than people in every othe
 
 Americans spend **more than double** what Canadians spend on healthcare per person. Drug prices are a major reason why.
 
-**The amendment that Booker helped kill would have let Americans buy from Canada** ΓÇö the country right next door that pays 2.2x less for the same care.
+**The amendment that Booker helped kill would have let Americans buy from Canada** — the country right next door that pays 2.2x less for the same care.
 
 *Source: World Bank indicator SH.XPD.CHEX.PC.CD*
 
@@ -319,10 +319,10 @@ Americans spend **more than double** what Canadians spend on healthcare per pers
 |------|--------------|
 | **2017** | **Booker + 12 other Democrats kill drug importation amendment** |
 | 2017-2021 | No major drug pricing legislation passes Congress |
-| **2022** | Inflation Reduction Act (IRA) passes ΓÇö allows Medicare to negotiate prices on **10 drugs** |
-| **2026** | Those negotiated prices finally take effect ΓÇö **9 years after the vote** |
+| **2022** | Inflation Reduction Act (IRA) passes — allows Medicare to negotiate prices on **10 drugs** |
+| **2026** | Those negotiated prices finally take effect — **9 years after the vote** |
 
-For nine years after that vote, Americans continued paying the highest drug prices in the world. The IRA (2022) was a small step ΓÇö it only covers 10 drugs for Medicare patients, not the thousands of drugs Americans buy.
+For nine years after that vote, Americans continued paying the highest drug prices in the world. The IRA (2022) was a small step — it only covers 10 drugs for Medicare patients, not the thousands of drugs Americans buy.
 
 ## Booker's Reversal
 
@@ -340,60 +340,60 @@ Here's the chain of events:
 
 1. **Pharma companies spend $51.4M+ lobbying in 2017** (just from 4 organizations we checked)
 2. **Booker represents the state where pharma companies are headquartered** and employ hundreds of thousands
-3. **He votes against letting Americans buy cheaper drugs from Canada** ΓÇö alongside 39 Republicans and 12 other Democrats
-4. **The amendment fails by just 6 votes** ΓÇö meaning the 13 Democratic "No" votes were the deciding factor
+3. **He votes against letting Americans buy cheaper drugs from Canada** — alongside 39 Republicans and 12 other Democrats
+4. **The amendment fails by just 6 votes** — meaning the 13 Democratic "No" votes were the deciding factor
 5. **Americans continue paying the highest drug prices in the world** for 5+ more years
-6. **PhRMA's lobbying spend increases 37%** from 2016 to 2019 ($20.9M ΓåÆ $28.8M), suggesting the investment paid off
+6. **PhRMA's lobbying spend increases 37%** from 2016 to 2019 ($20.9M → $28.8M), suggesting the investment paid off
 
 ### Suspicious or OK?
 
-**Why it looks suspicious:** A progressive senator from pharma's home state voted against cheaper drugs for Americans, alongside the industry that employs his constituents and funds campaigns in his state. The pharma industry spent over $50M lobbying that year. The vote failed by just 6 ΓÇö the 13 Democrats who voted No were the margin of defeat. Years of continued high drug prices followed.
+**Why it looks suspicious:** A progressive senator from pharma's home state voted against cheaper drugs for Americans, alongside the industry that employs his constituents and funds campaigns in his state. The pharma industry spent over $50M lobbying that year. The vote failed by just 6 — the 13 Democrats who voted No were the margin of defeat. Years of continued high drug prices followed.
 
-**Why it might be OK:** Booker's safety concerns about imported drugs aren't unreasonable in theory ΓÇö counterfeit drugs are a real problem globally. He later changed his position and co-sponsored importation legislation. NJ genuinely depends on pharma jobs ΓÇö a senator has a duty to their state's economy, not just national policy. And unlike the Crapo/banking case, there's no catastrophic failure that directly resulted ΓÇö just continued high prices that were already the status quo.
+**Why it might be OK:** Booker's safety concerns about imported drugs aren't unreasonable in theory — counterfeit drugs are a real problem globally. He later changed his position and co-sponsored importation legislation. NJ genuinely depends on pharma jobs — a senator has a duty to their state's economy, not just national policy. And unlike the Crapo/banking case, there's no catastrophic failure that directly resulted — just continued high prices that were already the status quo.
 
 ---
 
 ## Follow the Money: Visual Timelines
 
-These timelines show the documented sequence of events ΓÇö money flowing in, votes going out, consequences following. Every item is sourced from a government database.
+These timelines show the documented sequence of events — money flowing in, votes going out, consequences following. Every item is sourced from a government database.
 
 ### Crapo / Banking Timeline
 
 ```
 2015
-Γö£ΓöÇΓöÇ Jan 29 ΓÇö Wells Fargo PAC ΓåÆ Crapo: $2,000
-Γö£ΓöÇΓöÇ Feb 27 ΓÇö ABA BankPAC ΓåÆ Crapo: $4,500
-Γö£ΓöÇΓöÇ Mar 24 ΓÇö Goldman Sachs PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ Mar 30 ΓÇö Citigroup PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ May 13 ΓÇö Bank of America PAC ΓåÆ Crapo: $1,500
-Γö£ΓöÇΓöÇ Jun 3  ΓÇö ABA BankPAC ΓåÆ Crapo: $5,000
-Γö£ΓöÇΓöÇ Jun 8  ΓÇö Citigroup PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ Sep 23 ΓÇö Wells Fargo PAC ΓåÆ Crapo: $4,000
-Γöé
+├── Jan 29 — Wells Fargo PAC → Crapo: $2,000
+├── Feb 27 — ABA BankPAC → Crapo: $4,500
+├── Mar 24 — Goldman Sachs PAC → Crapo: $2,500
+├── Mar 30 — Citigroup PAC → Crapo: $2,500
+├── May 13 — Bank of America PAC → Crapo: $1,500
+├── Jun 3  — ABA BankPAC → Crapo: $5,000
+├── Jun 8  — Citigroup PAC → Crapo: $2,500
+├── Sep 23 — Wells Fargo PAC → Crapo: $4,000
+│
 2016
-Γö£ΓöÇΓöÇ Mar 23 ΓÇö Goldman Sachs PAC ΓåÆ Crapo: $6,000
-Γö£ΓöÇΓöÇ Apr 11 ΓÇö Bank of America PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ Jun    ΓÇö Citigroup PAC ΓåÆ Crapo: $5,000
-Γö£ΓöÇΓöÇ Jul 12 ΓÇö Bank of America PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ Sep 7  ΓÇö Bank of America PAC ΓåÆ Crapo: $2,000
-Γö£ΓöÇΓöÇ Nov    ΓÇö Γÿà CRAPO RE-ELECTED, remains Banking Committee Chairman
-Γöé
+├── Mar 23 — Goldman Sachs PAC → Crapo: $6,000
+├── Apr 11 — Bank of America PAC → Crapo: $2,500
+├── Jun    — Citigroup PAC → Crapo: $5,000
+├── Jul 12 — Bank of America PAC → Crapo: $2,500
+├── Sep 7  — Bank of America PAC → Crapo: $2,000
+├── Nov    — ★ CRAPO RE-ELECTED, remains Banking Committee Chairman
+│
 2017
-Γö£ΓöÇΓöÇ Mar 3  ΓÇö Wells Fargo PAC ΓåÆ Crapo: $1,500
-Γö£ΓöÇΓöÇ Aug 14 ΓÇö Citigroup PAC ΓåÆ Crapo: $2,500
-Γö£ΓöÇΓöÇ Nov 21 ΓÇö Goldman Sachs PAC ΓåÆ Crapo: $1,000
-Γö£ΓöÇΓöÇ         Γÿà S.2155 INTRODUCED BY CRAPO
-Γö£ΓöÇΓöÇ         ABA lobbying spend: $11.04M (+19% from prior year)
-Γöé
+├── Mar 3  — Wells Fargo PAC → Crapo: $1,500
+├── Aug 14 — Citigroup PAC → Crapo: $2,500
+├── Nov 21 — Goldman Sachs PAC → Crapo: $1,000
+├──         ★ S.2155 INTRODUCED BY CRAPO
+├──         ABA lobbying spend: $11.04M (+19% from prior year)
+│
 2018
-Γö£ΓöÇΓöÇ Mar 14 ΓÇö Γÿà SENATE PASSES S.2155: 67-31 (all 50 Republicans + 16 Democrats)
-Γö£ΓöÇΓöÇ May 24 ΓÇö Γÿà SIGNED INTO LAW ΓÇö banks $50B-$250B freed from stress tests
-Γöé
+├── Mar 14 — ★ SENATE PASSES S.2155: 67-31 (all 50 Republicans + 16 Democrats)
+├── May 24 — ★ SIGNED INTO LAW — banks $50B-$250B freed from stress tests
+│
 2023
-Γö£ΓöÇΓöÇ Mar 10 ΓÇö Γÿà SILICON VALLEY BANK FAILS ($209B assets) ΓÇö cost to FDIC: $19.0B
-Γö£ΓöÇΓöÇ Mar 12 ΓÇö Γÿà SIGNATURE BANK FAILS ($110B assets) ΓÇö cost to FDIC: ~$0
-Γö£ΓöÇΓöÇ May 1  ΓÇö Γÿà FIRST REPUBLIC BANK FAILS ($213B assets) ΓÇö cost to FDIC: $15.8B
-ΓööΓöÇΓöÇ         TOTAL COST: $34.8 BILLION ΓÇö all 3 in the deregulated $50B-$250B range
+├── Mar 10 — ★ SILICON VALLEY BANK FAILS ($209B assets) — cost to FDIC: $19.0B
+├── Mar 12 — ★ SIGNATURE BANK FAILS ($110B assets) — cost to FDIC: ~$0
+├── May 1  — ★ FIRST REPUBLIC BANK FAILS ($213B assets) — cost to FDIC: $15.8B
+└──         TOTAL COST: $34.8 BILLION — all 3 in the deregulated $50B-$250B range
 ```
 
 **Money in:** $47,500 from 5 named banking PACs (2015-2017)
@@ -406,37 +406,37 @@ These timelines show the documented sequence of events ΓÇö money flowing in, 
 
 ```
 2013
-Γö£ΓöÇΓöÇ Jun 17 ΓÇö Pfizer PAC ΓåÆ Booker: $5,000 (special primary)
-Γö£ΓöÇΓöÇ Sep 25 ΓÇö Merck PAC ΓåÆ Booker: $2,500
-Γö£ΓöÇΓöÇ Sep 30 ΓÇö Pfizer PAC ΓåÆ Booker: $5,000 (special general)
-Γö£ΓöÇΓöÇ Oct    ΓÇö Γÿà BOOKER WINS NJ SPECIAL ELECTION TO SENATE
-Γöé
+├── Jun 17 — Pfizer PAC → Booker: $5,000 (special primary)
+├── Sep 25 — Merck PAC → Booker: $2,500
+├── Sep 30 — Pfizer PAC → Booker: $5,000 (special general)
+├── Oct    — ★ BOOKER WINS NJ SPECIAL ELECTION TO SENATE
+│
 2014
-Γö£ΓöÇΓöÇ Feb 27 ΓÇö Pfizer PAC ΓåÆ Booker: $2,500
-Γö£ΓöÇΓöÇ Mar 27 ΓÇö Merck PAC ΓåÆ Booker: $2,500
-Γö£ΓöÇΓöÇ May    ΓÇö Pfizer PAC + Merck PAC ΓåÆ Booker: $5,000
-Γö£ΓöÇΓöÇ Oct    ΓÇö Pfizer PAC + Merck PAC ΓåÆ Booker: $7,500
-Γö£ΓöÇΓöÇ Nov    ΓÇö Γÿà BOOKER WINS FULL SENATE TERM
-Γöé
+├── Feb 27 — Pfizer PAC → Booker: $2,500
+├── Mar 27 — Merck PAC → Booker: $2,500
+├── May    — Pfizer PAC + Merck PAC → Booker: $5,000
+├── Oct    — Pfizer PAC + Merck PAC → Booker: $7,500
+├── Nov    — ★ BOOKER WINS FULL SENATE TERM
+│
 2016
-Γö£ΓöÇΓöÇ         PhRMA lobbying spend: $20.9M
-Γöé
+├──         PhRMA lobbying spend: $20.9M
+│
 2017
-Γö£ΓöÇΓöÇ Jan 11 ΓÇö Γÿà SENATE REJECTS DRUG IMPORTATION AMENDMENT: 46-52
-Γöé            Booker votes NO alongside 39 Republicans and 12 other Democrats
-Γöé            Amendment fails by 6 votes ΓÇö the 13 Democratic "No" votes are the margin
-Γö£ΓöÇΓöÇ         PhRMA lobbying spend: $25.4M (+22%)
-Γö£ΓöÇΓöÇ         Merck lobbying spend: $6.23M (NJ company)
-Γöé
+├── Jan 11 — ★ SENATE REJECTS DRUG IMPORTATION AMENDMENT: 46-52
+│            Booker votes NO alongside 39 Republicans and 12 other Democrats
+│            Amendment fails by 6 votes — the 13 Democratic "No" votes are the margin
+├──         PhRMA lobbying spend: $25.4M (+22%)
+├──         Merck lobbying spend: $6.23M (NJ company)
+│
 2018-2020
-Γö£ΓöÇΓöÇ         Γÿà NO pharma PAC disbursements found to Booker (possible relationship cooling)
-Γö£ΓöÇΓöÇ         PhRMA lobbying peaks at $28.8M (2019)
-Γöé
+├──         ★ NO pharma PAC disbursements found to Booker (possible relationship cooling)
+├──         PhRMA lobbying peaks at $28.8M (2019)
+│
 2022
-Γö£ΓöÇΓöÇ Aug    ΓÇö Γÿà INFLATION REDUCTION ACT passes ΓÇö allows Medicare to negotiate 10 drug prices
-Γöé
+├── Aug    — ★ INFLATION REDUCTION ACT passes — allows Medicare to negotiate 10 drug prices
+│
 2026
-ΓööΓöÇΓöÇ         Γÿà First negotiated drug prices take effect ΓÇö 9 YEARS after the importation vote
+└──         ★ First negotiated drug prices take effect — 9 YEARS after the importation vote
 ```
 
 **Money in:** $30,000 from 2 named pharma PACs (2013-2014)
@@ -447,18 +447,18 @@ These timelines show the documented sequence of events ΓÇö money flowing in, 
 
 ## Side-by-Side Comparison
 
-| | **Crapo (R) ΓÇö Banking** | **Booker (D) ΓÇö Pharma** |
+| | **Crapo (R) — Banking** | **Booker (D) — Pharma** |
 |---|---|---|
 | **Their role** | Chairman of Banking Committee | Senator from pharma's home state |
 | **The vote** | Sponsored S.2155 (bank deregulation) | Voted No on drug importation |
 | **Direct PAC money from industry** | $47,500 from 5 named banking PACs | $30,000 from 2 named pharma PACs |
 | **Total PAC funding** | 40-64% of all campaign funds from PACs | 8-10% of all campaign funds from PACs |
 | **Industry lobbying** | $30M+ (banking industry, 2016-2018) | $51M+ (pharma industry, 2017 alone) |
-| **The outcome** | 3 banks failed ΓåÆ $34.8B FDIC cost | Cheaper drugs blocked ΓåÆ years of high prices |
+| **The outcome** | 3 banks failed → $34.8B FDIC cost | Cheaper drugs blocked → years of high prices |
 | **Who paid the price** | Taxpayers (FDIC costs), depositors | Patients paying 2-3x more than other countries |
 | **Who benefited** | JPMorgan (acquired failed bank at discount) | Pharma companies (protected U.S. pricing) |
-| **Later reversal?** | No ΓÇö still supports deregulation | Yes ΓÇö later co-sponsored importation bill |
-| **Vote margin** | Passed 67-31 (comfortable) | Failed 46-52 (close ΓÇö 6 votes) |
+| **Later reversal?** | No — still supports deregulation | Yes — later co-sponsored importation bill |
+| **Vote margin** | Passed 67-31 (comfortable) | Failed 46-52 (close — 6 votes) |
 | **PACs continued giving after?** | Yes (2017-2018 cycle donations found) | No (no pharma PAC disbursements in 2018/2020) |
 
 ## Which Is Worse?
@@ -481,13 +481,13 @@ One way to understand the scale: compare what the industries spent to what they 
 - **Outcome:** Drug importation blocked; Americans continued paying 2-3x more than Canadians
 - **Ratio:** The U.S. spends ~$7,000 more per person per year on healthcare than Canada (World Bank: $13,473 vs $6,187). For 330 million Americans, even attributing a small fraction of that gap to drug pricing, the annual cost dwarfs any lobbying investment
 
-**The uncomfortable math:** These are some of the most cost-effective investments in American business. A few tens of millions in lobbying and PAC donations yielded billions in favorable outcomes ΓÇö whether that was deregulation that let banks take bigger risks or preserved pricing power that kept drug costs high.
+**The uncomfortable math:** These are some of the most cost-effective investments in American business. A few tens of millions in lobbying and PAC donations yielded billions in favorable outcomes — whether that was deregulation that let banks take bigger risks or preserved pricing power that kept drug costs high.
 
-**What "Chairman of Banking" means in dollar terms:** Crapo received $47,500 from five banking PACs. He then wrote a bill that freed those banks from safety requirements. Five years later, three banks in the deregulated range failed. The FDIC paid $34.8 billion. That's a ratio of **$732,631 in public costs for every $1 in direct PAC money to the bill's author.** (This is not to suggest $47,500 "caused" $34.8B in losses ΓÇö many factors contributed. But the ratio illustrates the asymmetry between what industries spend on influence and what the public bears in consequences.)
+**What "Chairman of Banking" means in dollar terms:** Crapo received $47,500 from five banking PACs. He then wrote a bill that freed those banks from safety requirements. Five years later, three banks in the deregulated range failed. The FDIC paid $34.8 billion. That's a ratio of **$732,631 in public costs for every $1 in direct PAC money to the bill's author.** (This is not to suggest $47,500 "caused" $34.8B in losses — many factors contributed. But the ratio illustrates the asymmetry between what industries spend on influence and what the public bears in consequences.)
 
-**Crapo's case has a clearer cause-and-effect chain:** He wrote the bill ΓåÆ it removed specific safeguards ΓåÆ the specific banks it freed from oversight failed ΓåÆ there's a measurable $34.8 billion cost. The pipeline from lobbying money to legislation to public harm is documented.
+**Crapo's case has a clearer cause-and-effect chain:** He wrote the bill → it removed specific safeguards → the specific banks it freed from oversight failed → there's a measurable $34.8 billion cost. The pipeline from lobbying money to legislation to public harm is documented.
 
-**Booker's case has a larger affected population:** Every American who buys prescription drugs was affected by continued high prices. But the harm is diffuse ΓÇö there's no single catastrophic event, just millions of people quietly paying too much for medications, year after year.
+**Booker's case has a larger affected population:** Every American who buys prescription drugs was affected by continued high prices. But the harm is diffuse — there's no single catastrophic event, just millions of people quietly paying too much for medications, year after year.
 
 **The common thread:** In both cases, an industry spent millions on lobbying, a senator with ties to that industry voted in the industry's favor, and the public bore the cost.
 
@@ -497,18 +497,18 @@ One way to understand the scale: compare what the industries spent to what they 
 
 | Term | What It Means |
 |------|--------------|
-| **PAC** | Political Action Committee ΓÇö collects donations from a company's employees/executives and gives them to politicians as a bundle |
-| **PAC disbursement** | A specific, traceable payment from a named PAC to a named candidate ΓÇö the most direct evidence of money flowing from an industry to a politician |
+| **PAC** | Political Action Committee — collects donations from a company's employees/executives and gives them to politicians as a bundle |
+| **PAC disbursement** | A specific, traceable payment from a named PAC to a named candidate — the most direct evidence of money flowing from an industry to a politician |
 | **Lobbying** | Hiring professionals to meet with legislators and persuade them to vote a certain way; must be reported publicly |
 | **Stress test** | A simulation that checks if a bank could survive a recession without failing |
 | **Living will** | A bank's plan for how to shut down safely without crashing the economy |
-| **FDIC** | Federal Deposit Insurance Corporation ΓÇö insures bank deposits up to $250,000 per account |
-| **FEC** | Federal Election Commission ΓÇö tracks all campaign donations and spending |
-| **LDA** | Lobbying Disclosure Act ΓÇö requires lobbyists to report who they lobby for and how much they spend |
-| **CPI** | Consumer Price Index ΓÇö measures how much prices increase for everyday goods |
+| **FDIC** | Federal Deposit Insurance Corporation — insures bank deposits up to $250,000 per account |
+| **FEC** | Federal Election Commission — tracks all campaign donations and spending |
+| **LDA** | Lobbying Disclosure Act — requires lobbyists to report who they lobby for and how much they spend |
+| **CPI** | Consumer Price Index — measures how much prices increase for everyday goods |
 | **Dodd-Frank Act** | The 2010 law that regulated banks after the 2008 financial crisis |
 | **Drug importation** | Allowing Americans to legally buy prescription drugs from other countries (like Canada) where they're cheaper |
-| **PhRMA** | Pharmaceutical Research and Manufacturers of America ΓÇö the drug industry's main lobbying group |
+| **PhRMA** | Pharmaceutical Research and Manufacturers of America — the drug industry's main lobbying group |
 | **Reconciliation** | A budget process that lets the Senate pass bills with 51 votes instead of the usual 60 |
 | **Amendment** | A proposed change to a bill before it's voted on |
 
@@ -532,4 +532,4 @@ Every number in this document comes from a public government database. Here's wh
 
 *Data sources: Congress.gov API, Senate.gov Vote XML, FEC Campaign Finance API, FEC Committee Disbursement Records, FDIC Bank Failures Database, Senate Lobbying Disclosure Act (LDA) Filings, World Bank Open Data, FRED (Federal Reserve Economic Data)*
 
-*Note: Correlation does not prove causation. These are patterns documented in publicly available data. They show what happened and when ΓÇö not necessarily why individual senators voted the way they did.*
+*Note: Correlation does not prove causation. These are patterns documented in publicly available data. They show what happened and when — not necessarily why individual senators voted the way they did.*
