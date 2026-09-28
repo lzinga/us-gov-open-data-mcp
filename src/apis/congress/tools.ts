@@ -118,9 +118,19 @@ import {
   type CongressHouseCommunication,
   type CongressHouseRequirement,
   type CongressSenateCommunication,
+  type PartialFailure,
 } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse, cleanHtml } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";
+
+/** Summary suffix and meta for a composite profile whose parts partly failed to load. */
+function partialNote(failures: PartialFailure[]): { suffix: string; meta?: Record<string, unknown> } {
+  if (!failures.length) return { suffix: "" };
+  return {
+    suffix: ` — INCOMPLETE: ${failures.map(f => f.part).join(", ")} failed to load (empty sections are not "none")`,
+    meta: { partialFailures: failures },
+  };
+}
 
 function summarizeBill(b: CongressBill) {
   return {
@@ -2446,9 +2456,10 @@ export const tools: Tool<any, any>[] = [
       const data = await getBillFullProfile(congress, bill_type, bill_number);
       const bill = data.bill;
       const sponsor = bill.sponsors?.[0];
+      const note = partialNote(data.partialFailures);
 
       return recordResponse(
-        `${bill.type ?? ""}${bill.number ?? ""}: ${bill.title ?? "No title"} (${congress}th Congress) — FULL PROFILE`,
+        `${bill.type ?? ""}${bill.number ?? ""}: ${bill.title ?? "No title"} (${congress}th Congress) — FULL PROFILE${note.suffix}`,
         {
           bill: {
             congress,
@@ -2512,6 +2523,7 @@ export const tools: Tool<any, any>[] = [
             titleType: t.titleType ?? null,
           })),
         },
+        note.meta,
       );
     },
   },
@@ -2535,9 +2547,10 @@ export const tools: Tool<any, any>[] = [
     execute: async ({ bioguide_id, bill_limit }) => {
       const data = await getMemberFullProfile(bioguide_id, bill_limit ?? 20);
       const m = data.member;
+      const note = partialNote(data.partialFailures);
 
       return recordResponse(
-        `${m.directOrderName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim()} — FULL PROFILE`,
+        `${m.directOrderName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim()} — FULL PROFILE${note.suffix}`,
         {
           member: {
             bioguideId: m.bioguideId ?? bioguide_id,
@@ -2574,6 +2587,7 @@ export const tools: Tool<any, any>[] = [
             })),
           },
         },
+        note.meta,
       );
     },
   },
@@ -2595,9 +2609,10 @@ export const tools: Tool<any, any>[] = [
     execute: async ({ congress, nomination_number }) => {
       const data = await getNominationFullProfile(congress, nomination_number);
       const n = data.nomination;
+      const note = partialNote(data.partialFailures);
 
       return recordResponse(
-        `Nomination PN${nomination_number} (${congress}th Congress) — FULL PROFILE`,
+        `Nomination PN${nomination_number} (${congress}th Congress) — FULL PROFILE${note.suffix}`,
         {
           nomination: {
             number: n.number ?? null,
@@ -2627,6 +2642,7 @@ export const tools: Tool<any, any>[] = [
             dates: h.dates ?? null,
           })),
         },
+        note.meta,
       );
     },
   },
@@ -2646,9 +2662,10 @@ export const tools: Tool<any, any>[] = [
     execute: async ({ congress, treaty_number }) => {
       const data = await getTreatyFullProfile(congress, treaty_number);
       const t = data.treaty;
+      const note = partialNote(data.partialFailures);
 
       return recordResponse(
-        `Treaty Doc. ${treaty_number} (${congress}th Congress): ${t.topic ?? "No topic"} — FULL PROFILE`,
+        `Treaty Doc. ${treaty_number} (${congress}th Congress): ${t.topic ?? "No topic"} — FULL PROFILE${note.suffix}`,
         {
           treaty: {
             number: t.number ?? null,
@@ -2673,6 +2690,7 @@ export const tools: Tool<any, any>[] = [
             activities: c.activities?.map(a => ({ name: a.name, date: a.date })) ?? null,
           })),
         },
+        note.meta,
       );
     },
   },
@@ -2695,9 +2713,10 @@ export const tools: Tool<any, any>[] = [
     execute: async ({ chamber, committee_code, limit }) => {
       const data = await getCommitteeFullProfile(chamber, committee_code, limit ?? 10);
       const c = data.committee;
+      const note = partialNote(data.partialFailures);
 
       return recordResponse(
-        `${c.name ?? committee_code} (${c.chamber ?? chamber}) — FULL PROFILE`,
+        `${c.name ?? committee_code} (${c.chamber ?? chamber}) — FULL PROFILE${note.suffix}`,
         {
           committee: {
             systemCode: c.systemCode ?? committee_code,
@@ -2735,6 +2754,7 @@ export const tools: Tool<any, any>[] = [
             })),
           },
         },
+        note.meta,
       );
     },
   },
