@@ -201,3 +201,110 @@ describe("usgs_daily_water_data (daily)", () => {
     expect(calls[0].url.searchParams.get("time")).toBe("P30D");
   });
 });
+
+describe("usgs_water_statistics (statistics API)", () => {
+  const normal = (toy: string, n: number, extra: Record<string, unknown> = {}) => [
+    { time_of_year: toy, value: String(n * 1.5), sample_count: 97, computation: "arithmetic_mean" },
+    { time_of_year: toy, value: String(n * 10), sample_count: 97, computation: "maximum" },
+    { time_of_year: toy, value: String(n), sample_count: 97, computation: "median" },
+    { time_of_year: toy, value: String(n / 10), sample_count: 97, computation: "minimum" },
+    {
+      time_of_year: toy, computation: "percentile", sample_count: 97,
+      values: ["1", "2", "3", String(n), "5", "6", "7"], percentiles: ["5", "10", "25", "50", "75", "90", "95"],
+    },
+    ...Object.keys(extra).length ? [extra] : [],
+  ];
+  const feature = (id: string, values: unknown[], parent = "00003") => ({
+    type: "Feature",
+    properties: { monitoring_location_id: id, data: [{ parameter_code: "00060", parent_statistic_id: parent, values }] },
+  });
+
+  it("pivots day-of-year normals into the legacy columns plus p10/p90", async () => {
+    const calls = stubWaterData({
+      "/observationNormals": () => ({ features: [feature("USGS-01646500", [...normal("03-15", 16500), ...normal("03-14", 16000)])] }),
+    });
+    const { tools } = await import("../src/apis/usgs/tools.js");
+    const tool = tools.find(t => t.name === "usgs_water_statistics")!;
+    const out = JSON.parse(await tool.execute({ sites: "01646500", stat_report_type: "daily" } as any, {} as any) as string);
+
+    const params = calls[0].url.searchParams;
+    expect(calls[0].url.pathname).toBe("/statistics/v0/observationNormals");
+    expect(params.get("monitoring_location_id")).toBe("USGS-01646500");
+    expect(params.get("normal_type")).toBe("DOY");
+    expect(params.get("parameter_code")).toBe("00060");
+    expect(out.data.columns).toEqual(["month", "day", "yearsOfRecord", "min", "p05", "p10", "p25", "median_p50", "mean", "p75", "p90", "p95", "max"]);
+    const rows = out.data.rows.map((r: unknown[]) => Object.fromEntries(out.data.columns.map((c: string, i: number) => [c, r[i]])));
+    expect(rows.map((r: any) => r.day)).toEqual([14, 15]);
+    expect(rows[1]).toEqual({
+      month: 3, day: 15, yearsOfRecord: 97, min: 1650, p05: 1, p10: 2, p25: 3,
+      median_p50: 16500, mean: 24750, p75: 5, p90: 6, p95: 7, max: 165000,
+    });
+  });
+
+  it("narrows a month/day filter server-side and client-side", async () => {
+    const calls = stubWaterData({
+      "/observationNormals": () => ({ features: [feature("USGS-01646500", [...normal("02-28", 1), ...normal("02-29", 2)])] }),
+    });
+    const { getWaterStatistics } = await import("../src/apis/usgs/sdk.js");
+    const res = await getWaterStatistics({ sites: "01646500", month: 2, day: 29 });
+    expect(calls[0].url.searchParams.get("start_date")).toBe("02-29");
+    expect(calls[0].url.searchParams.get("end_date")).toBe("02-29");
+    expect(res.rows).toHaveLength(1);
+    expect(res.rows[0]).toMatchObject({ month: 2, day: 29 });
+
+    await getWaterStatistics({ sites: "01646500", month: 2 });
+    expect(calls[1].url.searchParams.get("start_date")).toBe("02-01");
+    expect(calls[1].url.searchParams.get("end_date")).toBe("02-29");
+  });
+
+  it("rejects day without month and impossible dates", async () => {
+    const { getWaterStatistics } = await import("../src/apis/usgs/sdk.js");
+    await expect(getWaterStatistics({ sites: "01646500", day: 3 })).rejects.toThrow(/requires month/);
+    await expect(getWaterStatistics({ sites: "01646500", month: 4, day: 31 })).rejects.toThrow(/no day 31/);
+  });
+
+  it("uses month-of-year normals for monthly and adds a site column for multiple sites", async () => {
+    const calls = stubWaterData({
+      "/observationNormals": () => ({
+        features: [
+          feature("USGS-01646500", normal("01", 100)),
+          feature("USGS-01638500", normal("01", 200)),
+          feature("USGS-01638500", normal("01", 999), "00001"),
+        ],
+      }),
+    });
+    const { tools } = await import("../src/apis/usgs/tools.js");
+    const tool = tools.find(t => t.name === "usgs_water_statistics")!;
+    const out = JSON.parse(await tool.execute({ sites: "01646500,01638500", stat_report_type: "monthly" } as any, {} as any) as string);
+
+    expect(calls[0].url.searchParams.get("normal_type")).toBe("MOY");
+    expect(calls[0].url.searchParams.getAll("monitoring_location_id")).toEqual(["USGS-01646500", "USGS-01638500"]);
+    expect(out.data.columns[0]).toBe("site");
+    expect(out.data.columns).not.toContain("day");
+    const rows = out.data.rows.map((r: unknown[]) => Object.fromEntries(out.data.columns.map((c: string, i: number) => [c, r[i]])));
+    expect(rows).toHaveLength(2);
+    expect(rows.find((r: any) => r.site === "01638500").median_p50).toBe(200);
+  });
+
+  it("returns one row per calendar year for annual statistics", async () => {
+    const interval = (year: number, computation: string, value: string, days = 365) =>
+      ({ start_date: `${year}-01-01`, end_date: `${year}-12-31`, computation, value, sample_count: days });
+    const calls = stubWaterData({
+      "/observationIntervals": () => ({
+        features: [feature("USGS-01646500", [
+          interval(1931, "arithmetic_mean", "5709.414"), interval(1931, "minimum", "700"),
+          interval(1931, "maximum", "50000"), interval(1931, "median", "3000"),
+          { ...interval(1930, "arithmetic_mean", "3466.788", 306), start_date: "1930-03-01" },
+        ])],
+      }),
+    });
+    const { getWaterStatistics } = await import("../src/apis/usgs/sdk.js");
+    const res = await getWaterStatistics({ sites: "01646500", statReportType: "annual" });
+    expect(calls[0].url.pathname).toBe("/statistics/v0/observationIntervals");
+    expect(calls[0].url.searchParams.get("interval_type")).toBe("CY");
+    expect(res.rows).toEqual([
+      { site: "01646500", year: 1930, mean: 3466.788, min: null, max: null, median: null, daysOfRecord: 306 },
+      { site: "01646500", year: 1931, mean: 5709.414, min: 700, max: 50000, median: 3000, daysOfRecord: 365 },
+    ]);
+  });
+});
