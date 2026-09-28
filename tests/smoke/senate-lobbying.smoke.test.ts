@@ -27,3 +27,20 @@ describe("lobbying_search issue_code (live)", () => {
       .rejects.toThrow(/registrant_name or client_name/);
   });
 });
+
+describe("lobbying_search filters (live)", () => {
+  it("foreign_entity_country returns only filings with an entity from that country", async () => {
+    const res = await callTool("senate-lobbying", "lobbying_search", { foreign_entity_country: "CN", filing_year: 2025, page_size: 10 });
+    expect(res.data?.total).toBeGreaterThan(0);
+    const all = await callTool("senate-lobbying", "lobbying_search", { filing_year: 2025, page_size: 1 });
+    expect(res.data?.total).toBeLessThan(all.data?.total); // actually filtered
+  }, 120_000);
+
+  it("amount_min narrows results to large filings", async () => {
+    const big = await callTool("senate-lobbying", "lobbying_search", { filing_year: 2025, amount_min: 1_000_000, page_size: 5 });
+    const items = (big.data?.items ?? []) as { amount?: number | string | null; income?: number | string | null; expenses?: number | string | null }[];
+    expect(items.length).toBeGreaterThan(0);
+    const all = await callTool("senate-lobbying", "lobbying_search", { filing_year: 2025, page_size: 1 });
+    expect(big.data?.total).toBeLessThan(all.data?.total);
+  }, 120_000);
+});

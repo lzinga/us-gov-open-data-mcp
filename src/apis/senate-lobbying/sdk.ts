@@ -12,6 +12,7 @@
  */
 
 import { createClient, qp } from "../../shared/client.js";
+import { stateAs } from "../../shared/geo.js";
 
 const HAS_KEY = !!process.env.LDA_API_KEY?.trim();
 
@@ -162,21 +163,50 @@ export const ISSUE_CODES = {
 
 // ─── Public API ──────────────────────────────────────────────────────
 
-/** Search lobbying filings — the core data showing who lobbied, for whom, on what, and how much. */
-export async function searchFilings(opts: {
+/** Server-side filing filters (lda.gov/api/redoc/v1). Text fields support LDA's advanced text search. */
+export interface FilingFilters {
   filing_year?: number;
   filing_type?: string;
+  /** "first_quarter", "second_quarter", "third_quarter", "fourth_quarter", "mid_year", "year_end". */
+  filing_period?: string;
   registrant_name?: string;
   client_name?: string;
+  /** Two-letter state of the client. */
+  client_state?: string;
+  lobbyist_name?: string;
+  /** Former government position of a listed lobbyist, e.g. "Chief of Staff" or "Senator". */
+  lobbyist_covered_position?: string;
+  /** Text of the specific lobbying issues, e.g. "semiconductor". */
+  filing_specific_lobbying_issues?: string;
+  foreign_entity_name?: string;
+  /** Two-letter country code of a foreign entity, e.g. "CN". */
+  foreign_entity_country?: string;
+  filing_amount_reported_min?: number;
+  filing_amount_reported_max?: number;
+  /** Posted on or after, YYYY-MM-DD. */
+  filing_dt_posted_after?: string;
+  /** Posted on or before, YYYY-MM-DD. */
+  filing_dt_posted_before?: string;
+}
+
+const FILTER_KEYS: (keyof FilingFilters)[] = [
+  "filing_year", "filing_type", "filing_period", "registrant_name", "client_name", "client_state", "lobbyist_name",
+  "lobbyist_covered_position", "filing_specific_lobbying_issues", "foreign_entity_name", "foreign_entity_country",
+  "filing_amount_reported_min", "filing_amount_reported_max", "filing_dt_posted_after", "filing_dt_posted_before",
+];
+
+/** Search lobbying filings — the core data showing who lobbied, for whom, on what, and how much. */
+export async function searchFilings(opts: FilingFilters & {
   page_size?: number;
   page?: number;
 }): Promise<LdaPaginated<LdaFiling>> {
+  const filters: Record<string, string | number | undefined> = {};
+  for (const k of FILTER_KEYS) filters[k] = opts[k];
+  if (opts.client_state) filters.client_state = stateAs(opts.client_state, "usps").toUpperCase();
+  if (opts.foreign_entity_country) filters.foreign_entity_country = opts.foreign_entity_country.toUpperCase();
   const params = qp({
     page_size: Math.min(opts.page_size || 20, LDA_MAX_PAGE_SIZE),
-    filing_year: opts.filing_year,
-    filing_type: opts.filing_type,
-    registrant_name: opts.registrant_name,
-    client_name: opts.client_name,
+    ...filters,
     page: opts.page,
   });
 
@@ -207,12 +237,8 @@ export interface IssueScanResult {
  * ISSUE_SCAN_MAX_FILINGS filings. The total number of matches is unknown
  * unless `truncated` is false.
  */
-export async function searchFilingsByIssue(opts: {
+export async function searchFilingsByIssue(opts: FilingFilters & {
   issue_code: string;
-  filing_year?: number;
-  filing_type?: string;
-  registrant_name?: string;
-  client_name?: string;
   limit?: number;
 }): Promise<IssueScanResult> {
   if (!opts.registrant_name && !opts.client_name) {
@@ -229,11 +255,9 @@ export async function searchFilingsByIssue(opts: {
   let exhausted = false;
 
   for (let page = 1; scanned < ISSUE_SCAN_MAX_FILINGS; page++) {
+    const { issue_code: _code, limit: _limit, ...filters } = opts;
     const res = await searchFilings({
-      filing_year: opts.filing_year,
-      filing_type: opts.filing_type,
-      registrant_name: opts.registrant_name,
-      client_name: opts.client_name,
+      ...filters,
       page_size: LDA_MAX_PAGE_SIZE,
       page,
     });
