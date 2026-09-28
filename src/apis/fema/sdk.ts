@@ -451,12 +451,19 @@ function wholeWordClauses(word: string): string[] {
  */
 export function floodEventFilter(input: string, opts: { substring?: boolean } = {}): string {
   const name = eventName(input);
-  const wholeWord = !opts.substring && !name.includes(" ");
+  const oneWord = !name.includes(" ");
+  const wholeWord = oneWord && !opts.substring;
   const lower = name.toLowerCase();
   const title = lower.replace(/(^|[\s\-/("])(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
   const sentence = lower.charAt(0).toUpperCase() + lower.slice(1);
+  // Inside other names, a word starting lower-case finds other storms ("rina"
+  // in "Katrina", "ana" in "Indiana"). FEMA capitalizes each part of a
+  // run-together name, so a one-word substring search skips those forms.
+  const candidates = oneWord && opts.substring
+    ? [name, sentence].filter(form => !/^\p{Ll}/u.test(form))
+    : [name, title, sentence, lower];
   const forms = new Set<string>();
-  for (const form of [name, title, sentence, lower]) {
+  for (const form of candidates) {
     forms.add(form);
     if (form.includes(" ")) forms.add(form.replaceAll(" ", ""));
   }

@@ -95,6 +95,7 @@ describe("floodEventFilter", () => {
     "Hurricane Georges (Panhandle)", "Vermont/New York Flooding", "2026-03-KonaStorm", "2025-12-AtmosphericRiver",
     "California Atmospheric River", "December Nor'easter", "2025-10-Nor'easter", "Late spring severe storms",
     "2026-07-West Virginia-Flooding", "2025-08-MilwaukeeMetro-Flood", 'The "Halloween" Storm',
+    "2026-08-Indiana-Flooding", "Hurricane Katrina", "Hurricane Irene",
   ];
   async function matches(input: string, opts?: { substring?: boolean }): Promise<string[]> {
     const expr = (await filter(input, opts)).replace(/^\((.*)\)$/, "$1");
@@ -142,6 +143,12 @@ describe("floodEventFilter", () => {
     expect(await matches("Halloween", { substring: true })).toEqual(['The "Halloween" Storm']);
   });
 
+  it("does not find a short name inside other storms' names when matching substrings", async () => {
+    expect(await matches("Tropical Storm Ana", { substring: true })).toEqual([]); // not "2026-08-Indiana-Flooding"
+    expect(await matches("Hurricane Rina", { substring: true })).toEqual([]); // not "Hurricane Katrina"
+    expect(await matches("rene", { substring: true })).toEqual([]); // not "Hurricane Irene"
+  });
+
   it("stays well under OpenFEMA's limit of about 90 OR clauses", async () => {
     for (const input of ["Hurricane Georges (Keys)", "hurricane sandy new jersey", "KonaStorm", "Hurricane O'Beryl", "HARVEY", "tRoPiCaL sToRm cHaNtAl"]) {
       expect((await filter(input)).split(" or ").length, input).toBeLessThanOrEqual(48);
@@ -168,7 +175,7 @@ describe("getNfipClaims event matching", () => {
     expect(res).toMatchObject({ total: 422, floodEventMatch: "within names" });
     expect(filters[0]).toMatch(/^state eq 'HI' and \(floodEvent eq 'Kona' or /); // whole word, with the filters
     expect(filters[1]).toMatch(/^\(floodEvent eq 'Kona' or /); // does any event have the word at all?
-    expect(filters[2]).toBe("state eq 'HI' and (contains(floodEvent,'Kona') or contains(floodEvent,'kona'))");
+    expect(filters[2]).toBe("state eq 'HI' and contains(floodEvent,'Kona')");
   });
 
   it("keeps an empty result when the word names an event outside the other filters", async () => {
@@ -182,7 +189,7 @@ describe("getNfipClaims event matching", () => {
     const filters = stubCounts(0, 394);
     expect(await claims({ floodEvent: "Milwaukee" })).toMatchObject({ total: 394, floodEventMatch: "within names" });
     expect(filters).toHaveLength(2);
-    expect(filters[1]).toBe("(contains(floodEvent,'Milwaukee') or contains(floodEvent,'milwaukee'))");
+    expect(filters[1]).toBe("contains(floodEvent,'Milwaukee')");
   });
 
   it("does not fall back for longer names, or when the whole word matched", async () => {
