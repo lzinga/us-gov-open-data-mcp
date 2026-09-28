@@ -39,6 +39,8 @@ import { DOMAINS, authEnvVars, requiresKey, type ApiModule } from "./shared/type
 const logger = createServerLogger();
 
 const MODULES: ApiModule[] = [];
+/** Modules whose import threw; reported instead of silently disappearing. */
+const FAILED_MODULES: { name: string; error: string }[] = [];
 
 // Auto-discover API modules from apis/ subdirectories
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -53,6 +55,7 @@ for (const dir of apiDirs) {
     const mod = await import(`./apis/${dir}/index.js`);
     MODULES.push(mod.default as ApiModule);
   } catch (err) {
+    FAILED_MODULES.push({ name: dir, error: (err as Error).message });
     console.error(`Failed to load module "${dir}":`, (err as Error).message);
   }
 }
@@ -91,7 +94,9 @@ if (listModules) {
       domains: m.domains,
     }));
     console.log(JSON.stringify(output, null, 2));
-    process.exit(0);
+    // Keep stdout a plain module array; failures go to stderr and the exit code.
+    for (const f of FAILED_MODULES) console.error(`Failed to load module "${f.name}": ${f.error}`);
+    process.exit(FAILED_MODULES.length ? 1 : 0);
   }
 
   // Group by primary (first) domain, in canonical DOMAINS order
@@ -117,7 +122,11 @@ if (listModules) {
     }
   }
   console.log(`\n${MODULES.length} modules total.`);
-  process.exit(0);
+  if (FAILED_MODULES.length) {
+    console.log(`\nFailed to load (${FAILED_MODULES.length}):`);
+    for (const f of FAILED_MODULES) console.log(`  ${f.name}: ${f.error}`);
+  }
+  process.exit(FAILED_MODULES.length ? 1 : 0);
 }
 
 // ─── Selective module loading ────────────────────────────────────────
@@ -354,6 +363,13 @@ server.addResource({
 
     let md = `# US Government Open Data — API Reference\n\n`;
     md += `**${activeModules.length} APIs loaded** · ${noKey.length} work without a key · ${configuredKeys.length}/${Object.keys(keyGroups).length} API keys configured\n\n`;
+
+    if (FAILED_MODULES.length) {
+      md += `## Modules That Failed to Load\n\n`;
+      md += `These modules are unavailable in this session because of an internal error:\n\n`;
+      for (const f of FAILED_MODULES) md += `- **${f.name}** — ${f.error}\n`;
+      md += `\n`;
+    }
 
     // Status section
     if (missingRequired.length) {

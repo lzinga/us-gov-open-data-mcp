@@ -43,6 +43,27 @@ const api = createClient({
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
+/** A sub-request of a composite call that failed; its data is returned empty. */
+export interface PartialFailure {
+  /** Which part failed (e.g. "actions", "hearings"). */
+  part: string;
+  error: string;
+}
+
+/**
+ * Await an optional part of a composite profile. On failure, record it and
+ * return the empty fallback so the rest of the profile still loads — but the
+ * failure is reported instead of looking like "no data".
+ */
+async function optionalPart<T>(part: string, failures: PartialFailure[], promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch (err) {
+    failures.push({ part, error: err instanceof Error ? err.message : String(err) });
+    return fallback;
+  }
+}
+
 /** Current congress number based on date. */
 export function currentCongress(): number {
   const year = new Date().getFullYear();
@@ -1441,6 +1462,7 @@ export async function getCommitteePrintText(
  * Get a complete bill profile by combining multiple sub-resource calls in parallel.
  * Returns bill details, cosponsors, actions, summaries, committees, subjects, text versions,
  * and related bills — everything needed to understand a bill's full legislative context.
+ * Sub-resources that fail to load are empty and listed in `partialFailures`.
  */
 export async function getBillFullProfile(
   congress: number, billType: string, billNumber: number,
@@ -1456,19 +1478,21 @@ export async function getBillFullProfile(
   textVersions: CongressTextVersion[];
   relatedBills: CongressRelatedBill[];
   titles: CongressBillTitle[];
+  partialFailures: PartialFailure[];
 }> {
   // First: get bill detail (also fetches cosponsors internally)
   const { bill, cosponsors, cosponsorPartyBreakdown } = await getBillDetails(congress, billType, billNumber);
 
   // Then: parallel fetch all sub-resources
+  const failures: PartialFailure[] = [];
   const [actionsData, summariesData, committeesData, subjectsData, textData, relatedData, titlesData] = await Promise.all([
-    getBillActions(congress, billType, billNumber).catch(() => ({ actions: [] as CongressAction[] })),
-    getBillSummaries(congress, billType, billNumber).catch(() => ({ summaries: [] as CongressSummary[] })),
-    getBillCommittees(congress, billType, billNumber).catch(() => ({ committees: [] as CongressCommitteeRef[] })),
-    getBillSubjects(congress, billType, billNumber).catch(() => ({ subjects: [] as CongressSubject[], policyArea: undefined })),
-    getBillTextVersions(congress, billType, billNumber).catch(() => ({ textVersions: [] as CongressTextVersion[] })),
-    getBillRelatedBills(congress, billType, billNumber).catch(() => ({ relatedBills: [] as CongressRelatedBill[] })),
-    getBillTitles(congress, billType, billNumber).catch(() => ({ titles: [] as CongressBillTitle[] })),
+    optionalPart("actions", failures, getBillActions(congress, billType, billNumber), { actions: [] as CongressAction[] }),
+    optionalPart("summaries", failures, getBillSummaries(congress, billType, billNumber), { summaries: [] as CongressSummary[] }),
+    optionalPart("committees", failures, getBillCommittees(congress, billType, billNumber), { committees: [] as CongressCommitteeRef[] }),
+    optionalPart("subjects", failures, getBillSubjects(congress, billType, billNumber), { subjects: [] as CongressSubject[], policyArea: undefined as string | undefined }),
+    optionalPart("textVersions", failures, getBillTextVersions(congress, billType, billNumber), { textVersions: [] as CongressTextVersion[] }),
+    optionalPart("relatedBills", failures, getBillRelatedBills(congress, billType, billNumber), { relatedBills: [] as CongressRelatedBill[] }),
+    optionalPart("titles", failures, getBillTitles(congress, billType, billNumber), { titles: [] as CongressBillTitle[] }),
   ]);
 
   return {
@@ -1483,6 +1507,7 @@ export async function getBillFullProfile(
     textVersions: textData.textVersions,
     relatedBills: relatedData.relatedBills,
     titles: titlesData.titles,
+    partialFailures: failures,
   };
 }
 
@@ -1497,17 +1522,20 @@ export async function getMemberFullProfile(
   member: CongressMemberDetail;
   sponsoredBills: CongressSponsoredBill[];
   cosponsoredBills: CongressSponsoredBill[];
+  partialFailures: PartialFailure[];
 }> {
+  const failures: PartialFailure[] = [];
   const [memberData, sponsoredData, cosponsoredData] = await Promise.all([
     getMemberDetails(bioguideId),
-    getMemberBills(bioguideId, "sponsored", billLimit).catch(() => ({ bills: [] as CongressSponsoredBill[] })),
-    getMemberBills(bioguideId, "cosponsored", billLimit).catch(() => ({ bills: [] as CongressSponsoredBill[] })),
+    optionalPart("sponsoredBills", failures, getMemberBills(bioguideId, "sponsored", billLimit), { bills: [] as CongressSponsoredBill[] }),
+    optionalPart("cosponsoredBills", failures, getMemberBills(bioguideId, "cosponsored", billLimit), { bills: [] as CongressSponsoredBill[] }),
   ]);
 
   return {
     member: memberData.member,
     sponsoredBills: sponsoredData.bills,
     cosponsoredBills: cosponsoredData.bills,
+    partialFailures: failures,
   };
 }
 
@@ -1521,11 +1549,13 @@ export async function getNominationFullProfile(
   actions: CongressAction[];
   committees: CongressCommitteeRef[];
   hearings: CongressHearing[];
+  partialFailures: PartialFailure[];
 }> {
+  const failures: PartialFailure[] = [];
   const [nomData, committeesData, hearingsData] = await Promise.all([
     getNominationDetails(congress, nominationNumber),
-    getNominationCommittees(congress, nominationNumber).catch(() => ({ committees: [] as CongressCommitteeRef[] })),
-    getNominationHearings(congress, nominationNumber).catch(() => ({ hearings: [] as CongressHearing[] })),
+    optionalPart("committees", failures, getNominationCommittees(congress, nominationNumber), { committees: [] as CongressCommitteeRef[] }),
+    optionalPart("hearings", failures, getNominationHearings(congress, nominationNumber), { hearings: [] as CongressHearing[] }),
   ]);
 
   return {
@@ -1533,6 +1563,7 @@ export async function getNominationFullProfile(
     actions: nomData.actions,
     committees: committeesData.committees,
     hearings: hearingsData.hearings,
+    partialFailures: failures,
   };
 }
 
@@ -1545,16 +1576,19 @@ export async function getTreatyFullProfile(
   treaty: CongressTreaty;
   actions: CongressAction[];
   committees: CongressCommitteeRef[];
+  partialFailures: PartialFailure[];
 }> {
+  const failures: PartialFailure[] = [];
   const [treatyData, committeesData] = await Promise.all([
     getTreatyDetails(congress, treatyNumber),
-    getTreatyCommittees(congress, treatyNumber).catch(() => ({ committees: [] as CongressCommitteeRef[] })),
+    optionalPart("committees", failures, getTreatyCommittees(congress, treatyNumber), { committees: [] as CongressCommitteeRef[] }),
   ]);
 
   return {
     treaty: treatyData.treaty,
     actions: treatyData.actions,
     committees: committeesData.committees,
+    partialFailures: failures,
   };
 }
 
@@ -1568,12 +1602,14 @@ export async function getCommitteeFullProfile(
   recentBills: CongressBill[];
   reports: CongressCommitteeReport[];
   nominations: CongressNomination[];
+  partialFailures: PartialFailure[];
 }> {
+  const failures: PartialFailure[] = [];
   const [detailData, billsData, reportsData, nominationsData] = await Promise.all([
     getCommitteeDetails(chamber, committeeCode),
-    getCommitteeBills(chamber, committeeCode, limit).catch(() => ({ bills: [] as CongressBill[] })),
-    getCommitteeReportsForCommittee(chamber, committeeCode, limit).catch(() => ({ reports: [] as CongressCommitteeReport[] })),
-    getCommitteeNominations(chamber, committeeCode, limit).catch(() => ({ nominations: [] as CongressNomination[] })),
+    optionalPart("recentBills", failures, getCommitteeBills(chamber, committeeCode, limit), { bills: [] as CongressBill[] }),
+    optionalPart("reports", failures, getCommitteeReportsForCommittee(chamber, committeeCode, limit), { reports: [] as CongressCommitteeReport[] }),
+    optionalPart("nominations", failures, getCommitteeNominations(chamber, committeeCode, limit), { nominations: [] as CongressNomination[] }),
   ]);
 
   return {
@@ -1581,6 +1617,7 @@ export async function getCommitteeFullProfile(
     recentBills: billsData.bills,
     reports: reportsData.reports,
     nominations: nominationsData.nominations,
+    partialFailures: failures,
   };
 }
 

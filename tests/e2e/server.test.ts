@@ -72,6 +72,8 @@ describe("CLI", () => {
   it("--list-modules --json prints parseable JSON on stdout", async () => {
     const res = await runCli(["--list-modules", "--json"]);
     expect(res.code).toBe(0);
+    // Every module in dist/apis must import cleanly.
+    expect(res.stderr).not.toContain("Failed to load module");
     const parsed = JSON.parse(res.stdout) as { name: string; toolCount: number }[];
     expect(parsed.length).toBe(moduleDirs.length);
     expect(parsed.reduce((n, m) => n + m.toolCount, 0)).toBe(moduleToolCount);

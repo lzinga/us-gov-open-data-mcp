@@ -95,17 +95,13 @@ export const billVersions = {
 
 // ─── Internal Helpers ────────────────────────────────────────────────
 
-/** Fetch raw text/HTML content. Uses raw fetch (not the JSON client) since these return HTML/text. */
-async function fetchRawText(url: string): Promise<string | null> {
+/** Fetch raw text/HTML content. Uses raw fetch (not the JSON client) since these return HTML/text. Throws on failure. */
+async function fetchRawText(url: string): Promise<string> {
   const key = process.env.DATA_GOV_API_KEY || "";
   const sep = url.includes("?") ? "&" : "?";
-  try {
-    const res = await fetch(`${url}${sep}api_key=${key}`);
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${url}${sep}api_key=${key}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${new URL(url).pathname}`);
+  return await res.text();
 }
 
 // ─── Public API ──────────────────────────────────────────────────────
@@ -201,12 +197,17 @@ export async function getBillText(opts: {
 
   let text = "";
   let textSource = "";
+  const errors: string[] = [];
 
   // Primary: the htm link is pre-formatted text inside <pre> tags
   const htmLink = download.txtLink ?? download.htmlLink ?? meta.htmlLink ?? meta.txtLink;
   if (htmLink) {
-    const raw = await fetchRawText(htmLink as string);
-    if (raw) { text = htmlToText(raw); textSource = "GovInfo text"; }
+    try {
+      const raw = await fetchRawText(htmLink as string);
+      if (raw) { text = htmlToText(raw); textSource = "GovInfo text"; }
+    } catch (err) {
+      errors.push((err as Error).message);
+    }
   }
 
   // Fallback: try granule-level text for packages without a top-level download
@@ -214,11 +215,20 @@ export async function getBillText(opts: {
     const granules = await getPackageGranules(packageId, 5);
     for (const g of granules) {
       const gLink = (g as Record<string, unknown>).htmlLink ?? (g as Record<string, unknown>).txtLink;
-      if (gLink) {
+      if (!gLink) continue;
+      try {
         const raw = await fetchRawText(gLink as string);
         if (raw) { text = htmlToText(raw); textSource = "GovInfo granule"; break; }
+      } catch (err) {
+        errors.push((err as Error).message);
       }
     }
+  }
+
+  // A download link existed but every fetch failed: report it rather than
+  // returning an empty text that looks like "this bill has no text".
+  if (!text && errors.length) {
+    throw new Error(`govinfo: could not load text for ${packageId} (${errors.join("; ")})`);
   }
 
   const maxLen = opts.maxLength === 0 ? Infinity : (opts.maxLength || 100_000);
