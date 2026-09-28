@@ -9,6 +9,7 @@
  */
 
 import { createClient, qp } from "../../shared/client.js";
+import { USER_AGENT } from "../../shared/version.js";
 import { searchPublications } from "../govinfo/sdk.js";
 import { htmlToText } from "../../shared/html.js";
 import { isHostOrSubdomain } from "../../shared/url.js";
@@ -41,7 +42,7 @@ const api = createClient({
   cacheTtlMs: 30 * 60 * 1000, // 30 min
 });
 
-const CLERK_HEADERS = { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" };
+const CLERK_HEADERS = { "User-Agent": USER_AGENT };
 
 /** House Clerk roll-call votes (XML per vote, HTML index per year). No key. */
 const houseClerk = createClient({

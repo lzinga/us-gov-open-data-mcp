@@ -2,12 +2,23 @@
  * End-to-end: the built server over stdio, local operations only (no upstream API calls).
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect, afterAll } from "vitest";
-import { connectStdio, runCli } from "./helpers.js";
+import { connectStdio, repoRoot, runCli } from "./helpers.js";
 import { moduleDirs, getModule } from "../helpers.js";
 
 const moduleToolCount = moduleDirs.reduce((n, d) => n + (getModule(d).tools as unknown[]).length, 0);
 const SERVER_TOOLS = ["clear_cache", "code_mode"];
+const PACKAGE_JSON_VERSION = (JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf-8")) as { version: string }).version;
+
+describe("version", () => {
+  it("--version prints the package.json version and exits", async () => {
+    const res = await runCli(["--version"]);
+    expect(res.code).toBe(0);
+    expect(res.stdout.trim()).toBe(PACKAGE_JSON_VERSION);
+  });
+});
 
 describe("stdio server (all modules)", () => {
   let session: Awaited<ReturnType<typeof connectStdio>>;
@@ -18,6 +29,7 @@ describe("stdio server (all modules)", () => {
     session = await connectStdio();
     const info = session.client.getServerVersion();
     expect(info?.name).toBe("US Government Open Data");
+    expect(info?.version).toBe(PACKAGE_JSON_VERSION);
     expect(session.client.getInstructions()).toContain("CROSS-REFERENCING GUIDE");
   }, 30_000);
 

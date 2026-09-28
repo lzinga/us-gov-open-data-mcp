@@ -10,10 +10,11 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { PACKAGE_VERSION } from "../../shared/version.js";
 
 // ─── Clients ─────────────────────────────────────────────────────────
 
-const USER_AGENT = `us-gov-open-data-mcp/2.0 (${process.env.SEC_CONTACT_EMAIL || "contact@example.com"})`;
+const USER_AGENT = `us-gov-open-data-mcp/${PACKAGE_VERSION} (${process.env.SEC_CONTACT_EMAIL || "contact@example.com"})`;
 
 const dataApi = createClient({
   baseUrl: "https://data.sec.gov",
