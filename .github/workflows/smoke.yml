@@ -1,0 +1,82 @@
+name: Live API smoke tests
+
+# Calls the real government APIs to catch upstream changes (moved endpoints,
+# retired datasets, new required parameters) that fixture tests can't see.
+on:
+  schedule:
+    - cron: '17 13 * * 1' # Mondays, 13:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Smoke tests
+        env:
+          # Fail, rather than skip, checks whose API key secret is missing.
+          SMOKE_STRICT: '1'
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          DATA_GOV_API_KEY: ${{ secrets.DATA_GOV_API_KEY }}
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        # One retry absorbs a transient upstream error; a real break fails twice.
+        run: npm run test:smoke -- --retry=1 --reporter=verbose --reporter=github-actions
+
+  report:
+    # Keep one open issue while scheduled runs fail; close it when they pass.
+    needs: smoke
+    if: ${{ always() && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open, update or close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.smoke.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Live API smoke tests are failing"
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
+            --jq "map(select(.title == \"$title\")) | first | .number // empty")
+          case "$RESULT" in
+            success)
+              if [ -n "$number" ]; then
+                gh issue close "$number" --comment "Passing again: $RUN_URL"
+              fi
+              ;;
+            failure)
+              if [ -n "$number" ]; then
+                gh issue comment "$number" --body "Still failing: $RUN_URL"
+              else
+                gh issue create --title "$title" --body "The scheduled live smoke tests failed: $RUN_URL
+
+          Failed checks are annotated on the run. An upstream API may have changed, or a secret (CENSUS_API_KEY, DATA_GOV_API_KEY, EIA_API_KEY, FRED_API_KEY) may be missing or expired. Each failing run comments here, and the next passing run closes this issue."
+              fi
+              ;;
+            *)
+              echo "Smoke job result: $RESULT. Leaving the tracking issue alone."
+              ;;
+          esac

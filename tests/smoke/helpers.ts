@@ -5,13 +5,12 @@
 
 import { it } from "vitest";
 import { buildToolRegistry, type ToolRegistry } from "../../src/server/tool-registry.js";
+import { configuredEnv } from "../../src/shared/env.js";
 import type { ApiModule } from "../../src/shared/types.js";
 
 /** True when an env var holds a real value (not empty, not an .env.example placeholder). */
 export function isConfigured(name: string): boolean {
-  const value = process.env[name]?.trim();
-  if (!value) return false;
-  return !/example\.com|^your[_-]|your-app-name|your_key/i.test(value);
+  return configuredEnv(name) !== undefined;
 }
 
 /**
