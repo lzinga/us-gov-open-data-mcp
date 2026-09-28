@@ -246,8 +246,13 @@ export default { ...meta, tools, prompts, clearCache } satisfies ApiModule;
 ## Step 5: Build and Test
 
 ```bash
-npx tsc          # compile
-# restart MCP server in VS Code: Ctrl+Shift+P → MCP: Restart Server
+npm run build       # compile to dist/
+npm test            # unit tests, including the structure checks every module must pass
+npm run typecheck   # typecheck sources and tests
+npm run lint        # Biome
+npm run test:smoke  # optional: live calls to the real APIs, using keys from .env
 ```
 
-That's it. The server auto-discovers the new folder — no imports or wiring needed.
+Add fixture tests for your SDK functions that stub `fetch` (`tests/fema-nfip.test.ts` is a small example). If the API is worth watching for upstream changes, add a live check under `tests/smoke/`. Wrap checks that need a key in `itWithKeys(["YOUR_API_KEY"])`: they are skipped locally when the key isn't set, and fail in the weekly smoke workflow (which sets `SMOKE_STRICT=1`) until the key is added as a repository secret and passed in `.github/workflows/smoke.yml`.
+
+Then restart the MCP server (in VS Code: Ctrl+Shift+P → MCP: Restart Server). The server auto-discovers the new folder — no imports or wiring needed.
