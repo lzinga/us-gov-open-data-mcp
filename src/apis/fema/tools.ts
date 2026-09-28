@@ -91,8 +91,8 @@ export const tools: Tool<any, any>[] = [
     name: "fema_nfip_claims",
     description:
       "National Flood Insurance Program (NFIP) claims: flood losses and insurance payouts by state, county, ZIP, year " +
-      "and named flood event (e.g. 'Beryl', 'Harvey', 'Ian'). Each claim has damage, building/contents/ICC payments, " +
-      "coverage, flood zone and water depth; the summary totals the payments shown. The count covers all matching claims.",
+      "and named flood event. Each claim has damage, building/contents/ICC payments, coverage, flood zone and water " +
+      "depth; the summary totals the payments shown. The count covers all matching claims.",
     annotations: { title: "FEMA: NFIP Flood Claims", readOnlyHint: true },
     parameters: z.object({
       state: z.string().optional().describe("State name, two-letter code or FIPS code: 'Texas', 'TX', '48'"),
@@ -100,7 +100,11 @@ export const tools: Tool<any, any>[] = [
       zip: z.string().regex(/^\d{5}$/).optional().describe("5-digit ZIP code"),
       year_from: z.number().int().min(1970).optional().describe("First year of loss"),
       year_to: z.number().int().min(1970).optional().describe("Last year of loss"),
-      flood_event: z.string().optional().describe("Named event (matched as text): 'Hurricane Harvey', 'Beryl'"),
+      flood_event: z.string().optional().describe(
+        "Storm or event name, e.g. 'Harvey', 'Ian', 'Atmospheric River'. Matched as a substring in any capitalization; " +
+        "words like 'Hurricane' or 'Tropical Storm' are dropped, since FEMA writes recent events as '2025-08-Erin-HU'. " +
+        "Add year_from/year_to when a name was reused.",
+      ),
       sort_by: z.enum(["date", "paid"]).default("date").describe("'date' (newest first, default) or 'paid' (largest building payment first)"),
       limit: z.number().int().min(1).max(1000).default(50).describe("Claims to return (default 50, max 1000)"),
     }),
@@ -109,12 +113,25 @@ export const tools: Tool<any, any>[] = [
         state: args.state, county: args.county, zip: args.zip, yearFrom: args.year_from, yearTo: args.year_to,
         floodEvent: args.flood_event, sortBy: args.sort_by, limit: args.limit,
       });
-      if (!claims.length) return emptyResponse("No NFIP claims match these filters.");
+      if (!claims.length) {
+        return emptyResponse(
+          "No NFIP claims match these filters." +
+          (args.flood_event?.trim()
+            ? " FEMA names events inconsistently ('Hurricane Ian', '2025-08-Erin-HU', '2025 July TS Chantal'): try one " +
+              "distinctive word of the name, or drop flood_event and filter by state and year."
+            : ""),
+        );
+      }
       const paid = claims.reduce((sum, c) => sum + c.totalPaid, 0);
+      const floodEvents = [...new Set(claims.map(c => c.floodEvent).filter((e): e is string => !!e))].slice(0, 10);
       return tableResponse(
         `${total.toLocaleString("en-US")} NFIP claim(s) match; showing ${claims.length} (sorted by ${args.sort_by}), ` +
         `$${Math.round(paid).toLocaleString("en-US")} paid on those shown`,
-        { rows: claims as unknown as Record<string, unknown>[], total, meta: { dataset: "NfipClaims", paidOnShown: Math.round(paid) } },
+        {
+          rows: claims as unknown as Record<string, unknown>[],
+          total,
+          meta: { dataset: "NfipClaims", paidOnShown: Math.round(paid), floodEvents: floodEvents.length ? floodEvents : null },
+        },
       );
     },
   },

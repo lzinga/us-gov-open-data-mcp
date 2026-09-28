@@ -1,5 +1,6 @@
 /**
- * Live: fema_nfip_claims returns NFIP claims for a named flood event.
+ * Live: fema_nfip_claims returns NFIP claims for a named flood event, and
+ * fema_query reads each OpenFEMA dataset at its current version.
  */
 
 import { describe, it, expect } from "vitest";
@@ -16,10 +17,19 @@ describe("FEMA NFIP claims (live)", () => {
     expect(claims[0]).toMatchObject({ state: "TX", floodEvent: "Hurricane Beryl" });
     expect(claims[0].totalPaid as number).toBeGreaterThan(0);
   }, 60_000);
+
+  it("finds a storm FEMA names in its newer style ('2025-08-Erin-HU') from 'hurricane erin'", async () => {
+    const res = await callTool("fema", "fema_nfip_claims", { flood_event: "hurricane erin", year_from: 2025, limit: 5 }) as {
+      data: { total: number }; meta: { floodEvents: string[] };
+    };
+    expect(res.data.total).toBeGreaterThan(50);
+    expect(res.meta.floodEvents.some(e => /Erin/.test(e))).toBe(true);
+  }, 60_000);
 });
 
 describe("fema_query dataset versions (live)", () => {
-  for (const dataset of ["nfip_policies", "hazard_mitigation", "HazardMitigationAssistanceProjects"]) {
+  // NfipCommunityStatusBook is only on v1, so rows prove the DataSets catalog lookup (the v2 fallback 404s).
+  for (const dataset of ["nfip_policies", "hazard_mitigation", "NfipCommunityStatusBook"]) {
     it(`reads ${dataset} at its current version`, async () => {
       const res = await callTool("fema", "fema_query", { dataset, top: 2 }) as { data?: { rows: unknown[] } };
       expect(res.data?.rows.length).toBe(2);
