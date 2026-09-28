@@ -36,6 +36,7 @@
     "pretest": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:smoke": "vitest run --config vitest.smoke.config.ts",
     "docs:typedoc": "npm run typedoc --prefix docs",
     "docs:generate": "npm run generate --prefix docs",
     "docs:dev": "npm run dev --prefix docs",
