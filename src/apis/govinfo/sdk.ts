@@ -13,7 +13,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
-import he from "he";
+import { htmlToText } from "../../shared/html.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -108,12 +108,6 @@ async function fetchRawText(url: string): Promise<string | null> {
   }
 }
 
-/** Strip HTML wrapper tags and decode entities. GovInfo bill text is pre-formatted
- *  inside `<html><body><pre>...</pre></body></html>`, so this just removes those tags. */
-function stripHtml(html: string): string {
-  return he.decode(html.replace(/<[^>]+>/g, "")).trim();
-}
-
 // ─── Public API ──────────────────────────────────────────────────────
 
 /** Search across all government publications. */
@@ -194,7 +188,7 @@ export async function getBillText(opts: {
   const htmLink = download.txtLink ?? download.htmlLink ?? meta.htmlLink ?? meta.txtLink;
   if (htmLink) {
     const raw = await fetchRawText(htmLink as string);
-    if (raw) { text = stripHtml(raw); textSource = "GovInfo text"; }
+    if (raw) { text = htmlToText(raw); textSource = "GovInfo text"; }
   }
 
   // Fallback: try granule-level text for packages without a top-level download
@@ -204,7 +198,7 @@ export async function getBillText(opts: {
       const gLink = (g as Record<string, unknown>).htmlLink ?? (g as Record<string, unknown>).txtLink;
       if (gLink) {
         const raw = await fetchRawText(gLink as string);
-        if (raw) { text = stripHtml(raw); textSource = "GovInfo granule"; break; }
+        if (raw) { text = htmlToText(raw); textSource = "GovInfo granule"; break; }
       }
     }
   }

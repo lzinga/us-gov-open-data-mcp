@@ -33,7 +33,7 @@
  *   return emptyResponse("No bills found matching 'infrastructure'.");
  */
 
-import he from "he";
+import { htmlToText } from "./html.js";
 
 // ─── Constants ───────────────────────────────────────────────────────
 
@@ -396,14 +396,12 @@ export function emptyResponse(message: string): string {
 // ─── HTML Sanitization ───────────────────────────────────────────────
 
 /**
- * Strip HTML tags and decode HTML entities safely.
- * Uses the `he` library for complete, standards-compliant entity decoding
- * (handles all named, numeric, and hex entities including double-encoded ones).
+ * Convert an HTML fragment to plain text with paragraph-style whitespace.
+ * See `htmlToText` in `./html.ts` for details and limitations.
  *
  * @param input — raw HTML string (or unknown value)
- * @returns plain text with entities decoded and whitespace normalized
+ * @returns plain text with entities decoded and blank lines collapsed
  */
 export function cleanHtml(input: unknown): string {
-  const stripped = String(input ?? "").replace(/<[^>]+>/g, "");
-  return he.decode(stripped).replace(/\n{3,}/g, "\n\n").trim();
+  return htmlToText(input, { whitespace: "paragraphs" });
 }
