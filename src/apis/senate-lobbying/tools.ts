@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import type { Tool } from "fastmcp";
-import { searchFilings, getFilingDetail, searchContributions, searchRegistrants, searchClients, searchLobbyists, FILING_TYPES, ISSUE_CODES } from "./sdk.js";
+import { searchFilings, searchFilingsByIssue, getFilingDetail, searchContributions, searchRegistrants, searchClients, searchLobbyists, FILING_TYPES, ISSUE_CODES, ISSUE_SCAN_MAX_FILINGS } from "./sdk.js";
 import { tableResponse, listResponse, recordResponse, emptyResponse } from "../../shared/response.js";
 import { keysEnum, describeEnum } from "../../shared/enum-utils.js";
 
@@ -33,20 +33,52 @@ export const tools: Tool<any, any>[] = [
       "Search by:\n" +
       "- registrant_name: lobbying firm or self-filing org ('Pfizer', 'Amazon', 'National Rifle Association')\n" +
       "- client_name: who hired the lobbyist ('Google', 'ExxonMobil')\n" +
-      "- issue_code: policy area ('TAX', 'HCR' health, 'DEF' defense, 'ENV' environment, 'ENG' energy, 'IMM' immigration)\n" +
+      "- issue_code: policy area ('TAX', 'HCR' health, 'DEF' defense, 'ENV' environment, 'ENG' energy, 'IMM' immigration). " +
+      `Requires registrant_name or client_name: the LDA API can't filter by issue, so up to ${ISSUE_SCAN_MAX_FILINGS} of that ` +
+      "registrant's/client's filings are scanned and the total number of matches may be unknown.\n" +
       "- filing_year: year of filing (2020-2026)\n\n" +
       "Returns expenses/income amounts, issues lobbied, and registrant/client info.",
     annotations: { title: "Lobbying: Search Filings", readOnlyHint: true },
     parameters: z.object({
       registrant_name: z.string().optional().describe("Lobbying firm or organization: 'Pfizer', 'Amazon', 'US Chamber of Commerce'"),
       client_name: z.string().optional().describe("Client who hired the lobbyist: 'Google', 'Meta', 'Boeing'"),
-      issue_code: z.enum(keysEnum(ISSUE_CODES)).optional().describe(`Issue area code: ${describeEnum(ISSUE_CODES)}`),
+      issue_code: z.enum(keysEnum(ISSUE_CODES)).optional().describe(
+        `Issue area code (requires registrant_name or client_name): ${describeEnum(ISSUE_CODES)}`,
+      ),
       filing_year: z.number().int().optional().describe("Year: 2020-2026"),
       filing_type: z.enum(keysEnum(FILING_TYPES)).optional().describe(`Filing type: ${describeEnum(FILING_TYPES)}`),
       page_size: z.number().int().max(25).default(20).describe("Results per page (default 20)"),
     }),
     execute: async ({ registrant_name, client_name, issue_code, filing_year, filing_type, page_size }) => {
-      const data = await searchFilings({ registrant_name, client_name, issue_code, filing_year, filing_type, page_size });
+      if (issue_code) {
+        const scan = await searchFilingsByIssue({
+          issue_code, registrant_name, client_name, filing_year, filing_type, limit: page_size,
+        });
+        const who = [registrant_name, client_name].filter(Boolean).join(" / ");
+        const scope = scan.truncated
+          ? `${scan.matched} matches in the first ${scan.scanned} of ${scan.baseTotal} filings for ${who} (scan stopped; more may exist)`
+          : `${scan.matched} of ${scan.baseTotal} filings for ${who} (all scanned)`;
+        const meta = {
+          issueCodeFilter: {
+            code: issue_code,
+            appliedClientSide: true,
+            scanned: scan.scanned,
+            matched: scan.matched,
+            baseTotal: scan.baseTotal,
+            truncated: scan.truncated,
+            totalUnknown: scan.truncated,
+          },
+        };
+        if (!scan.filings.length) {
+          return emptyResponse(`No ${issue_code} lobbying filings found — ${scope}.`);
+        }
+        return listResponse(
+          `Lobbying filings with issue ${issue_code}: ${scope}, showing ${scan.filings.length}`,
+          { items: scan.filings.map(summarizeFiling), total: scan.truncated ? null : scan.matched, meta },
+        );
+      }
+
+      const data = await searchFilings({ registrant_name, client_name, filing_year, filing_type, page_size });
       if (!data.results?.length) return emptyResponse("No lobbying filings found.");
       return listResponse(
         `Lobbying filings: ${data.count} total, showing ${data.results.length}`,

@@ -10,9 +10,10 @@ export default {
   displayName: "Senate Lobbying Disclosures",
   category: "Financial",
   description: "Lobbying filings, expenditures, activities, and campaign contributions — who is lobbying Congress, on what issues, and how much they're spending",
+  auth: { envVar: "LDA_API_KEY", signup: "https://lda.gov/api/register/", optional: true },
   workflow: "lobbying_search to find filings by company/issue → lobbying_detail for specific bills lobbied → lobbying_contributions for campaign donations by lobbyists. For conflict-of-interest investigations: search by trade group AND individual companies to get total industry lobbying spend across 3+ years around a vote.",
   tips:
-    "Search by registrant_name (lobbying firm or self-filer like 'Pfizer'), client_name (who hired the lobbyist), or issue_code (TAX, HCR, DEF, etc.). Filing types: Q1-Q4 (quarterly), RN (new registration). Expenses are in dollars. No API key required. KEY TRADE GROUPS: 'American Bankers Association' (banking), 'PhRMA' or 'Pharmaceutical Research' (pharma), 'American Petroleum Institute' (oil/gas), 'National Association of Realtors' (real estate). Always search BOTH the trade group AND individual companies for a complete lobbying picture.",
+    "Search by registrant_name (lobbying firm or self-filer like 'Pfizer') or client_name (who hired the lobbyist). issue_code (TAX, HCR, DEF, etc.) must be combined with registrant_name or client_name — the LDA API can't filter by issue, so that entity's filings are scanned for the code. Filing types: Q1-Q4 (quarterly), RN (new registration). Expenses are in dollars. Works without a key (15 requests/minute); LDA_API_KEY raises the limit to 120/minute. KEY TRADE GROUPS: 'American Bankers Association' (banking), 'PhRMA' or 'Pharmaceutical Research' (pharma), 'American Petroleum Institute' (oil/gas), 'National Association of Realtors' (real estate). Always search BOTH the trade group AND individual companies for a complete lobbying picture.",
   domains: ["legislation", "finance"],
   crossRef: [
     { question: "spending/budget", route: "lobbying_search (lobbying around appropriations)" },
@@ -25,7 +26,7 @@ export default {
     { question: "food safety", route: "lobbying_search (food industry lobbying)" },
     { question: "medical devices", route: "lobbying_search (device manufacturer lobbying)" },
     { question: "tobacco/vaping", route: "lobbying_search (tobacco industry lobbying)" },
-    { question: "energy/climate", route: "lobbying_search (energy/oil industry lobbying, issue_code='ENV'/'FUE')" },
+    { question: "energy/climate", route: "lobbying_search (client_name/registrant_name for energy companies or 'American Petroleum Institute', with issue_code='ENV'/'FUE')" },
     { question: "banking", route: "lobbying_search (registrant_name='American Bankers Association' + bank companies)" },
     { question: "consumer complaints", route: "lobbying_search (financial industry lobbying on consumer protection)" },
     { question: "workplace safety", route: "lobbying_search (industry lobbying on OSHA regulations)" },
