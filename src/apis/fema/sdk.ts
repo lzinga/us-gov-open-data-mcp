@@ -405,6 +405,32 @@ export interface NfipClaimSummary {
   waterDepthInches: number | null;
 }
 
+/** Storm-type words FEMA may or may not include: "Hurricane Ian", "2025-08-Erin-HU", "2025 July TS Chantal". */
+const STORM_TYPE = /^(?:hurricane|tropical\s+(?:storm|depression|cyclone)|super\s*storm|typhoon|ts|td|hu)\s+/i;
+
+/**
+ * OData filter for a flood event name. OpenFEMA's contains() is
+ * case-sensitive (and rejects tolower()), and FEMA writes names several ways,
+ * so this drops a leading storm type and ORs the capitalizations FEMA uses
+ * (Title Case, Sentence case), plus a form without spaces for names like
+ * "2026-03-KonaStorm". The input is kept as typed unless it is all lowercase,
+ * where it would only add false matches ("ida" in "Florida").
+ */
+export function floodEventFilter(input: string): string {
+  const typed = input.trim().replace(/\s+/g, " ");
+  const name = typed.replace(STORM_TYPE, "") || typed;
+  const lower = name.toLowerCase();
+  const title = lower.replace(/(^|[\s-])(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
+  const sentence = lower.charAt(0).toUpperCase() + lower.slice(1);
+  const forms = new Set<string>();
+  for (const form of name === lower ? [title, sentence] : [name, title, sentence]) {
+    forms.add(form);
+    if (form.includes(" ")) forms.add(form.replaceAll(" ", ""));
+  }
+  const clauses = [...forms].map(form => `contains(floodEvent,${odataString(form)})`);
+  return clauses.length === 1 ? clauses[0] : `(${clauses.join(" or ")})`;
+}
+
 const NFIP_FIELDS = [
   "dateOfLoss", "yearOfLoss", "floodEvent", "state", "countyCode", "reportedZipCode", "ratedFloodZone", "primaryResidenceIndicator",
   "buildingDamageAmount", "contentsDamageAmount", "netBuildingPaymentAmount", "netContentsPaymentAmount", "netIccPaymentAmount",
@@ -435,7 +461,7 @@ export async function getNfipClaims(opts: {
   if (opts.zip) filters.push(`reportedZipCode eq ${odataString(opts.zip.trim())}`);
   if (opts.yearFrom !== undefined) filters.push(`yearOfLoss ge ${integerValue(opts.yearFrom, "year_from")}`);
   if (opts.yearTo !== undefined) filters.push(`yearOfLoss le ${integerValue(opts.yearTo, "year_to")}`);
-  if (opts.floodEvent) filters.push(`contains(floodEvent,${odataString(opts.floodEvent.trim())})`);
+  if (opts.floodEvent?.trim()) filters.push(floodEventFilter(opts.floodEvent));
 
   const res = await api.get<{ metadata?: { count?: number }; NfipClaims?: Record<string, unknown>[] }>("/v3/NfipClaims", {
     $format: "json",

@@ -32,11 +32,12 @@ async function call(args: Record<string, unknown>) {
 describe("fema_nfip_claims", () => {
   it("builds the OData filter from place, years and event", async () => {
     const urls = stubFema({ metadata: { count: 2513 }, NfipClaims: [RAW] });
-    await call({ state: "Texas", county: "48201", zip: "77009", year_from: 2020, year_to: 2024, flood_event: "O'Beryl", sort_by: "paid", limit: 5 });
+    await call({ state: "Texas", county: "48201", zip: "77009", year_from: 2020, year_to: 2024, flood_event: "Hurricane O'Beryl", sort_by: "paid", limit: 5 });
     const q = urls[0].searchParams;
     expect(urls[0].pathname).toBe("/api/open/v3/NfipClaims");
     expect(q.get("$filter")).toBe(
-      "state eq 'TX' and countyCode eq '48201' and reportedZipCode eq '77009' and yearOfLoss ge 2020 and yearOfLoss le 2024 and contains(floodEvent,'O''Beryl')",
+      "state eq 'TX' and countyCode eq '48201' and reportedZipCode eq '77009' and yearOfLoss ge 2020 and yearOfLoss le 2024 " +
+      "and (contains(floodEvent,'O''Beryl') or contains(floodEvent,'O''beryl'))",
     );
     expect(q.get("$orderby")).toBe("netBuildingPaymentAmount desc");
     expect(q.get("$top")).toBe("5");
@@ -64,6 +65,7 @@ describe("fema_nfip_claims", () => {
       paidBuilding: 100000.25, paidContents: 10000.5, totalPaid: 110000.75, waterDepthInches: 18,
     });
     expect(first).not.toHaveProperty("paidIcc"); // every row null, so tableResponse drops it
+    expect(out.meta.floodEvents).toEqual(["Hurricane Beryl"]);
   });
 
   it("rejects a county that is not a 5-digit FIPS code", async () => {
@@ -73,10 +75,33 @@ describe("fema_nfip_claims", () => {
     expect(tools.find(x => x.name === "fema_nfip_claims")!.parameters.safeParse({ county: "4820" }).success).toBe(false);
   });
 
-  it("says so when nothing matches", async () => {
+  it("says so when nothing matches, with advice when an event name was given", async () => {
     stubFema({ metadata: { count: 0 }, NfipClaims: [] });
-    const out = await call({ zip: "00000" });
-    expect(out.summary).toBe("No NFIP claims match these filters.");
+    expect((await call({ zip: "00000" })).summary).toBe("No NFIP claims match these filters.");
+    expect((await call({ flood_event: "Hurricane Nobody" })).summary).toMatch(/^No NFIP claims match these filters\. FEMA names events inconsistently .*try one distinctive word/);
+  });
+});
+
+describe("floodEventFilter", () => {
+  const filter = async (input: string) => (await import("../src/apis/fema/sdk.js")).floodEventFilter(input);
+  const or = (...forms: string[]) => `(${forms.map(f => `contains(floodEvent,'${f}')`).join(" or ")})`;
+
+  it("drops the storm type and matches FEMA's capitalization", async () => {
+    expect(await filter("Harvey")).toBe("contains(floodEvent,'Harvey')");
+    expect(await filter("hurricane harvey")).toBe("contains(floodEvent,'Harvey')");
+    expect(await filter("Tropical Storm Chantal")).toBe("contains(floodEvent,'Chantal')"); // "2025 July TS Chantal"
+    expect(await filter("TS  chantal ")).toBe("contains(floodEvent,'Chantal')");
+    expect(await filter("Hurricane")).toBe("contains(floodEvent,'Hurricane')"); // nothing left to drop to
+  });
+
+  it("does not search an all-lowercase name as typed", async () => {
+    expect(await filter("ida")).toBe("contains(floodEvent,'Ida')"); // 'ida' would match "Florida"
+  });
+
+  it("tries Title Case, Sentence case and forms without spaces", async () => {
+    expect(await filter("atmospheric river")).toBe(or("Atmospheric River", "AtmosphericRiver", "Atmospheric river", "Atmosphericriver"));
+    expect(await filter("KonaStorm")).toBe(or("KonaStorm", "Konastorm")); // "2026-03-KonaStorm"
+    expect(await filter("Nor'easter")).toBe("contains(floodEvent,'Nor''easter')");
   });
 });
 
