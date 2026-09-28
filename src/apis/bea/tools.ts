@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import type { Tool } from "fastmcp";
+import { UserError, type Tool } from "fastmcp";
 import {
   getNationalGdp,
   getGdpByState,
@@ -23,6 +23,34 @@ import {
   getUnderlyingGdpByIndustry,
 } from "./sdk.js";
 import { tableResponse, emptyResponse } from "../../shared/response.js";
+
+const FILTERS_EXAMPLE = '{"TableName":"SAINC1"}';
+
+/**
+ * Parse bea_dataset_info's `filters`: a JSON object of BEA parameter names to
+ * values. Numbers and booleans become strings and lists are comma-joined, as
+ * the BEA API expects. Anything else is a UserError that says what's wrong.
+ */
+function parseFilters(filters: string | undefined): Record<string, string> {
+  if (!filters?.trim()) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(filters);
+  } catch (err) {
+    throw new UserError(`filters must be a JSON object such as ${FILTERS_EXAMPLE}; it is not valid JSON (${(err as Error).message}).`);
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new UserError(`filters must be a JSON object such as ${FILTERS_EXAMPLE}, not ${Array.isArray(parsed) ? "an array" : String(parsed)}.`);
+  }
+  const scalar = (v: unknown) => typeof v === "string" || typeof v === "number" || typeof v === "boolean";
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (scalar(value)) out[key] = String(value);
+    else if (Array.isArray(value) && value.every(scalar)) out[key] = value.join(",");
+    else throw new UserError(`filters.${key} must be a string, a number, or a list of them, as in ${FILTERS_EXAMPLE}.`);
+  }
+  return out;
+}
 
 export const tools: Tool<any, any>[] = [
   {
@@ -222,7 +250,7 @@ export const tools: Tool<any, any>[] = [
         }
         case "get_filtered_values": {
           if (!dataset_name || !target_parameter) return emptyResponse("dataset_name and target_parameter are required.");
-          const filterObj = filters ? JSON.parse(filters) : {};
+          const filterObj = parseFilters(filters);
           const values = await getParameterValuesFiltered(dataset_name, target_parameter, filterObj);
           if (!values.length) return emptyResponse("No filtered values found.");
           return tableResponse(
