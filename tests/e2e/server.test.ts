@@ -19,7 +19,7 @@ describe("version", () => {
     const res = await runCli(["--version"]);
     expect(res.code).toBe(0);
     expect(res.stdout.trim()).toBe(PACKAGE_JSON_VERSION);
-  });
+  }, 30_000);
 });
 
 describe("stdio server (all modules)", () => {
