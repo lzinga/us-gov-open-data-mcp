@@ -23,8 +23,10 @@
 - **300+ tools** across 40+ government APIs — economic, health, legislative, financial, environmental, and more
 - **Cross-referencing** — built-in instructions guide the LLM to combine data from multiple agencies (e.g., FDA adverse events + lobbying spend + campaign contributions)
 - **Code mode** — WASM-sandboxed JavaScript execution reduces context window usage by 98-100% for large responses
-- **Selective loading** — load only the modules you need: `--modules fred,treasury,congress`
-- **Dual transport** — stdio for desktop clients, HTTP Stream for web/remote
+- **Selective loading** — load only the modules or domains you need: `--modules fred,treasury,congress` or `--domains economy,health`
+- **Discovery mode** — `--tool-mode discovery` lists 4 tools instead of 350; the model searches for the one it needs
+- **Sources on every result** — `meta.sources` lists the upstream API requests behind each answer
+- **Dual transport** — stdio for desktop clients, HTTP Stream for web/remote (bearer-token auth off loopback)
 - **TypeScript SDK** — every API is importable as a standalone typed client, no MCP required
 - **Disk-backed caching** — responses cached to disk, survives restarts
 - **Rate limiting + retry** — token-bucket rate limiter with exponential backoff on 429/503
@@ -32,6 +34,8 @@
 ## Quick Start
 
 ### MCP Server
+
+Requires Node.js 22 or later.
 
 ```bash
 npx us-gov-open-data-mcp
@@ -121,11 +125,11 @@ Full documentation at **[lzinga.github.io/us-gov-open-data-mcp](https://lzinga.g
 | **Economic** | Treasury, FRED, BLS, BEA, EIA |
 | **Legislative** | Congress.gov, Federal Register, GovInfo, Regulations.gov |
 | **Financial** | FEC, Senate Lobbying, SEC, FDIC, CFPB |
-| **Spending** | USAspending, Open Payments |
+| **Spending & Procurement** | USAspending, Open Payments, GSA CALC+ |
 | **Health & Safety** | CDC, FDA, CMS, ClinicalTrials.gov, NIH, NHTSA, DOL |
-| **Environment** | EPA, NOAA, NREL, USGS |
+| **Environment & Weather** | EPA, EPA AQS, NOAA, NWS, NREL, USGS |
 | **Justice** | FBI Crime Data, DOJ News |
-| **Education** | NAEP, College Scorecard, USPTO |
+| **Education & Research** | NAEP, College Scorecard, USPTO |
 | **Demographics** | Census, HUD, FEMA |
 | **Other** | BTS, USDA NASS, USDA FoodData, World Bank |
 

@@ -165,17 +165,17 @@ Modules are grouped by domain, with tool count and env var name for modules that
 
 ```
 Economy
-  bea    Bureau of Economic Analysis           13 tools  [BEA_API_KEY]  https://apps.bea.gov/API/signup/
-  bls    Bureau of Labor Statistics             4 tools  [BLS_API_KEY]  https://www.bls.gov/developers/home.htm
-  fred   Federal Reserve Economic Data          4 tools  [FRED_API_KEY]  https://fredaccount.stlouisfed.org/apikeys
+  bea                Bureau of Economic Analysis                   13 tools  [BEA_API_KEY]  https://apps.bea.gov/API/signup/
+  bls                Bureau of Labor Statistics                    4 tools   [BLS_API_KEY (optional)]  https://www.bls.gov/developers/home.htm
+  fred               FRED (Federal Reserve Economic Data)          5 tools   [FRED_API_KEY]  https://fredaccount.stlouisfed.org/apikeys
   ...
 
 Health
-  cdc    CDC Health Data                       13 tools
-  cms    Centers for Medicare & Medicaid        4 tools
+  cdc                CDC Health Data                               13 tools
+  cms                CMS                                           4 tools
   ...
 
-41 modules total.
+42 modules total.
 ```
 
 For scripting or tooling, add `--json` to get structured output:

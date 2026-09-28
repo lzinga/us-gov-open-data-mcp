@@ -3,7 +3,7 @@
  *
  * Goals:
  *   - Token-efficient columnar format for tabular/time-series data
- *   - Consistent envelope across all 37 modules
+ *   - Consistent envelope across every module
  *   - Server-side stats for numeric data (min/max/mean/trend)
  *   - Uniform truncation with clear signaling
  *
