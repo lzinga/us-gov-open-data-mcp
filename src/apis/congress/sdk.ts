@@ -9,7 +9,7 @@
  */
 
 import { createClient, qp } from "../../shared/client.js";
-import he from "he";
+import { htmlToText } from "../../shared/html.js";
 export * from "./types.js";
 import type {
   CongressBill, CongressBillDetail, CongressCosponsor, CongressBillTitle,
@@ -481,7 +481,7 @@ function parseHouseVoteIndex(html: string, limit: number): CongressVoteSummary[]
     let cellMatch;
     while ((cellMatch = cellPattern.exec(row)) !== null) {
       // Strip all HTML tags, decode entities, collapse whitespace
-      cells.push(he.decode(cellMatch[1].replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim());
+      cells.push(htmlToText(cellMatch[1], { whitespace: "collapse" }));
     }
 
     if (cells.length < 6) continue;

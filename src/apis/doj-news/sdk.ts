@@ -14,7 +14,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
-import he from "he";
+import { htmlToText } from "../../shared/html.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -256,7 +256,7 @@ export function summarizePressRelease(pr: DojPressRelease): string {
   if (topics) parts.push(`Topic: ${topics}`);
   if (pr.url) parts.push(`URL: ${pr.url}`);
   if (pr.teaser) {
-    const cleanTeaser = he.decode(pr.teaser.replace(/<[^>]+>/g, "")).trim().slice(0, 300);
+    const cleanTeaser = htmlToText(pr.teaser).slice(0, 300);
     if (cleanTeaser) parts.push(`Summary: ${cleanTeaser}`);
   }
   return parts.join("\n");
