@@ -25,6 +25,14 @@ const api = createClient({
   cacheTtlMs: 60 * 60 * 1000, // 1 hour — published docs don't change
 });
 
+/** Public content pages (www.govinfo.gov). No key is sent there. */
+const content = createClient({
+  baseUrl: "https://www.govinfo.gov",
+  name: "govinfo-content",
+  rateLimit: { perSecond: 3, burst: 8 },
+  cacheTtlMs: 60 * 60 * 1000,
+});
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 /** Publication Result. */
@@ -95,13 +103,24 @@ export const billVersions = {
 
 // ─── Internal Helpers ────────────────────────────────────────────────
 
-/** Fetch raw text/HTML content. Uses raw fetch (not the JSON client) since these return HTML/text. Throws on failure. */
-async function fetchRawText(url: string): Promise<string> {
-  const key = process.env.DATA_GOV_API_KEY || "";
-  const sep = url.includes("?") ? "&" : "?";
-  const res = await fetch(`${url}${sep}api_key=${key}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${new URL(url).pathname}`);
-  return await res.text();
+/**
+ * Fetch a text/HTML link taken from GovInfo metadata, through the API clients
+ * (cache, retries, rate limit, timeouts). The API key is only sent to
+ * https://api.govinfo.gov; links to any other host are refused, since the URL
+ * comes from response data rather than from this code.
+ */
+async function fetchLinkText(link: string): Promise<string> {
+  let url: URL;
+  try {
+    url = new URL(link);
+  } catch {
+    throw new Error(`govinfo: invalid document link "${link}"`);
+  }
+  url.searchParams.delete("api_key");
+  const params = Object.fromEntries(url.searchParams);
+  if (url.protocol === "https:" && url.hostname === "api.govinfo.gov") return api.getText(url.pathname, params);
+  if (url.protocol === "https:" && url.hostname === "www.govinfo.gov") return content.getText(url.pathname, params);
+  throw new Error(`govinfo: not fetching ${url.origin}${url.pathname} (not a GovInfo HTTPS link)`);
 }
 
 // ─── Public API ──────────────────────────────────────────────────────
@@ -203,7 +222,7 @@ export async function getBillText(opts: {
   const htmLink = download.txtLink ?? download.htmlLink ?? meta.htmlLink ?? meta.txtLink;
   if (htmLink) {
     try {
-      const raw = await fetchRawText(htmLink as string);
+      const raw = await fetchLinkText(htmLink as string);
       if (raw) { text = htmlToText(raw); textSource = "GovInfo text"; }
     } catch (err) {
       errors.push((err as Error).message);
@@ -217,7 +236,7 @@ export async function getBillText(opts: {
       const gLink = (g as Record<string, unknown>).htmlLink ?? (g as Record<string, unknown>).txtLink;
       if (!gLink) continue;
       try {
-        const raw = await fetchRawText(gLink as string);
+        const raw = await fetchLinkText(gLink as string);
         if (raw) { text = htmlToText(raw); textSource = "GovInfo granule"; break; }
       } catch (err) {
         errors.push((err as Error).message);
@@ -249,4 +268,5 @@ export async function getBillText(opts: {
 /** Clear cached responses. */
 export function clearCache(): void {
   api.clearCache();
+  content.clearCache();
 }

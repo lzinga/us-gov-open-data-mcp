@@ -41,6 +41,26 @@ const api = createClient({
   cacheTtlMs: 30 * 60 * 1000, // 30 min
 });
 
+const CLERK_HEADERS = { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" };
+
+/** House Clerk roll-call votes (XML per vote, HTML index per year). No key. */
+const houseClerk = createClient({
+  baseUrl: "https://clerk.house.gov/evs",
+  name: "house-clerk",
+  defaultHeaders: CLERK_HEADERS,
+  rateLimit: { perSecond: 2, burst: 5 },
+  cacheTtlMs: 30 * 60 * 1000, // 30 min — the current year's index grows as votes happen
+});
+
+/** Senate LIS roll-call votes (XML). No key. */
+const senateLis = createClient({
+  baseUrl: "https://www.senate.gov/legislative/LIS",
+  name: "senate-lis",
+  defaultHeaders: CLERK_HEADERS,
+  rateLimit: { perSecond: 2, burst: 5 },
+  cacheTtlMs: 30 * 60 * 1000,
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 /** A sub-request of a composite call that failed; its data is returned empty. */
@@ -453,14 +473,7 @@ async function getHouseVotesFromClerk(opts: {
   if (opts.vote_number) {
     // Fetch individual vote XML from clerk.house.gov
     const num = String(opts.vote_number).padStart(3, "0");
-    const url = `${HOUSE_CLERK_BASE}/${year}/roll${num}.xml`;
-
-    const resp = await fetch(url, {
-      headers: { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" },
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!resp.ok) throw new Error(`House vote fetch failed: ${resp.status} ${resp.statusText} (${url})`);
-    const xml = await resp.text();
+    const xml = await houseClerk.getText(`/${year}/roll${num}.xml`);
 
     const parsed = parseXml<Record<string, unknown>>(xml);
     const rc = (parsed["rollcall-vote"] ?? {}) as Record<string, unknown>;
@@ -508,13 +521,7 @@ async function getHouseVotesFromClerk(opts: {
   }
 
   // List votes: parse HTML index page from clerk.house.gov
-  const url = `${HOUSE_CLERK_BASE}/${year}/index.asp`;
-  const resp = await fetch(url, {
-    headers: { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" },
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!resp.ok) throw new Error(`House vote index fetch failed: ${resp.status} (${url})`);
-  const html = await resp.text();
+  const html = await houseClerk.getText(`/${year}/index.asp`);
 
   const votes = parseHouseVoteIndex(html, opts.limit ?? 20);
   return { votes, source: "clerk.house.gov" };
@@ -1721,9 +1728,6 @@ function parseXml<T = Record<string, unknown>>(xml: string): T {
   return xmlParser.parse(xml) as T;
 }
 
-const HOUSE_CLERK_BASE = "https://clerk.house.gov/evs";
-const SENATE_BASE = "https://www.senate.gov/legislative/LIS";
-
 function padVoteNumber(n: number): string {
   return String(n).padStart(5, "0");
 }
@@ -1757,16 +1761,10 @@ export async function getSenateVotes(opts: {
 
   if (opts.vote_number) {
     // Fetch individual vote XML
-    const url =
-      `${SENATE_BASE}/roll_call_votes/vote${congressNum}${sessionNum}` +
-      `/vote_${congressNum}_${sessionNum}_${padVoteNumber(opts.vote_number)}.xml`;
-
-    const resp = await fetch(url, {
-      headers: { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" },
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!resp.ok) throw new Error(`Senate vote fetch failed: ${resp.status} ${resp.statusText} (${url})`);
-    const xml = await resp.text();
+    const xml = await senateLis.getText(
+      `/roll_call_votes/vote${congressNum}${sessionNum}` +
+      `/vote_${congressNum}_${sessionNum}_${padVoteNumber(opts.vote_number)}.xml`,
+    );
     const parsed = parseXml<{ roll_call_vote: Record<string, unknown> }>(xml);
     const rc = parsed.roll_call_vote ?? {};
 
@@ -1832,13 +1830,7 @@ export async function getSenateVotes(opts: {
   }
 
   // List recent votes — fetch list XML
-  const listUrl = `${SENATE_BASE}/roll_call_lists/vote_menu_${congressNum}_${sessionNum}.xml`;
-  const resp = await fetch(listUrl, {
-    headers: { "User-Agent": "us-gov-open-data-mcp/2.0 (gov-accountability-tool)" },
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!resp.ok) throw new Error(`Senate vote list fetch failed: ${resp.status} ${resp.statusText} (${listUrl})`);
-  const xml = await resp.text();
+  const xml = await senateLis.getText(`/roll_call_lists/vote_menu_${congressNum}_${sessionNum}.xml`);
   const parsed = parseXml<{ vote_summary: Record<string, unknown> }>(xml);
   const summary = parsed.vote_summary ?? {};
   const rawVotes = ((summary.votes ?? {}) as Record<string, unknown>).vote ?? [];
@@ -1877,4 +1869,6 @@ function currentSession(): number {
 /** Clear cached responses. */
 export function clearCache(): void {
   api.clearCache();
+  houseClerk.clearCache();
+  senateLis.clearCache();
 }
