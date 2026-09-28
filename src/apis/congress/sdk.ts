@@ -10,6 +10,7 @@
 
 import { createClient, qp } from "../../shared/client.js";
 import { htmlToText } from "../../shared/html.js";
+import { isHostOrSubdomain } from "../../shared/url.js";
 export * from "./types.js";
 import type {
   CongressBill, CongressBillDetail, CongressCosponsor, CongressBillTitle,
@@ -1513,10 +1514,7 @@ export async function getBillVotes(
     if (!action.recordedVotes) continue;
     for (const rv of action.recordedVotes) {
       if (!rv.rollNumber) continue;
-      const chamber = rv.chamber?.toLowerCase() ?? (() => {
-        try { return new URL(rv.url ?? "").hostname.endsWith("senate.gov") ? "senate" : "house"; }
-        catch { return "house"; }
-      })();
+      const chamber = rv.chamber?.toLowerCase() ?? (isHostOrSubdomain(rv.url, "senate.gov") ? "senate" : "house");
       if (chamber === "senate") {
         senateRolls.push({ rollNumber: rv.rollNumber, date: rv.date ?? action.actionDate, session: rv.sessionNumber });
       } else {
