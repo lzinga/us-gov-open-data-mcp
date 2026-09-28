@@ -72,10 +72,39 @@ export interface StateSpendingSummary {
 
 /** Spending Period. */
 export interface SpendingPeriod {
+  /** Federal fiscal year (starts October 1 of the prior calendar year). */
   fiscalYear: number | null;
+  /** Fiscal month, 1 = October (when grouped by month). */
   month: number | null;
+  /** Fiscal quarter, 1 = Oct–Dec (when grouped by quarter). */
   quarter: number | null;
+  /** Calendar month the period starts in, as YYYY-MM (e.g. FY2025 month 1 → "2024-10"). */
+  periodStart: string | null;
+  /** Human-readable fiscal label: "FY2025", "FY2025 Q1", or "FY2025 M01". */
+  fiscalPeriod: string | null;
   amount: number;
+}
+
+/** Calendar start (YYYY-MM) and label for a fiscal year/quarter/month. */
+export function fiscalPeriodInfo(
+  fiscalYear: number | null,
+  quarter: number | null,
+  month: number | null,
+): { periodStart: string | null; fiscalPeriod: string | null } {
+  if (!fiscalYear) return { periodStart: null, fiscalPeriod: null };
+  const ym = (year: number, calMonth: number) => `${year}-${String(calMonth).padStart(2, "0")}`;
+  if (month) {
+    // Fiscal month 1 = October of the prior calendar year.
+    const calMonth = ((month + 8) % 12) + 1;
+    const year = month <= 3 ? fiscalYear - 1 : fiscalYear;
+    return { periodStart: ym(year, calMonth), fiscalPeriod: `FY${fiscalYear} M${String(month).padStart(2, "0")}` };
+  }
+  if (quarter) {
+    const calMonth = [10, 1, 4, 7][quarter - 1] ?? 10;
+    const year = quarter === 1 ? fiscalYear - 1 : fiscalYear;
+    return { periodStart: ym(year, calMonth), fiscalPeriod: `FY${fiscalYear} Q${quarter}` };
+  }
+  return { periodStart: ym(fiscalYear - 1, 10), fiscalPeriod: `FY${fiscalYear}` };
 }
 
 /** Agency Overview. */
@@ -365,10 +394,14 @@ export async function spendingOverTime(params: {
 
   return (res.results ?? []).map(r => {
     const period = r.time_period as Record<string, unknown> | undefined;
+    const fiscalYear = period?.fiscal_year ? Number(period.fiscal_year) : null;
+    const month = period?.month ? Number(period.month) : null;
+    const quarter = period?.quarter ? Number(period.quarter) : null;
     return {
-      fiscalYear: period?.fiscal_year ? Number(period.fiscal_year) : null,
-      month: period?.month ? Number(period.month) : null,
-      quarter: period?.quarter ? Number(period.quarter) : null,
+      fiscalYear,
+      month,
+      quarter,
+      ...fiscalPeriodInfo(fiscalYear, quarter, month),
       amount: Number(r.aggregated_amount || 0),
     };
   });

@@ -154,8 +154,14 @@ export const tools: Tool<any, any>[] = [
       });
       if (!periods.length) return emptyResponse("No spending data found for the given period.");
       return timeseriesResponse(
-        `Federal spending over time: ${periods.length} periods, grouped by ${group || "month"}`,
-        { rows: periods, dateKey: "time_period", valueKey: "aggregated_amount", meta: { group: group || "month" } },
+        `Federal spending over time: ${periods.length} periods, grouped by ${group || "month"} (fiscal periods; periodStart is the calendar month each begins)`,
+        {
+          rows: periods,
+          dateKey: "periodStart",
+          valueKey: "amount",
+          extraFields: ["fiscalPeriod"],
+          meta: { group: group || "month" },
+        },
       );
     },
   },
