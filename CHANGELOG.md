@@ -34,6 +34,8 @@ This file lists what upgrading requires.
   earlier versions are deleted on first use.
 - `SEC_CONTACT_EMAIL` and `NWS_USER_AGENT` values copied unchanged from `.env.example` are ignored instead of being
   sent to SEC and NWS.
+- Congress bill summaries are plain text instead of the CRS summary HTML, and HTML is converted to text the same
+  strict way everywhere (markup revealed by decoding entities is removed too).
 - The Docker image runs as a non-root user and has a health check.
 - `fema_query` reads each OpenFEMA dataset at its current version. NFIP claims and policies and HMGP summaries now come
   from OpenFEMA v3 (the v2 datasets are retired on 2026-10-15).
