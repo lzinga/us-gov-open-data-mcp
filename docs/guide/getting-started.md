@@ -105,9 +105,20 @@ node dist/server.js --modules fred,treasury,congress
 # Environment variable
 MODULES=fred,bls,treasury node dist/server.js
 
+# Every module in one or more domains (unioned with --modules)
+node dist/server.js --domains economy,health
+DOMAINS=economy node dist/server.js
+
+# Skip modules whose required API key isn't set (optional-key modules stay)
+node dist/server.js --hide-unconfigured
+HIDE_UNCONFIGURED=1 node dist/server.js
+
 # Combine with HTTP
 node dist/server.js --modules fred,treasury --transport httpStream --port 8080
 ```
+
+Unknown module or domain names stop the server with the list of valid names, so a typo can't silently load a
+different set of tools. Prompts only mention tools that are loaded.
 
 With all 41 modules, the server sends ~14K tokens of instructions to the LLM. With 3 modules, this drops to ~3K. Use selective loading when you only need a few data sources and want to minimize context overhead.
 

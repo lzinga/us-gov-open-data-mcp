@@ -119,6 +119,42 @@ describe("stdio server (selective loading)", () => {
 });
 
 describe("CLI", () => {
+  it("--domains loads every module in those domains, unioned with --modules", async () => {
+    const inDomain = moduleDirs.filter(d => (getModule(d).domains as string[]).includes("energy"));
+    const expected = new Set([...inDomain, "cdc"]);
+    const session = await connectStdio({ args: ["--domains", "energy", "--modules", "cdc"] });
+    try {
+      const { tools } = await session.client.listTools();
+      const count = [...expected].reduce((n, d) => n + (getModule(d).tools as unknown[]).length + aliasCount(d), 0);
+      expect(tools.length).toBe(count + SERVER_TOOLS.length);
+    } finally {
+      await session.close();
+    }
+  }, 30_000);
+
+  it("DOMAINS and HIDE_UNCONFIGURED work from the environment", async () => {
+    // No keys in the child env: keyed economy modules (fred, bea, …) are hidden, keyless/optional ones stay.
+    const session = await connectStdio({ env: { DOMAINS: "economy", HIDE_UNCONFIGURED: "1" } });
+    try {
+      const names = new Set((await session.client.listTools()).tools.map(t => t.name));
+      expect(names.has("treasury_query_fiscal_data")).toBe(true);
+      expect(names.has("bls_series_data")).toBe(true); // BLS key is optional
+      expect([...names].some(n => n.startsWith("fred_"))).toBe(false);
+      expect(session.stderr()).toMatch(/Hidden \(no FRED_API_KEY\): fred/);
+    } finally {
+      await session.close();
+    }
+  }, 30_000);
+
+  it("rejects unknown module and domain names", async () => {
+    const mod = await runCli(["--modules", "fred,frde"]);
+    expect(mod.code).toBe(1);
+    expect(mod.stderr).toMatch(/Unknown module: frde/);
+    const dom = await runCli(["--domains", "econ"]);
+    expect(dom.code).toBe(1);
+    expect(dom.stderr).toMatch(/Unknown domain: econ/);
+  }, 30_000);
+
   it("--list-modules --json prints parseable JSON on stdout", async () => {
     const res = await runCli(["--list-modules", "--json"]);
     expect(res.code).toBe(0);
