@@ -11,7 +11,7 @@ export default {
   category: "Financial",
   description: "Company filings, financial data (XBRL), and full-text search across SEC EDGAR",
   workflow: "sec_filing_search to find companies/CIKs → sec_company_search for details → sec_company_financials for XBRL data",
-  tips: "No API key required. Rate limit: 10 req/sec. CIK numbers must be looked up first — use sec_filing_search to find them by company name.",
+  tips: "No API key required. Set SEC_CONTACT_EMAIL to your email: SEC's fair access policy asks automated tools to identify themselves and may block requests without a contact. Rate limit: 10 req/sec. CIK numbers must be looked up first — use sec_filing_search to find them by company name.",
   domains: ["finance"],
   crossRef: [
     { question: "drug investigation", route: "sec_company_financials (pharma company financials via XBRL)" },

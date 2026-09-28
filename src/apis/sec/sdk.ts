@@ -9,28 +9,59 @@
  * Rate limit: 10 requests/second.
  */
 
-import { createClient } from "../../shared/client.js";
+import { createClient, type ApiClient } from "../../shared/client.js";
+import { configuredEnv } from "../../shared/env.js";
 import { PACKAGE_VERSION } from "../../shared/version.js";
 
 // ─── Clients ─────────────────────────────────────────────────────────
 
-const USER_AGENT = `us-gov-open-data-mcp/${PACKAGE_VERSION} (${process.env.SEC_CONTACT_EMAIL || "contact@example.com"})`;
+const CONTACT_EMAIL = configuredEnv("SEC_CONTACT_EMAIL");
 
-const dataApi = createClient({
+/**
+ * SEC's fair access policy asks automated tools to put a contact email in the
+ * User-Agent. Without SEC_CONTACT_EMAIL, only the tool name and version are
+ * sent: no made-up address, and no repository URL either, since SEC's
+ * firewall rejects User-Agents that mention GitHub (HTTP 403).
+ */
+const USER_AGENT = CONTACT_EMAIL
+  ? `us-gov-open-data-mcp/${PACKAGE_VERSION} (${CONTACT_EMAIL})`
+  : `us-gov-open-data-mcp/${PACKAGE_VERSION}`;
+
+let warnedNoContact = false;
+
+/** Warn once, on the first SEC request, when no contact email is configured. */
+function warnIfNoContact(): void {
+  if (CONTACT_EMAIL || warnedNoContact) return;
+  warnedNoContact = true;
+  console.error(
+    "SEC EDGAR: SEC_CONTACT_EMAIL is not set. SEC asks automated tools to identify themselves with a contact " +
+    "email (https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data) and may block requests without one.",
+  );
+}
+
+/** A client whose requests trigger the missing-contact warning. */
+function withContactWarning(client: ApiClient): ApiClient {
+  return {
+    ...client,
+    get: (path, params) => { warnIfNoContact(); return client.get(path, params); },
+  };
+}
+
+const dataApi = withContactWarning(createClient({
   baseUrl: "https://data.sec.gov",
   name: "sec-data",
   defaultHeaders: { "User-Agent": USER_AGENT, Accept: "application/json" },
   rateLimit: { perSecond: 10, burst: 10 },
   cacheTtlMs: 30 * 60 * 1000, // 30 min
-});
+}));
 
-const searchApi = createClient({
+const searchApi = withContactWarning(createClient({
   baseUrl: "https://efts.sec.gov/LATEST",
   name: "sec-search",
   defaultHeaders: { "User-Agent": USER_AGENT, Accept: "application/json" },
   rateLimit: { perSecond: 10, burst: 10 },
   cacheTtlMs: 30 * 60 * 1000,
-});
+}));
 
 // ─── Types ───────────────────────────────────────────────────────────
 

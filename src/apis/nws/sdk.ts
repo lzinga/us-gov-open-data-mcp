@@ -14,9 +14,11 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { configuredEnv } from "../../shared/env.js";
 import { USER_AGENT as DEFAULT_USER_AGENT } from "../../shared/version.js";
 
-const USER_AGENT = process.env.NWS_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
+/** NWS asks for a User-Agent naming the app and a contact; a placeholder from .env.example counts as unset. */
+const USER_AGENT = configuredEnv("NWS_USER_AGENT") ?? DEFAULT_USER_AGENT;
 
 const api = createClient({
   baseUrl: "https://api.weather.gov",

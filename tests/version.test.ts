@@ -35,16 +35,16 @@ describe("package version", () => {
     expect(agents[0]).toBe(USER_AGENT);
 
     vi.resetModules();
-    vi.stubEnv("NWS_USER_AGENT", "(example.org, ops@example.org)");
+    vi.stubEnv("NWS_USER_AGENT", "(weather-dashboard.test, ops@weather-dashboard.test)");
     agents = captureUserAgents();
     await (await import("../src/apis/nws/sdk.js")).getActiveAlerts({ area: "MD" }).catch(() => {});
-    expect(agents[0]).toBe("(example.org, ops@example.org)");
+    expect(agents[0]).toBe("(weather-dashboard.test, ops@weather-dashboard.test)");
   });
 
   it("is used in the SEC User-Agent", async () => {
-    vi.stubEnv("SEC_CONTACT_EMAIL", "analyst@example.org");
+    vi.stubEnv("SEC_CONTACT_EMAIL", "analyst@agency.test");
     const agents = captureUserAgents();
     await (await import("../src/apis/sec/sdk.js")).getCompanyFacts("320193").catch(() => {});
-    expect(agents[0]).toBe(`us-gov-open-data-mcp/${pkgVersion} (analyst@example.org)`);
+    expect(agents[0]).toBe(`us-gov-open-data-mcp/${pkgVersion} (analyst@agency.test)`);
   });
 });
