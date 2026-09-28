@@ -68,6 +68,6 @@ describe("govinfo bill text", () => {
     }));
     const { getBillText } = await import("../src/apis/govinfo/sdk.js");
     await expect(getBillText({ congress: 119, billType: "hr", billNumber: 1, version: "ih" }))
-      .rejects.toThrow(/could not load text for BILLS-119hr1ih \(HTTP 500/);
+      .rejects.toThrow(/could not load text for BILLS-119hr1ih \(govinfo: HTTP 500/);
   });
 });
