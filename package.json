@@ -33,6 +33,7 @@
     "start": "node dist/server.js",
     "start:http": "node dist/server.js --transport httpStream --port 8080",
     "dev": "tsc --watch",
+    "pretest": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "docs:typedoc": "npm run typedoc --prefix docs",
@@ -114,6 +115,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/he": "^1.2.3",
     "@types/node": "^25.3.0",
     "typescript": "^5.9.3",
