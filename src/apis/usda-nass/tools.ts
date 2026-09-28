@@ -87,7 +87,7 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "usda_ag_query",
-    description: "Custom query to USDA NASS QuickStats — any combination of filters.\nMax 50,000 records. Use usda_ag_count first for large queries.",
+    description: "Custom query to USDA NASS QuickStats — any combination of filters.\nMax 50,000 records per query; for large queries narrow with year, state_alpha, agg_level_desc, or statisticcat_desc.",
     annotations: { title: "USDA: Custom Query", readOnlyHint: true },
     parameters: z.object({
       commodity_desc: z.string().optional().describe("Commodity: CORN, WHEAT, CATTLE, etc."),

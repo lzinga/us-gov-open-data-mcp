@@ -325,7 +325,7 @@ export const tools: Tool<any, any>[] = [
       "Get House of Representatives roll call vote results with member-level party breakdown. " +
       "Primary source: Congress.gov API (118th-119th Congress); falls back to clerk.house.gov XML for older congresses. " +
       "Coverage: 1990 to present. Use year param for historical votes. " +
-      "Cross-reference with: congress_senate_votes (same bill's Senate vote), FEC (congress_member donors via fec_candidate_financials), " +
+      "Cross-reference with: congress_senate_votes (same bill's Senate vote), FEC (members' donors via fec_candidate_financials), " +
       "lobbying_search (who lobbied on the bill), FRED (economic impact 1-3 years after passage). " +
       "For Senate votes, use congress_senate_votes.",
     annotations: { title: "Congress: House Roll Call Votes", readOnlyHint: true },
