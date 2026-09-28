@@ -27,30 +27,15 @@ import "dotenv/config";
 import { readdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { FastMCP, type Tool, type InputPrompt } from "fastmcp";
+import { FastMCP } from "fastmcp";
 import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
+import { createServerLogger } from "./server/logger.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { executeInSandbox } from "./shared/sandbox.js";
 import { DOMAINS, type ApiModule } from "./shared/types.js";
 
-const logger = {
-  ...console,
-  warn: (...args: unknown[]) => {
-    // Some MCP clients (including some VS Code builds) don't report capabilities during init.
-    // FastMCP emits a warning after a short retry loop; it's typically harmless for stdio.
-    if (
-      args.some(
-        a =>
-          typeof a === "string" &&
-          a.includes("[FastMCP warning] could not infer client capabilities"),
-      )
-    ) {
-      return;
-    }
-    console.warn(...(args as [unknown, ...unknown[]]));
-  },
-};
+const logger = createServerLogger();
 
 const MODULES: ApiModule[] = [];
 
