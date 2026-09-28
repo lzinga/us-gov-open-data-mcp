@@ -45,7 +45,8 @@ export const tools: Tool<any, any>[] = [
 
   {
     name: "noaa_climate_data",
-    description: "Get climate observations (temperature, precipitation, snow, wind) from NOAA.\nRequires dataset ID + date range. Optionally filter by station or location.",
+    description: "Get climate observations (temperature, precipitation, snow, wind) from NOAA.\nRequires dataset ID + date range. Optionally filter by station or location.\n" +
+      "With a station_id this also works without NOAA_API_KEY (via NOAA's keyless Access Data Service); location_id needs the key.",
     annotations: { title: "NOAA: Climate Data", readOnlyHint: true },
     parameters: z.object({
       dataset_id: z.enum(["GHCND", "GSOM", "GSOY"]).describe("Dataset: GHCND=daily, GSOM=monthly, GSOY=annual"),
@@ -68,7 +69,12 @@ export const tools: Tool<any, any>[] = [
           rows: result.data,
           dateKey: "date",
           valueKey: "value",
+          extraFields: ["datatype", "station"],
+          seriesKeys: ["station", "datatype"],
           total: result.count,
+          meta: {
+            source: result.source === "ads" ? "NCEI Access Data Service (no key)" : "NOAA Climate Data Online",
+          },
         },
       );
     },
