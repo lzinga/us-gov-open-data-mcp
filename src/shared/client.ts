@@ -103,7 +103,7 @@ export function qp(
 
 export interface ApiClient {
   get<T = unknown>(path: string, params?: Params): Promise<T>;
-  /** GET returning the raw response body as text (for non-JSON endpoints like USGS RDB). */
+  /** GET returning the raw response body as text (for non-JSON endpoints like XML or CSV). */
   getText(path: string, params?: Params): Promise<string>;
   post<T = unknown>(path: string, body?: Record<string, unknown>, params?: Params): Promise<T>;
   clearCache(): void;

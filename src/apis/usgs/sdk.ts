@@ -14,7 +14,8 @@
  * Docs:
  *   Earthquake: https://earthquake.usgs.gov/fdsnws/event/1/
  *   Water Data APIs: https://api.waterdata.usgs.gov/docs/ogcapi/
- *     (replaces waterservices.usgs.gov, decommissioned Nov 2026–Feb 2027)
+ *   Water statistics: https://api.waterdata.usgs.gov/statistics/v0/docs
+ *     (these replace waterservices.usgs.gov, decommissioned Nov 2026–Feb 2027)
  */
 
 import { createClient } from "../../shared/client.js";
@@ -27,14 +28,6 @@ const earthquakeApi = createClient({
   name: "usgs-earthquake",
   rateLimit: { perSecond: 5, burst: 10 },
   cacheTtlMs: 5 * 60 * 1000, // 5 min — earthquake data updates frequently
-});
-
-/** Legacy NWIS WaterServices — being migrated to waterDataApi. */
-const waterApi = createClient({
-  baseUrl: "https://waterservices.usgs.gov/nwis",
-  name: "usgs-water",
-  rateLimit: { perSecond: 5, burst: 10 },
-  cacheTtlMs: 15 * 60 * 1000, // 15 min
 });
 
 /** USGS Water Data APIs (OGC API - Features + statistics), behind api.data.gov. */
@@ -120,45 +113,6 @@ export interface EarthquakeResponse {
 export interface EarthquakeCount {
   count: number;
   maxAllowed: number;
-}
-
-/** Water Value. */
-export interface WaterValue {
-  value: string;
-  qualifiers: string[];
-  dateTime: string;
-}
-
-/** Water Time Series. */
-export interface WaterTimeSeries {
-  sourceInfo: {
-    siteName?: string;
-    siteCode?: Array<{ value: string; network?: string; agencyCode?: string }>;
-    geoLocation?: {
-      geogLocation?: { latitude: number; longitude: number };
-    };
-    [key: string]: unknown;
-  };
-  variable: {
-    variableCode?: Array<{ value: string; variableID?: number }>;
-    variableName?: string;
-    unit?: { unitCode?: string };
-    [key: string]: unknown;
-  };
-  values: Array<{
-    value: WaterValue[];
-    method?: Array<{ methodDescription?: string; methodID?: number }>;
-  }>;
-}
-
-/** Water Response. */
-export interface WaterResponse {
-  name: string;
-  declaredType: string;
-  value: {
-    timeSeries: WaterTimeSeries[];
-    [key: string]: unknown;
-  };
 }
 
 // ─── Reference Data ──────────────────────────────────────────────────
@@ -575,35 +529,184 @@ export async function getDailyWaterData(opts: {
   return { series: await summarizeSeries(observations), truncated };
 }
 
+/** Period-of-record statistics for one day of the year (daily) or month (monthly). */
+export interface WaterStatRow {
+  site: string;
+  month: number;
+  /** Day of month; null for monthly statistics. */
+  day: number | null;
+  /** Years of daily values the statistics are computed from. */
+  yearsOfRecord: number | null;
+  min: number | null;
+  p05: number | null;
+  p10: number | null;
+  p25: number | null;
+  median_p50: number | null;
+  mean: number | null;
+  p75: number | null;
+  p90: number | null;
+  p95: number | null;
+  max: number | null;
+}
+
+/** Statistics of the daily means within one calendar year. */
+export interface WaterAnnualRow {
+  site: string;
+  year: number;
+  mean: number | null;
+  min: number | null;
+  max: number | null;
+  median: number | null;
+  /** Days of record in the year. */
+  daysOfRecord: number | null;
+}
+
+type StatValue = {
+  time_of_year?: string;
+  start_date?: string;
+  computation?: string;
+  value?: string | number;
+  values?: (string | number)[];
+  percentiles?: (string | number)[];
+  sample_count?: number;
+};
+type StatFeature = {
+  properties?: {
+    monitoring_location_id?: string;
+    data?: { parameter_code?: string; parent_statistic_id?: string; values?: StatValue[] }[];
+  };
+};
+
+const PERCENTILE_FIELDS: Record<string, keyof WaterStatRow> = {
+  "5": "p05", "10": "p10", "25": "p25", "50": "median_p50", "75": "p75", "90": "p90", "95": "p95",
+};
+
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+const num = (v: unknown): number | null => {
+  const n = typeof v === "number" ? v : v === null || v === undefined || v === "" ? NaN : Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+/** Statistic values computed from daily means (parent statistic 00003), per site. */
+function statValues(features: StatFeature[], parameterCode: string): { site: string; values: StatValue[] }[] {
+  return features.map(f => {
+    const data = (f.properties?.data ?? []).filter(d =>
+      (!d.parameter_code || d.parameter_code === parameterCode) &&
+      (!d.parent_statistic_id || d.parent_statistic_id === "00003"),
+    );
+    return {
+      site: siteNumber(String(f.properties?.monitoring_location_id ?? "")),
+      values: data.flatMap(d => d.values ?? []),
+    };
+  });
+}
+
 /**
- * Get USGS streamflow/water statistics (period-of-record percentiles) for a site
- * and parameter. Returns raw RDB (tab-delimited) text. For statReportType="daily"
- * each row is a day-of-year with min/mean/max and p05–p95 percentiles across all
- * years on record — the basis for "is today's flow historically high or low?".
+ * Get period-of-record water statistics for sites and a parameter.
  *
- * Docs: https://waterservices.usgs.gov/docs/statistics/
+ * - `daily`: for each day of the year, min/mean/max and p05–p95 across all
+ *   years of record — "is today's flow historically high or low?"
+ * - `monthly`: the same per month of the year.
+ * - `annual`: mean/min/max/median of the daily means in each calendar year.
+ *
+ * Uses the Water Data statistics API (observationNormals / observationIntervals).
  */
 export async function getWaterStatistics(opts: {
-  sites?: string;
-  stateCd?: string;
+  /** Site numbers or monitoring-location IDs, comma-separated. */
+  sites: string;
   parameterCd?: string;
   statReportType?: "daily" | "monthly" | "annual";
-  statTypeCd?: string; // "all", "mean", "min", "max", "median", etc.
-}): Promise<string> {
-  const params: Record<string, string | number | undefined> = {
-    format: "rdb",
-    sites: opts.sites,
-    stateCd: opts.stateCd,
-    parameterCd: opts.parameterCd ?? "00060",
-    statReportType: opts.statReportType ?? "daily",
-    statTypeCd: opts.statTypeCd ?? "all",
+  /** Month (1-12) to filter daily or monthly statistics. */
+  month?: number;
+  /** Day of month (requires month; daily only). */
+  day?: number;
+}): Promise<{ reportType: "daily" | "monthly" | "annual"; rows: WaterStatRow[] | WaterAnnualRow[] }> {
+  const ids = opts.sites.split(",").map(s => s.trim()).filter(Boolean).map(toMonitoringLocationId);
+  if (!ids.length) throw new Error("Provide at least one site.");
+  if (opts.day !== undefined && opts.month === undefined) throw new Error("day requires month.");
+  if (opts.month !== undefined && opts.day !== undefined && opts.day > DAYS_IN_MONTH[opts.month - 1]) {
+    throw new Error(`Month ${opts.month} has no day ${opts.day}.`);
+  }
+  const parameterCode = opts.parameterCd ?? "00060";
+  const reportType = opts.statReportType ?? "daily";
+
+  if (reportType === "annual") {
+    const res = await waterDataApi.get<{ features?: StatFeature[] }>("/statistics/v0/observationIntervals", {
+      monitoring_location_id: ids,
+      parameter_code: parameterCode,
+      interval_type: "CY",
+    });
+    const rows = new Map<string, WaterAnnualRow>();
+    for (const { site, values } of statValues(res.features ?? [], parameterCode)) {
+      for (const v of values) {
+        const year = Number(String(v.start_date ?? "").slice(0, 4));
+        if (!year) continue;
+        const key = `${site}|${year}`;
+        const row = rows.get(key) ?? { site, year, mean: null, min: null, max: null, median: null, daysOfRecord: null };
+        const value = num(v.value);
+        if (v.computation === "arithmetic_mean") row.mean = value;
+        else if (v.computation === "minimum") row.min = value;
+        else if (v.computation === "maximum") row.max = value;
+        else if (v.computation === "median") row.median = value;
+        if (v.sample_count !== undefined) row.daysOfRecord = Math.max(row.daysOfRecord ?? 0, v.sample_count);
+        rows.set(key, row);
+      }
+    }
+    return {
+      reportType,
+      rows: [...rows.values()].sort((a, b) => a.site.localeCompare(b.site) || a.year - b.year),
+    };
+  }
+
+  const params: Record<string, string | string[] | number | undefined> = {
+    monitoring_location_id: ids,
+    parameter_code: parameterCode,
+    normal_type: reportType === "daily" ? "DOY" : "MOY",
   };
-  return waterApi.getText("/stat/", params);
+  // Narrow daily requests server-side (time_of_year is "MM-DD").
+  if (reportType === "daily" && opts.month) {
+    const mm = String(opts.month).padStart(2, "0");
+    params.start_date = `${mm}-${String(opts.day ?? 1).padStart(2, "0")}`;
+    params.end_date = `${mm}-${String(opts.day ?? DAYS_IN_MONTH[opts.month - 1]).padStart(2, "0")}`;
+  }
+  const res = await waterDataApi.get<{ features?: StatFeature[] }>("/statistics/v0/observationNormals", params);
+
+  const rows = new Map<string, WaterStatRow>();
+  for (const { site, values } of statValues(res.features ?? [], parameterCode)) {
+    for (const v of values) {
+      const [m, d] = String(v.time_of_year ?? "").split("-").map(Number);
+      if (!m) continue;
+      const day = reportType === "daily" ? (d || null) : null;
+      if (opts.month && m !== opts.month) continue;
+      if (opts.day && reportType === "daily" && day !== opts.day) continue;
+      const key = `${site}|${m}|${day ?? ""}`;
+      const row = rows.get(key) ?? {
+        site, month: m, day, yearsOfRecord: null,
+        min: null, p05: null, p10: null, p25: null, median_p50: null, mean: null, p75: null, p90: null, p95: null, max: null,
+      };
+      if (v.computation === "arithmetic_mean") row.mean = num(v.value);
+      else if (v.computation === "minimum") row.min = num(v.value);
+      else if (v.computation === "maximum") row.max = num(v.value);
+      else if (v.computation === "median") row.median_p50 = num(v.value);
+      else if (v.computation === "percentile") {
+        (v.percentiles ?? []).forEach((p, i) => {
+          const field = PERCENTILE_FIELDS[String(Number(p))];
+          if (field) (row as unknown as Record<string, unknown>)[field] = num(v.values?.[i]);
+        });
+      }
+      if (v.sample_count !== undefined) row.yearsOfRecord = Math.max(row.yearsOfRecord ?? 0, v.sample_count);
+      rows.set(key, row);
+    }
+  }
+  return {
+    reportType,
+    rows: [...rows.values()].sort((a, b) => a.site.localeCompare(b.site) || a.month - b.month || (a.day ?? 0) - (b.day ?? 0)),
+  };
 }
 
 /** Clear all USGS caches. */
 export function clearCache(): void {
   earthquakeApi.clearCache();
-  waterApi.clearCache();
   waterDataApi.clearCache();
 }

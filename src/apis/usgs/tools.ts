@@ -253,48 +253,44 @@ export const tools: Tool<any, any>[] = [
   {
     name: "usgs_water_statistics",
     description:
-      "Get period-of-record streamflow statistics for a USGS site — for each day of the year, the min/mean/max and p05–p95 percentiles across ALL years on record.\n" +
+      "Get period-of-record streamflow statistics for USGS sites — for each day of the year (daily) or month (monthly), the min/mean/max and p05–p95 percentiles of daily means across ALL years on record; 'annual' gives mean/min/max/median per calendar year.\n" +
       "Answers 'is the current flow historically high or low for this date?' — far more analytically useful than raw readings for drought/flood context.\n" +
       "Parameter codes: 00060=discharge (cfs, default), 00065=gage height (ft). Optionally filter to a specific month/day.",
     annotations: { title: "USGS: Water Statistics", readOnlyHint: true },
     parameters: z.object({
       sites: z.string().describe("USGS site number(s), comma-separated: '01646500'"),
       parameter_cd: z.string().optional().describe("Parameter code: '00060' (discharge, default), '00065' (gage height)"),
-      stat_report_type: z.enum(["daily", "monthly", "annual"]).default("daily").describe("Statistic granularity (default daily = per day-of-year)"),
-      month: z.number().int().min(1).max(12).optional().describe("Filter to a specific month (1-12)"),
+      stat_report_type: z.enum(["daily", "monthly", "annual"]).default("daily").describe("Statistic granularity: daily = per day-of-year (default), monthly = per month-of-year, annual = per calendar year"),
+      month: z.number().int().min(1).max(12).optional().describe("Filter to a specific month (1-12; daily/monthly)"),
       day: z.number().int().min(1).max(31).optional().describe("Filter to a specific day of month (requires month; daily report only)"),
     }),
     execute: async ({ sites, parameter_cd, stat_report_type, month, day }) => {
-      const text = await getWaterStatistics({ sites, parameterCd: parameter_cd, statReportType: stat_report_type });
-      const lines = text.split("\n").filter((l: string) => l && !l.startsWith("#"));
-      const header = lines[0]?.split("\t") ?? [];
-      let rows = lines.slice(2).map((line: string) => {
-        const vals = line.split("\t");
-        const obj: Record<string, string> = {};
-        header.forEach((h: string, i: number) => { if (h) obj[h] = vals[i] ?? ""; });
-        return obj;
-      }).filter((r) => r.site_no);
-      if (month !== undefined) rows = rows.filter(r => Number(r.month_nu) === month);
-      if (day !== undefined) rows = rows.filter(r => Number(r.day_nu) === day);
+      const reportType = stat_report_type ?? "daily";
+      const { rows } = await getWaterStatistics({
+        sites,
+        parameterCd: parameter_cd,
+        statReportType: reportType,
+        month: reportType === "annual" ? undefined : month,
+        day: reportType === "daily" ? day : undefined,
+      });
       if (!rows.length) return emptyResponse(`No statistics found for site ${sites}${month ? ` (month ${month}${day ? `, day ${day}` : ""})` : ""}.`);
+      const multiSite = new Set(rows.map(r => r.site)).size > 1;
+      const table = (rows as unknown as Record<string, unknown>[]).map(({ site, ...rest }) => {
+        const row = multiSite ? { site, ...rest } : rest;
+        if (reportType === "monthly") delete (row as Record<string, unknown>).day;
+        return row;
+      });
       return tableResponse(
-        `${stat_report_type ?? "daily"} streamflow statistics for site ${sites}: ${rows.length} row(s)`,
+        `${reportType} streamflow statistics for site ${sites}: ${rows.length} row(s)`,
         {
-          rows: rows.map(r => ({
-            month: r.month_nu ?? null,
-            day: r.day_nu ?? null,
-            yearsOfRecord: r.count_nu ?? null,
-            min: r.min_va ?? null,
-            p05: r.p05_va ?? null,
-            p25: r.p25_va ?? null,
-            median_p50: r.p50_va ?? null,
-            mean: r.mean_va ?? null,
-            p75: r.p75_va ?? null,
-            p95: r.p95_va ?? null,
-            max: r.max_va ?? null,
-          })),
+          rows: table,
           total: rows.length,
-          meta: { site: sites, parameter: parameter_cd ?? "00060" },
+          meta: {
+            site: sites,
+            parameter: parameter_cd ?? "00060",
+            basis: "statistics of daily mean values over the period of record",
+            source: "USGS Water Data APIs (statistics)",
+          },
         },
       );
     },

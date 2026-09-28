@@ -54,4 +54,30 @@ describe("usgs water (live, Water Data APIs)", () => {
     const jan = await callTool("usgs", "usgs_daily_water_data", { sites: "01646500", start_dt: "2024-01-03", end_dt: "2024-01-03" });
     expect((jan.data.items[0] as { latestValue: number }).latestValue).toBe(6860);
   });
+
+  it("usgs_water_statistics matches the legacy day-of-year statistics for the Potomac", async () => {
+    const res = await callTool("usgs", "usgs_water_statistics", { sites: "01646500" });
+    const rows = rowsAsObjects(res as never);
+    expect(rows).toHaveLength(366); // legacy returned 366 rows (Jan 1 – Dec 31 incl. Feb 29)
+    expect(rows[0]).toMatchObject({ month: 1, day: 1 });
+    expect(rows.at(-1)).toMatchObject({ month: 12, day: 31 });
+    // Legacy waterservices row for 3/15 (3 significant figures): years 97, min 2380, p05 5150,
+    // p25 10400, p50 16500, mean 24000, p75 29000, p95 66800, max 192000.
+    const mar15 = rows.find(r => r.month === 3 && r.day === 15)!;
+    expect(mar15.yearsOfRecord).toBeGreaterThanOrEqual(97);
+    const close = (v: unknown, legacy: number) => expect(Math.abs(Number(v) - legacy) / legacy).toBeLessThan(0.02);
+    close(mar15.min, 2380); close(mar15.p05, 5150); close(mar15.p25, 10400); close(mar15.median_p50, 16500);
+    close(mar15.mean, 24000); close(mar15.p75, 29000); close(mar15.p95, 66800); close(mar15.max, 192000);
+    for (const r of rows) expect(Number(r.min)).toBeLessThanOrEqual(Number(r.max));
+  });
+
+  it("usgs_water_statistics supports monthly and annual reports", async () => {
+    const monthly = rowsAsObjects(await callTool("usgs", "usgs_water_statistics", { sites: "01646500", stat_report_type: "monthly" }) as never);
+    expect(monthly.map(r => r.month)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    const annual = rowsAsObjects(await callTool("usgs", "usgs_water_statistics", { sites: "01646500", stat_report_type: "annual" }) as never);
+    expect(annual.length).toBeGreaterThan(90);
+    const y2024 = annual.find(r => r.year === 2024)!;
+    expect(y2024.daysOfRecord).toBe(366);
+    expect(Number(y2024.min)).toBeLessThan(Number(y2024.mean));
+  });
 });
