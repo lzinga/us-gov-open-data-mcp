@@ -13,6 +13,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { isoDateValue, soqlString } from "../../shared/query-escape.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -154,10 +155,11 @@ export async function getTransportStats(opts?: {
   };
 
   const wheres: string[] = [];
-  if (opts?.startDate) wheres.push(`date >= '${opts.startDate}'`);
-  if (opts?.endDate) wheres.push(`date <= '${opts.endDate}'`);
+  if (opts?.startDate) wheres.push(`date >= ${soqlString(isoDateValue(opts.startDate, "start_date"))}`);
+  if (opts?.endDate) wheres.push(`date <= ${soqlString(isoDateValue(opts.endDate, "end_date"))}`);
   // Filter out empty placeholder rows
   wheres.push("general_economic_indicators IS NOT NULL");
+  // `where` is a caller-supplied raw SoQL expression, passed through as-is.
   if (opts?.where) wheres.push(opts.where);
   if (wheres.length) params.$where = wheres.join(" AND ");
 
@@ -188,10 +190,11 @@ export async function getBorderCrossings(opts?: {
   };
 
   const wheres: string[] = [];
-  if (opts?.state) wheres.push(`state='${opts.state}'`);
-  if (opts?.border) wheres.push(`border='${opts.border}'`);
-  if (opts?.portName) wheres.push(`port_name='${opts.portName}'`);
-  if (opts?.measure) wheres.push(`measure='${opts.measure}'`);
+  if (opts?.state) wheres.push(`state=${soqlString(opts.state)}`);
+  if (opts?.border) wheres.push(`border=${soqlString(opts.border)}`);
+  if (opts?.portName) wheres.push(`port_name=${soqlString(opts.portName)}`);
+  if (opts?.measure) wheres.push(`measure=${soqlString(opts.measure)}`);
+  // `where` is a caller-supplied raw SoQL expression, passed through as-is.
   if (opts?.where) wheres.push(opts.where);
   if (wheres.length) params.$where = wheres.join(" AND ");
 
