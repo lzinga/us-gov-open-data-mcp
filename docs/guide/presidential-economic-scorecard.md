@@ -26,12 +26,12 @@ title: "Presidential Economic Scorecard"
 - [How to Read This](#how-to-read-this)
 - [The Scorecard at a Glance](#the-scorecard-at-a-glance)
 - [President by President](#president-by-president)
-  - [Bill Clinton (D) ΓÇö 1993ΓÇô2001](#bill-clinton-d--january-1993-to-january-2001)
-  - [George W. Bush (R) ΓÇö 2001ΓÇô2009](#george-w-bush-r--january-2001-to-january-2009)
-  - [Barack Obama (D) ΓÇö 2009ΓÇô2017](#barack-obama-d--january-2009-to-january-2017)
-  - [Donald Trump, First Term (R) ΓÇö 2017ΓÇô2021](#donald-trump-first-term-r--january-2017-to-january-2021)
-  - [Joe Biden (D) ΓÇö 2021ΓÇô2025](#joe-biden-d--january-2021-to-january-2025)
-  - [Donald Trump, Second Term (R) ΓÇö 2025ΓÇôPresent](#donald-trump-second-term-r--january-2025-to-present)
+  - [Bill Clinton (D) — 1993–2001](#bill-clinton-d--january-1993-to-january-2001)
+  - [George W. Bush (R) — 2001–2009](#george-w-bush-r--january-2001-to-january-2009)
+  - [Barack Obama (D) — 2009–2017](#barack-obama-d--january-2009-to-january-2017)
+  - [Donald Trump, First Term (R) — 2017–2021](#donald-trump-first-term-r--january-2017-to-january-2021)
+  - [Joe Biden (D) — 2021–2025](#joe-biden-d--january-2021-to-january-2025)
+  - [Donald Trump, Second Term (R) — 2025–Present](#donald-trump-second-term-r--january-2025-to-present)
     - [The Trade Deficit and the Tariff Paradox](#the-trade-deficit-and-the-tariff-paradox)
 - [The Big Picture: 32 Years of Data](#the-big-picture-32-years-of-data)
 - [The Presidential Scorecard: Grading the Numbers](#the-presidential-scorecard-grading-the-numbers)
@@ -53,9 +53,9 @@ title: "Presidential Economic Scorecard"
 
 ## How to Read This
 
-Every president inherits an economy they didn't build, faces crises they didn't cause, and works with (or against) a Congress they don't fully control. This analysis presents the raw numbers ΓÇö what actually happened to the economy during each presidency ΓÇö and then adds the context needed to understand *why* it happened.
+Every president inherits an economy they didn't build, faces crises they didn't cause, and works with (or against) a Congress they don't fully control. This analysis presents the raw numbers — what actually happened to the economy during each presidency — and then adds the context needed to understand *why* it happened.
 
-**No president "controls" the economy.** The Federal Reserve sets interest rates. Congress passes budgets. Global events (wars, pandemics, oil shocks) strike without regard for who's in office. What a president *can* do is sign legislation, issue executive orders, appoint Fed chairs, and set the tone for business confidence. This scorecard measures the outcomes ΓÇö not blame or credit.
+**No president "controls" the economy.** The Federal Reserve sets interest rates. Congress passes budgets. Global events (wars, pandemics, oil shocks) strike without regard for who's in office. What a president *can* do is sign legislation, issue executive orders, appoint Fed chairs, and set the tone for business confidence. This scorecard measures the outcomes — not blame or credit.
 
 **The numbers below are all from the same federal data sources**, measured the same way for every president, at the same point in their terms (inauguration month). This makes the comparison as apples-to-apples as government data allows.
 
@@ -65,13 +65,13 @@ Every president inherits an economy they didn't build, faces crises they didn't 
 
 | Metric | Clinton (D) | Bush (R) | Obama (D) | Trump I (R) | Biden (D) | Trump II (R)* |
 |--------|------------|----------|-----------|-------------|-----------|---------------|
-| **Term** | 1993ΓÇô2001 | 2001ΓÇô2009 | 2009ΓÇô2017 | 2017ΓÇô2021 | 2021ΓÇô2025 | 2025ΓÇôpresent |
+| **Term** | 1993–2001 | 2001–2009 | 2009–2017 | 2017–2021 | 2021–2025 | 2025–present |
 | **GDP start** | $6.73T | $10.47T | $14.43T | $19.09T | $22.09T | $29.83T |
 | **GDP end** | $10.47T | $14.43T | $19.09T | $22.09T | $29.83T | $31.49T** |
 | **GDP growth** | **+55.6%** | +37.8% | +32.3% | +15.7% | +35.0% | +5.6%** |
 | **Unemployment start** | 7.3% | 4.2% | 7.8% | 4.7% | 6.4% | 4.2% |
 | **Unemployment end** | 4.2% | 7.8% | 4.7% | 6.4% | 4.2% | 4.3%** |
-| **Unemployment ╬ö** | **-3.1pp** | +3.6pp | **-3.1pp** | +1.7pp | **-2.2pp** | +0.1pp** |
+| **Unemployment Δ** | **-3.1pp** | +3.6pp | **-3.1pp** | +1.7pp | **-2.2pp** | +0.1pp** |
 | **Jobs start (M)** | 110.0 | 132.8 | 133.3 | 145.8 | 143.4 | 158.3 |
 | **Jobs end (M)** | 132.8 | 133.3 | 145.8 | 143.4 | 158.3 | 158.6** |
 | **Jobs added (M)** | **+22.7** | +0.5 | +12.5 | -2.5 | +14.9 | +0.3** |
@@ -87,7 +87,7 @@ Every president inherits an economy they didn't build, faces crises they didn't 
 | **S&P 500 end** | ~1,342 | ~865 | 2,280 | 3,774 | 6,041 | 6,946** |
 | **S&P 500 return** | **+208%** | -36% | **+164%** | +66% | +60% | +15%** |
 
-\* Trump II data as of Feb 2026 ΓÇö only 13 months into a 48-month term.
+\* Trump II data as of Feb 2026 — only 13 months into a 48-month term.
 
 \** Partial-term figures. Not comparable to full-term presidents.
 
@@ -99,119 +99,119 @@ Every president inherits an economy they didn't build, faces crises they didn't 
 
 ---
 
-# Bill Clinton (D) ΓÇö January 1993 to January 2001
+# Bill Clinton (D) — January 1993 to January 2001
 
 ## What He Inherited
 
-Clinton took office during a sluggish recovery from the 1990ΓÇô91 recession. Unemployment was 7.3% ΓÇö the highest of any incoming president in this analysis. The national debt was $4.35 trillion. The federal budget deficit was 3.7% of GDP. The Cold War had just ended, and the "peace dividend" ΓÇö reduced military spending ΓÇö was a real fiscal opportunity.
+Clinton took office during a sluggish recovery from the 1990–91 recession. Unemployment was 7.3% — the highest of any incoming president in this analysis. The national debt was $4.35 trillion. The federal budget deficit was 3.7% of GDP. The Cold War had just ended, and the "peace dividend" — reduced military spending — was a real fiscal opportunity.
 
 ## What Happened to the Economy
 
 Clinton's presidency coincided with the greatest peacetime economic expansion in American history:
 
-- **GDP grew 55.6%** ΓÇö from $6.73T to $10.47T ΓÇö the largest growth of any president in this analysis
-- **22.7 million jobs were added** ΓÇö more than any president before or since
-- **Unemployment fell from 7.3% to 4.2%** ΓÇö the lowest rate in 30 years at the time
-- **The budget went from deficit to surplus** ΓÇö deficit shrank from -3.7% of GDP (1993) to a **+2.3% surplus** by 2000. This was the first surplus since 1969.
+- **GDP grew 55.6%** — from $6.73T to $10.47T — the largest growth of any president in this analysis
+- **22.7 million jobs were added** — more than any president before or since
+- **Unemployment fell from 7.3% to 4.2%** — the lowest rate in 30 years at the time
+- **The budget went from deficit to surplus** — deficit shrank from -3.7% of GDP (1993) to a **+2.3% surplus** by 2000. This was the first surplus since 1969.
 - The **S&P 500 tripled** (+208%), driven by the dot-com boom
 
 ## The Debt Story
 
-Clinton added $1.38T to the debt ΓÇö the smallest absolute increase of any president in this analysis. In his final years, the government was actually *paying down* debt. The debt-to-GDP ratio fell significantly.
+Clinton added $1.38T to the debt — the smallest absolute increase of any president in this analysis. In his final years, the government was actually *paying down* debt. The debt-to-GDP ratio fell significantly.
 
 ## Congress
 
 | Years | House | Senate |
 |-------|-------|--------|
-| 1993ΓÇô1995 (103rd) | Dem | Dem |
-| 1995ΓÇô2001 (104thΓÇô106th) | **GOP** | **GOP** |
+| 1993–1995 (103rd) | Dem | Dem |
+| 1995–2001 (104th–106th) | **GOP** | **GOP** |
 
 Clinton had a Democratic Congress for only his first 2 years. The "Republican Revolution" of 1994 gave Newt Gingrich the House, leading to divided government for 6 of 8 years. The balanced budgets of the late 1990s were negotiated between Clinton and the Republican Congress.
 
 ## Key Legislation & Actions
 
-- **Omnibus Budget Reconciliation Act of 1993** ΓÇö raised top income tax rate to 39.6%, expanded EITC. Passed without a single Republican vote.
-- **NAFTA** (1993) ΓÇö free trade with Canada and Mexico. Bipartisan but controversial within Clinton's own party.
-- **Welfare Reform** (1996) ΓÇö signed with Republican Congress
-- **Balanced Budget Act** (1997) ΓÇö bipartisan
-- **Gramm-Leach-Bliley Act** (1999) ΓÇö repealed Glass-Steagall bank separation. Bipartisan. Later blamed for contributing to the 2008 financial crisis.
+- **Omnibus Budget Reconciliation Act of 1993** — raised top income tax rate to 39.6%, expanded EITC. Passed without a single Republican vote.
+- **NAFTA** (1993) — free trade with Canada and Mexico. Bipartisan but controversial within Clinton's own party.
+- **Welfare Reform** (1996) — signed with Republican Congress
+- **Balanced Budget Act** (1997) — bipartisan
+- **Gramm-Leach-Bliley Act** (1999) — repealed Glass-Steagall bank separation. Bipartisan. Later blamed for contributing to the 2008 financial crisis.
 
 ## Context & Caveats
 
-The dot-com bubble (internet stock mania) inflated asset prices and generated massive capital gains tax revenue that made the surplus partly artificial. When the bubble burst in 2000ΓÇô2001, revenue cratered. Clinton left office with the economy at the peak of a bubble ΓÇö great numbers, fragile foundation. The Fed under Greenspan kept rates relatively accommodative through much of this period, fueling the boom.
+The dot-com bubble (internet stock mania) inflated asset prices and generated massive capital gains tax revenue that made the surplus partly artificial. When the bubble burst in 2000–2001, revenue cratered. Clinton left office with the economy at the peak of a bubble — great numbers, fragile foundation. The Fed under Greenspan kept rates relatively accommodative through much of this period, fueling the boom.
 
 ---
 
-# George W. Bush (R) ΓÇö January 2001 to January 2009
+# George W. Bush (R) — January 2001 to January 2009
 
 ## What He Inherited
 
-Bush inherited an economy in freefall. The dot-com bubble was bursting. The S&P 500 had already begun declining. The economy was entering recession just as he took office (the recession officially started March 2001). Unemployment was 4.2% but rising. The budget surplus was evaporating. He inherited the strongest fiscal position of any president here ΓÇö but the trend lines were already turning down.
+Bush inherited an economy in freefall. The dot-com bubble was bursting. The S&P 500 had already begun declining. The economy was entering recession just as he took office (the recession officially started March 2001). Unemployment was 4.2% but rising. The budget surplus was evaporating. He inherited the strongest fiscal position of any president here — but the trend lines were already turning down.
 
 ## What Happened to the Economy
 
-Bush's presidency was bookended by two crises ΓÇö 9/11 at the start and the Great Financial Crisis at the end:
+Bush's presidency was bookended by two crises — 9/11 at the start and the Great Financial Crisis at the end:
 
-- **GDP grew 37.8%** ΓÇö from $10.47T to $14.43T ΓÇö solid but much of it was housing-bubble-driven
-- **Only 500,000 jobs were added** ΓÇö the worst job creation of any full-term president in this analysis
-- **Unemployment rose from 4.2% to 7.8%** ΓÇö it was much worse by the time Obama took over (and continued rising)
-- The **S&P 500 lost 36%** of its value ΓÇö the worst market performance by far
+- **GDP grew 37.8%** — from $10.47T to $14.43T — solid but much of it was housing-bubble-driven
+- **Only 500,000 jobs were added** — the worst job creation of any full-term president in this analysis
+- **Unemployment rose from 4.2% to 7.8%** — it was much worse by the time Obama took over (and continued rising)
+- The **S&P 500 lost 36%** of its value — the worst market performance by far
 - The budget went from **+2.3% surplus to -9.8% deficit** by his last fiscal year (FY2009)
 
 ## The Debt Story
 
-Bush added $4.90 trillion to the national debt ΓÇö nearly quadrupling the Clinton-era increase. Drivers:
+Bush added $4.90 trillion to the national debt — nearly quadrupling the Clinton-era increase. Drivers:
 
-1. **Two wars** (Afghanistan 2001, Iraq 2003) ΓÇö trillions in military spending
-2. **Tax cuts** (2001 and 2003) ΓÇö reduced revenue
-3. **TARP bailout** (2008) ΓÇö $700B emergency financial rescue
-4. **Medicare Part D** (2003) ΓÇö new prescription drug benefit, unfunded
+1. **Two wars** (Afghanistan 2001, Iraq 2003) — trillions in military spending
+2. **Tax cuts** (2001 and 2003) — reduced revenue
+3. **TARP bailout** (2008) — $700B emergency financial rescue
+4. **Medicare Part D** (2003) — new prescription drug benefit, unfunded
 
 ## Congress
 
 | Years | House | Senate |
 |-------|-------|--------|
-| 2001ΓÇô2007 (107thΓÇô109th) | **GOP** | **GOP** (mostly) |
-| 2007ΓÇô2009 (110th) | Dem | Dem |
+| 2001–2007 (107th–109th) | **GOP** | **GOP** (mostly) |
+| 2007–2009 (110th) | Dem | Dem |
 
 Bush had unified Republican control for most of his presidency. The 2006 midterms flipped both chambers to Democrats.
 
 ## Key Legislation & Actions
 
-- **Economic Growth and Tax Relief Reconciliation Act** (2001) ΓÇö Bush tax cuts
-- **Authorization for Use of Military Force** (2001) ΓÇö Afghanistan
+- **Economic Growth and Tax Relief Reconciliation Act** (2001) — Bush tax cuts
+- **Authorization for Use of Military Force** (2001) — Afghanistan
 - **Iraq War Authorization** (2002)
-- **Medicare Modernization Act** (2003) ΓÇö Part D prescription drugs
-- **TARP / Emergency Economic Stabilization Act** (2008) ΓÇö bank bailout
+- **Medicare Modernization Act** (2003) — Part D prescription drugs
+- **TARP / Emergency Economic Stabilization Act** (2008) — bank bailout
 
 ## Context & Caveats
 
-Bush faced 9/11 ΓÇö the most devastating attack on U.S. soil since Pearl Harbor ΓÇö just 8 months into his presidency. This fundamentally reshaped spending priorities toward defense and homeland security. The housing bubble that formed during his presidency was fueled by low Fed interest rates (which dropped from 5.49% to 0.22%), lax lending standards, and financial deregulation. The crisis that erupted in 2008 was the worst economic meltdown since the Great Depression. Bush's final economic numbers are heavily colored by events that were decades in the making.
+Bush faced 9/11 — the most devastating attack on U.S. soil since Pearl Harbor — just 8 months into his presidency. This fundamentally reshaped spending priorities toward defense and homeland security. The housing bubble that formed during his presidency was fueled by low Fed interest rates (which dropped from 5.49% to 0.22%), lax lending standards, and financial deregulation. The crisis that erupted in 2008 was the worst economic meltdown since the Great Depression. Bush's final economic numbers are heavily colored by events that were decades in the making.
 
 ---
 
-# Barack Obama (D) ΓÇö January 2009 to January 2017
+# Barack Obama (D) — January 2009 to January 2017
 
 ## What He Inherited
 
-Obama inherited the worst economy since FDR. The financial system was in collapse. Lehman Brothers had failed. AIG had been bailed out. The auto industry was on the verge of bankruptcy. The economy was losing 800,000 jobs per month. Unemployment was 7.8% and accelerating toward 10%. The stock market had lost half its value. The deficit was nearly 10% of GDP. This was not a normal transition ΓÇö it was a national emergency.
+Obama inherited the worst economy since FDR. The financial system was in collapse. Lehman Brothers had failed. AIG had been bailed out. The auto industry was on the verge of bankruptcy. The economy was losing 800,000 jobs per month. Unemployment was 7.8% and accelerating toward 10%. The stock market had lost half its value. The deficit was nearly 10% of GDP. This was not a normal transition — it was a national emergency.
 
 ## What Happened to the Economy
 
 Obama's presidency was a long, slow recovery from the Great Recession:
 
-- **GDP grew 32.3%** ΓÇö from $14.43T to $19.09T ΓÇö steady but unspectacular
-- **12.5 million jobs were added** ΓÇö all in the recovery phase after the initial hemorrhaging stopped
-- **Unemployment fell from 7.8% to 4.7%** ΓÇö matching Clinton's 3.1 percentage point improvement
-- The **S&P 500 gained 164%** ΓÇö one of the best stock market runs in history, driven by Fed stimulus and recovery
-- The deficit shrank from **-9.8% of GDP (2009) to -3.1% (2016)** ΓÇö cut by two-thirds
+- **GDP grew 32.3%** — from $14.43T to $19.09T — steady but unspectacular
+- **12.5 million jobs were added** — all in the recovery phase after the initial hemorrhaging stopped
+- **Unemployment fell from 7.8% to 4.7%** — matching Clinton's 3.1 percentage point improvement
+- The **S&P 500 gained 164%** — one of the best stock market runs in history, driven by Fed stimulus and recovery
+- The deficit shrank from **-9.8% of GDP (2009) to -3.1% (2016)** — cut by two-thirds
 
 ## The Debt Story
 
-Obama added $9.31 trillion to the national debt ΓÇö the largest absolute increase of any president. But context matters enormously:
+Obama added $9.31 trillion to the national debt — the largest absolute increase of any president. But context matters enormously:
 
 - He inherited a $1.4T annual deficit from the financial crisis
-- The stimulus (ARRA, $800B) was frontloaded in 2009ΓÇô2010
+- The stimulus (ARRA, $800B) was frontloaded in 2009–2010
 - Automatic stabilizers (unemployment insurance, food stamps) ballooned during the recession
 - By 2016, the deficit had been cut from 9.8% to 3.1% of GDP
 - Much of the debt increase was "baked in" before he signed a single bill
@@ -220,42 +220,42 @@ Obama added $9.31 trillion to the national debt ΓÇö the largest absolute incr
 
 | Years | House | Senate |
 |-------|-------|--------|
-| 2009ΓÇô2011 (111th) | Dem | Dem (60 seats briefly) |
-| 2011ΓÇô2015 (112thΓÇô113th) | **GOP** | Dem |
-| 2015ΓÇô2017 (114th) | **GOP** | **GOP** |
+| 2009–2011 (111th) | Dem | Dem (60 seats briefly) |
+| 2011–2015 (112th–113th) | **GOP** | Dem |
+| 2015–2017 (114th) | **GOP** | **GOP** |
 
 Obama had full Democratic control for only 2 years. The 2010 Tea Party wave gave Republicans the House, creating gridlock for his final 6 years. Major legislation essentially stopped after 2010.
 
 ## Key Legislation & Actions
 
-- **American Recovery and Reinvestment Act** (2009) ΓÇö $831B stimulus
-- **Affordable Care Act** (2010) ΓÇö "Obamacare" ΓÇö healthcare reform, no Republican votes
-- **Dodd-Frank Wall Street Reform** (2010) ΓÇö financial regulation
-- **Budget Control Act** (2011) ΓÇö sequestration, spending caps (negotiated with GOP)
+- **American Recovery and Reinvestment Act** (2009) — $831B stimulus
+- **Affordable Care Act** (2010) — "Obamacare" — healthcare reform, no Republican votes
+- **Dodd-Frank Wall Street Reform** (2010) — financial regulation
+- **Budget Control Act** (2011) — sequestration, spending caps (negotiated with GOP)
 - **Auto industry bailout** (continuation of Bush-era TARP)
 - Fed under Bernanke/Yellen kept rates at 0% for most of his presidency (quantitative easing)
 
 ## Context & Caveats
 
-Obama's numbers are a study in "where you start matters." He inherited the worst starting position of any modern president. The recovery, while real, was the slowest post-recession recovery since WWII ΓÇö criticized as inadequate from the left and over-regulated from the right. The near-zero interest rate environment inflated asset prices, benefiting stock and homeowners while wage growth for workers lagged. The debt increase looks enormous in absolute terms but much of it was unavoidable crisis spending.
+Obama's numbers are a study in "where you start matters." He inherited the worst starting position of any modern president. The recovery, while real, was the slowest post-recession recovery since WWII — criticized as inadequate from the left and over-regulated from the right. The near-zero interest rate environment inflated asset prices, benefiting stock and homeowners while wage growth for workers lagged. The debt increase looks enormous in absolute terms but much of it was unavoidable crisis spending.
 
 ---
 
-# Donald Trump, First Term (R) ΓÇö January 2017 to January 2021
+# Donald Trump, First Term (R) — January 2017 to January 2021
 
 ## What He Inherited
 
-Trump inherited a mature economic expansion. Unemployment was 4.7% and falling. GDP growth was steady at 2ΓÇô3%. The stock market was at all-time highs. The deficit was manageable at 3.4% of GDP. The Fed had just begun raising rates from zero. By conventional measures, this was a good economy to inherit ΓÇö but it was late-cycle, meaning there was less room to improve and more risk of a downturn.
+Trump inherited a mature economic expansion. Unemployment was 4.7% and falling. GDP growth was steady at 2–3%. The stock market was at all-time highs. The deficit was manageable at 3.4% of GDP. The Fed had just begun raising rates from zero. By conventional measures, this was a good economy to inherit — but it was late-cycle, meaning there was less room to improve and more risk of a downturn.
 
 ## What Happened to the Economy
 
-Trump's first term was a tale of two halves: a strong 2017ΓÇô2019 followed by the COVID-19 catastrophe:
+Trump's first term was a tale of two halves: a strong 2017–2019 followed by the COVID-19 catastrophe:
 
-- **GDP grew 15.7%** ΓÇö from $19.09T to $22.09T ΓÇö the slowest full-term growth rate (but 4 years vs Clinton/Bush's 8)
-- **2.5 million jobs were lost** ΓÇö entirely due to COVID. Before COVID (Feb 2020), the economy had added ~6.4M jobs.
-- **Unemployment went from 4.7% to 6.4%** ΓÇö it had fallen to 3.5% (50-year low) before COVID hit
-- The **S&P 500 gained 66%** ΓÇö strong, driven by tax cuts and then unprecedented Fed/fiscal stimulus
-- Cumulative inflation was only **8.0%** ΓÇö the lowest of any president here (partly due to COVID deflation)
+- **GDP grew 15.7%** — from $19.09T to $22.09T — the slowest full-term growth rate (but 4 years vs Clinton/Bush's 8)
+- **2.5 million jobs were lost** — entirely due to COVID. Before COVID (Feb 2020), the economy had added ~6.4M jobs.
+- **Unemployment went from 4.7% to 6.4%** — it had fallen to 3.5% (50-year low) before COVID hit
+- The **S&P 500 gained 66%** — strong, driven by tax cuts and then unprecedented Fed/fiscal stimulus
+- Cumulative inflation was only **8.0%** — the lowest of any president here (partly due to COVID deflation)
 
 ### The Pre-COVID vs Post-COVID Split
 
@@ -265,62 +265,62 @@ This is important. Through February 2020, Trump's economic numbers were:
 - GDP growth: ~15% in 3 years
 - S&P 500: up ~40%
 
-Then COVID-19 hit. In two months (MarchΓÇôApril 2020), the economy lost 22 million jobs. GDP fell 31% annualized in Q2 2020. It was the sharpest contraction in recorded history ΓÇö caused by a global pandemic, not policy failure.
+Then COVID-19 hit. In two months (March–April 2020), the economy lost 22 million jobs. GDP fell 31% annualized in Q2 2020. It was the sharpest contraction in recorded history — caused by a global pandemic, not policy failure.
 
 ## The Debt Story
 
 Trump added $7.85 trillion to the national debt in just 4 years:
 
-- **Tax Cuts and Jobs Act** (2017) ΓÇö reduced federal revenue by an estimated $1.9T over 10 years
-- **COVID relief** ΓÇö CARES Act ($2.2T), additional stimulus packages
-- The deficit went from -3.4% of GDP (2017) to **-14.7% (2020)** ΓÇö the largest peacetime deficit in American history
+- **Tax Cuts and Jobs Act** (2017) — reduced federal revenue by an estimated $1.9T over 10 years
+- **COVID relief** — CARES Act ($2.2T), additional stimulus packages
+- The deficit went from -3.4% of GDP (2017) to **-14.7% (2020)** — the largest peacetime deficit in American history
 
 ## Congress
 
 | Years | House | Senate |
 |-------|-------|--------|
-| 2017ΓÇô2019 (115th) | **GOP** | **GOP** |
-| 2019ΓÇô2021 (116th) | Dem | **GOP** |
+| 2017–2019 (115th) | **GOP** | **GOP** |
+| 2019–2021 (116th) | Dem | **GOP** |
 
 Trump had unified Republican control for 2 years, during which the tax cuts passed. Democrats took the House in 2018.
 
 ## Key Legislation & Actions
 
-- **Tax Cuts and Jobs Act** (2017) ΓÇö corporate rate 35% ΓåÆ 21%, individual cuts
-- **First Step Act** (2018) ΓÇö bipartisan criminal justice reform
-- **USMCA** (2020) ΓÇö renegotiated NAFTA
-- **CARES Act** (2020) ΓÇö $2.2 trillion COVID relief
-- Trade war with China ΓÇö tariffs on ~$350B in goods
+- **Tax Cuts and Jobs Act** (2017) — corporate rate 35% → 21%, individual cuts
+- **First Step Act** (2018) — bipartisan criminal justice reform
+- **USMCA** (2020) — renegotiated NAFTA
+- **CARES Act** (2020) — $2.2 trillion COVID relief
+- Trade war with China — tariffs on ~$350B in goods
 - 220 executive orders (per Federal Register)
 
 ## Context & Caveats
 
-COVID-19 makes Trump's first term impossible to evaluate on economic numbers alone. The pre-COVID economy was genuinely strong ΓÇö low unemployment, solid growth, contained inflation. The pandemic was a once-in-a-century exogenous shock that hit every country on Earth. The massive fiscal response (bipartisan) prevented a depression but planted the seeds of the inflation that would define Biden's presidency. Trump's fiscal legacy was significantly expansionary ΓÇö both through tax cuts (reducing revenue) and COVID spending (increasing outlays).
+COVID-19 makes Trump's first term impossible to evaluate on economic numbers alone. The pre-COVID economy was genuinely strong — low unemployment, solid growth, contained inflation. The pandemic was a once-in-a-century exogenous shock that hit every country on Earth. The massive fiscal response (bipartisan) prevented a depression but planted the seeds of the inflation that would define Biden's presidency. Trump's fiscal legacy was significantly expansionary — both through tax cuts (reducing revenue) and COVID spending (increasing outlays).
 
 ---
 
-# Joe Biden (D) ΓÇö January 2021 to January 2025
+# Joe Biden (D) — January 2021 to January 2025
 
 ## What He Inherited
 
-Biden inherited a COVID-ravaged economy in the early stages of recovery. Unemployment was 6.4%. The economy had regained about two-thirds of lost jobs but was still 10 million below pre-COVID levels. Vaccines were just becoming available. The Fed funds rate was 0.08% ΓÇö essentially zero. The deficit was 11.7% of GDP. The national debt was $27.78 trillion. Supply chains were broken worldwide.
+Biden inherited a COVID-ravaged economy in the early stages of recovery. Unemployment was 6.4%. The economy had regained about two-thirds of lost jobs but was still 10 million below pre-COVID levels. Vaccines were just becoming available. The Fed funds rate was 0.08% — essentially zero. The deficit was 11.7% of GDP. The national debt was $27.78 trillion. Supply chains were broken worldwide.
 
 ## What Happened to the Economy
 
-Biden's presidency saw the fastest recovery in modern history ΓÇö followed by the worst inflation in 40 years:
+Biden's presidency saw the fastest recovery in modern history — followed by the worst inflation in 40 years:
 
-- **GDP grew 35.0%** ΓÇö from $22.09T to $29.83T ΓÇö strong, boosted by reopening and inflation
-- **14.9 million jobs were added** ΓÇö second only to Clinton, largely recovering COVID losses
-- **Unemployment fell from 6.4% to 4.2%** ΓÇö a full COVID recovery
-- The **S&P 500 gained 60%** ΓÇö powered by tech/AI boom
-- But **cumulative inflation was 21.3%** ΓÇö the highest since the Carter era
-- Inflation peaked at **9.1% year-over-year in June 2022** ΓÇö a 40-year high
+- **GDP grew 35.0%** — from $22.09T to $29.83T — strong, boosted by reopening and inflation
+- **14.9 million jobs were added** — second only to Clinton, largely recovering COVID losses
+- **Unemployment fell from 6.4% to 4.2%** — a full COVID recovery
+- The **S&P 500 gained 60%** — powered by tech/AI boom
+- But **cumulative inflation was 21.3%** — the highest since the Carter era
+- Inflation peaked at **9.1% year-over-year in June 2022** — a 40-year high
 
 ### The Inflation Problem
 
 This was the defining economic story of Biden's presidency. Core CPI components:
 
-| Category | Cumulative increase (2021ΓÇô2025) |
+| Category | Cumulative increase (2021–2025) |
 |----------|-------------------------------|
 | Overall | +21.3% |
 | Shelter/Housing | ~+25% |
@@ -328,18 +328,18 @@ This was the defining economic story of Biden's presidency. Core CPI components:
 | Energy | Volatile (spiked then fell) |
 | Used cars | +30%+ |
 
-Causes were a mix of: (1) too much fiscal stimulus too late (American Rescue Plan, $1.9T, March 2021 ΓÇö when the economy was already recovering), (2) broken supply chains from COVID, (3) Russia's invasion of Ukraine (energy/food price spike), and (4) years of near-zero interest rates that weren't raised fast enough.
+Causes were a mix of: (1) too much fiscal stimulus too late (American Rescue Plan, $1.9T, March 2021 — when the economy was already recovering), (2) broken supply chains from COVID, (3) Russia's invasion of Ukraine (energy/food price spike), and (4) years of near-zero interest rates that weren't raised fast enough.
 
-The Fed raised rates from 0.08% to 5.33% ΓÇö the most aggressive tightening cycle since the 1980s ΓÇö and inflation came down from 9.1% to ~2.4% without causing a recession (the "soft landing").
+The Fed raised rates from 0.08% to 5.33% — the most aggressive tightening cycle since the 1980s — and inflation came down from 9.1% to ~2.4% without causing a recession (the "soft landing").
 
 ## The Debt Story
 
 Biden added $8.43 trillion to the national debt:
 
-- **American Rescue Plan** (2021) ΓÇö $1.9T COVID stimulus
-- **Infrastructure Investment and Jobs Act** (2021) ΓÇö $1.2T (bipartisan)
-- **Inflation Reduction Act** (2022) ΓÇö $400B+ in clean energy/health spending
-- **CHIPS and Science Act** (2022) ΓÇö $280B for semiconductor manufacturing
+- **American Rescue Plan** (2021) — $1.9T COVID stimulus
+- **Infrastructure Investment and Jobs Act** (2021) — $1.2T (bipartisan)
+- **Inflation Reduction Act** (2022) — $400B+ in clean energy/health spending
+- **CHIPS and Science Act** (2022) — $280B for semiconductor manufacturing
 - Continued high interest costs on existing debt
 - Deficit shrank from -11.7% of GDP (2021) to -5.8% (2025), but levels remained historically high
 
@@ -347,31 +347,31 @@ Biden added $8.43 trillion to the national debt:
 
 | Years | House | Senate |
 |-------|-------|--------|
-| 2021ΓÇô2023 (117th) | Dem | Dem (50-50 + VP) |
-| 2023ΓÇô2025 (118th) | **GOP** | Dem |
+| 2021–2023 (117th) | Dem | Dem (50-50 + VP) |
+| 2023–2025 (118th) | **GOP** | Dem |
 
 Biden had the slimmest possible Democratic majority for 2 years. The 118th Congress under Republican House Speaker was marked by gridlock, government shutdown threats, and a historically narrow GOP majority.
 
 ## Key Legislation & Actions
 
-- **American Rescue Plan** (2021) ΓÇö $1.9T, no Republican votes
-- **Infrastructure Investment and Jobs Act** (2021) ΓÇö $1.2T, bipartisan
-- **CHIPS and Science Act** (2022) ΓÇö bipartisan
-- **Inflation Reduction Act** (2022) ΓÇö no Republican votes, Manchin-Schumer deal
+- **American Rescue Plan** (2021) — $1.9T, no Republican votes
+- **Infrastructure Investment and Jobs Act** (2021) — $1.2T, bipartisan
+- **CHIPS and Science Act** (2022) — bipartisan
+- **Inflation Reduction Act** (2022) — no Republican votes, Manchin-Schumer deal
 - Student loan forgiveness attempts (mostly blocked by courts)
 - ~140+ executive orders
 
 ## Context & Caveats
 
-Biden's economic story was "strong but didn't feel strong." GDP grew, jobs recovered, unemployment hit 50-year lows, and the stock market boomed. But inflation eroded real purchasing power ΓÇö grocery prices, rent, and gas hit levels that made everyday Americans feel poorer even as headline numbers improved. Real wages only began outpacing inflation in 2023. The perception gap between economic data and economic *vibes* was the defining political challenge, and it contributed to his political difficulties.
+Biden's economic story was "strong but didn't feel strong." GDP grew, jobs recovered, unemployment hit 50-year lows, and the stock market boomed. But inflation eroded real purchasing power — grocery prices, rent, and gas hit levels that made everyday Americans feel poorer even as headline numbers improved. Real wages only began outpacing inflation in 2023. The perception gap between economic data and economic *vibes* was the defining political challenge, and it contributed to his political difficulties.
 
 ---
 
-# Donald Trump, Second Term (R) ΓÇö January 2025 to Present
+# Donald Trump, Second Term (R) — January 2025 to Present
 
 ## What He Inherited
 
-Trump returned to office with a strong economy: 4.2% unemployment, 6,041 on the S&P 500, GDP at $29.83T, and inflation back near target at 2.4%. The Fed funds rate was 4.33% ΓÇö much higher than the near-zero he left in 2021. The national debt was $36.22 trillion. The economy was in a "soft landing" ΓÇö inflation tamed without recession.
+Trump returned to office with a strong economy: 4.2% unemployment, 6,041 on the S&P 500, GDP at $29.83T, and inflation back near target at 2.4%. The Fed funds rate was 4.33% — much higher than the near-zero he left in 2021. The national debt was $36.22 trillion. The economy was in a "soft landing" — inflation tamed without recession.
 
 ## 13 Months In (as of Feb 2026)
 
@@ -385,64 +385,64 @@ Trump returned to office with a strong economy: 4.2% unemployment, 6,041 on the 
 
 ## The Trade Deficit and the Tariff Paradox
 
-The most dramatic economic story of Trump's second term so far isn't GDP or jobs ΓÇö it's the trade balance. Trump campaigned heavily on tariffs as a tool to reduce the trade deficit, bring manufacturing home, and punish countries with unfair trade practices. The data from the first 13 months tells a more complicated story.
+The most dramatic economic story of Trump's second term so far isn't GDP or jobs — it's the trade balance. Trump campaigned heavily on tariffs as a tool to reduce the trade deficit, bring manufacturing home, and punish countries with unfair trade practices. The data from the first 13 months tells a more complicated story.
 
 ### Monthly Trade Balance (Goods & Services, Millions $)
 
 | Month | Trade Balance | Context |
 |-------|-------------|---------|
-| Dec 2024 (pre-inauguration) | ΓêÆ$96,948M | Biden's final month |
-| **Jan 2025** | **ΓêÆ$128,344M** | Trump takes office; tariff announcements begin |
-| **Feb 2025** | **ΓêÆ$119,822M** | Front-running accelerates |
-| **Mar 2025** | **ΓêÆ$135,963M** | **Worst single month in history** |
-| Apr 2025 | ΓêÆ$60,117M | Tariffs take effect; imports collapse |
-| May 2025 | ΓêÆ$70,595M | Partial normalization |
-| Jun 2025 | ΓêÆ$57,728M | Improvement |
-| Jul 2025 | ΓêÆ$73,942M | Volatile |
-| Aug 2025 | ΓêÆ$55,173M | Improved |
-| Sep 2025 | ΓêÆ$47,681M | **Lowest since 2020** |
-| Oct 2025 | ΓêÆ$28,749M | Sharp narrowing |
-| Nov 2025 | ΓêÆ$53,044M | Rebound |
-| Dec 2025 | ΓêÆ$70,311M | Widening again |
+| Dec 2024 (pre-inauguration) | −$96,948M | Biden's final month |
+| **Jan 2025** | **−$128,344M** | Trump takes office; tariff announcements begin |
+| **Feb 2025** | **−$119,822M** | Front-running accelerates |
+| **Mar 2025** | **−$135,963M** | **Worst single month in history** |
+| Apr 2025 | −$60,117M | Tariffs take effect; imports collapse |
+| May 2025 | −$70,595M | Partial normalization |
+| Jun 2025 | −$57,728M | Improvement |
+| Jul 2025 | −$73,942M | Volatile |
+| Aug 2025 | −$55,173M | Improved |
+| Sep 2025 | −$47,681M | **Lowest since 2020** |
+| Oct 2025 | −$28,749M | Sharp narrowing |
+| Nov 2025 | −$53,044M | Rebound |
+| Dec 2025 | −$70,311M | Widening again |
 
 ### What Happened (In Plain English)
 
-**Phase 1 ΓÇö The Front-Run (JanΓÇôMar 2025):** When Trump announced sweeping tariffs in January 2025, American businesses panicked and rushed to import as much as possible *before* the tariffs hit. This is called "front-running" ΓÇö it's rational behavior by individual companies but it makes the trade deficit temporarily *worse*, not better. January through March 2025 saw the three worst trade deficit months in American history, peaking at ΓêÆ$136 billion in March.
+**Phase 1 — The Front-Run (Jan–Mar 2025):** When Trump announced sweeping tariffs in January 2025, American businesses panicked and rushed to import as much as possible *before* the tariffs hit. This is called "front-running" — it's rational behavior by individual companies but it makes the trade deficit temporarily *worse*, not better. January through March 2025 saw the three worst trade deficit months in American history, peaking at −$136 billion in March.
 
-**Phase 2 ΓÇö The Correction (AprΓÇôOct 2025):** Once tariffs took effect, imports dropped sharply. The trade deficit narrowed dramatically ΓÇö falling to ΓêÆ$28.7 billion in October, the narrowest since the COVID lockdowns of 2020. On the surface, this looks like the tariffs "worked."
+**Phase 2 — The Correction (Apr–Oct 2025):** Once tariffs took effect, imports dropped sharply. The trade deficit narrowed dramatically — falling to −$28.7 billion in October, the narrowest since the COVID lockdowns of 2020. On the surface, this looks like the tariffs "worked."
 
-**Phase 3 ΓÇö The Rebound (NovΓÇôDec 2025):** The deficit began widening again, reaching ΓêÆ$70.3 billion in December. This suggests the initial narrowing was partly temporary ΓÇö supply chains rerouted, businesses adjusted, and trade patterns began normalizing at new, higher tariff levels.
+**Phase 3 — The Rebound (Nov–Dec 2025):** The deficit began widening again, reaching −$70.3 billion in December. This suggests the initial narrowing was partly temporary — supply chains rerouted, businesses adjusted, and trade patterns began normalizing at new, higher tariff levels.
 
 ### The Historical Comparison
 
 | President | Monthly Trade Deficit (at inauguration) | Monthly Trade Deficit (at exit/latest) | Change |
 |-----------|---------------------------------------|--------------------------------------|--------|
-| Clinton (Feb 1993) | ΓêÆ$3.9B | ΓêÆ$33.1B (Jan 2001) | **Worsened 8.5x** |
-| Bush (Feb 2001) | ΓêÆ$33.1B | ΓêÆ$36.1B (Jan 2009) | Worsened 9% |
-| Obama (Feb 2009) | ΓêÆ$36.1B | ΓêÆ$43.7B (Jan 2017) | Worsened 21% |
-| **Trump I (Feb 2017)** | **ΓêÆ$39.8B** | **ΓêÆ$65.6B (Jan 2021)** | **Worsened 65%** |
-| Biden (Feb 2021) | ΓêÆ$65.6B | ΓêÆ$96.9B (Dec 2024) | Worsened 48% |
-| Trump II (Jan 2025) | ΓêÆ$128.3B | ΓêÆ$70.3B (Dec 2025) | Narrowed 45%** |
+| Clinton (Feb 1993) | −$3.9B | −$33.1B (Jan 2001) | **Worsened 8.5x** |
+| Bush (Feb 2001) | −$33.1B | −$36.1B (Jan 2009) | Worsened 9% |
+| Obama (Feb 2009) | −$36.1B | −$43.7B (Jan 2017) | Worsened 21% |
+| **Trump I (Feb 2017)** | **−$39.8B** | **−$65.6B (Jan 2021)** | **Worsened 65%** |
+| Biden (Feb 2021) | −$65.6B | −$96.9B (Dec 2024) | Worsened 48% |
+| Trump II (Jan 2025) | −$128.3B | −$70.3B (Dec 2025) | Narrowed 45%** |
 
-\** The Jan 2025 starting figure is heavily distorted by front-running. If measured from the pre-tariff-announcement baseline (~$80ΓÇô97B monthly average in late 2024), the improvement is more modest.
+\** The Jan 2025 starting figure is heavily distorted by front-running. If measured from the pre-tariff-announcement baseline (~$80–97B monthly average in late 2024), the improvement is more modest.
 
 ### The Uncomfortable Truth About Tariffs and Trade Deficits
 
 The data reveals a pattern that contradicts simple narratives from both parties:
 
-1. **The trade deficit has worsened under every president since Clinton** ΓÇö regardless of party, trade policy, or tariff levels. It grew from $3.9B/month in 1993 to ~$70ΓÇô100B/month by the mid-2020s.
+1. **The trade deficit has worsened under every president since Clinton** — regardless of party, trade policy, or tariff levels. It grew from $3.9B/month in 1993 to ~$70–100B/month by the mid-2020s.
 
-2. **Trump's first-term tariffs (2018ΓÇô2020) did not reduce the overall trade deficit.** It went from ΓêÆ$39.8B/month to ΓêÆ$65.6B/month ΓÇö a 65% increase. The China-specific deficit narrowed, but trade rerouted through Vietnam, Mexico, and other countries. The *total* deficit still grew.
+2. **Trump's first-term tariffs (2018–2020) did not reduce the overall trade deficit.** It went from −$39.8B/month to −$65.6B/month — a 65% increase. The China-specific deficit narrowed, but trade rerouted through Vietnam, Mexico, and other countries. The *total* deficit still grew.
 
-3. **Trump's second-term tariffs (2025) show a different pattern** ΓÇö much broader (applying to more countries), much higher (some rates 25ΓÇô60%), and they did physically reduce imports. The deficit narrowed to historic lows in October 2025. But it's already widening again, and the long-term cost (higher consumer prices, supply chain disruption, retaliatory tariffs from trading partners) is not yet reflected in the data.
+3. **Trump's second-term tariffs (2025) show a different pattern** — much broader (applying to more countries), much higher (some rates 25–60%), and they did physically reduce imports. The deficit narrowed to historic lows in October 2025. But it's already widening again, and the long-term cost (higher consumer prices, supply chain disruption, retaliatory tariffs from trading partners) is not yet reflected in the data.
 
-4. **A smaller trade deficit isn't automatically good.** The deficit reflects the fact that Americans consume more than they produce ΓÇö which is partly because the US economy is services-oriented, the dollar is the world's reserve currency (creating natural demand for dollars that flows back as imports), and American consumers are wealthy enough to buy foreign goods. Reducing the deficit by making imports more expensive doesn't make Americans richer ΓÇö it makes the things they buy more expensive.
+4. **A smaller trade deficit isn't automatically good.** The deficit reflects the fact that Americans consume more than they produce — which is partly because the US economy is services-oriented, the dollar is the world's reserve currency (creating natural demand for dollars that flows back as imports), and American consumers are wealthy enough to buy foreign goods. Reducing the deficit by making imports more expensive doesn't make Americans richer — it makes the things they buy more expensive.
 
-5. **The front-running effect shows that trade policy announcements move markets before they take effect.** JanuaryΓÇôMarch 2025 was the worst-ever trade deficit quarter ΓÇö entirely caused by the *anticipation* of tariffs, not by any foreign trade practice.
+5. **The front-running effect shows that trade policy announcements move markets before they take effect.** January–March 2025 was the worst-ever trade deficit quarter — entirely caused by the *anticipation* of tariffs, not by any foreign trade practice.
 
 *Source: FRED BOPGSTB (U.S. Trade Balance on Goods and Services, BEA/Census, millions of dollars, seasonally adjusted)*
 
-**Too early to give a final verdict.** The tariff regime is still being implemented, retaliatory measures are still being negotiated, and supply chains take 2ΓÇô3 years to fully adjust. The data so far shows dramatic short-term volatility but no clear structural improvement to the underlying trade position.
+**Too early to give a final verdict.** The tariff regime is still being implemented, retaliatory measures are still being negotiated, and supply chains take 2–3 years to fully adjust. The data so far shows dramatic short-term volatility but no clear structural improvement to the underlying trade position.
 
 ---
 
@@ -458,9 +458,9 @@ The data reveals a pattern that contradicts simple narratives from both parties:
 | Bush | +0.5M | 8 years | +0.06M/yr |
 | Trump I | -2.5M | 4 years | -0.63M/yr** |
 
-\* Biden's jobs number includes COVID recovery ΓÇö much of it was "re-hiring" rather than new job creation.
+\* Biden's jobs number includes COVID recovery — much of it was "re-hiring" rather than new job creation.
 
-\** Trump's number includes COVID losses ΓÇö an exogenous shock, not policy failure.
+\** Trump's number includes COVID losses — an exogenous shock, not policy failure.
 
 ### Who Grew GDP the Most?
 
@@ -490,11 +490,11 @@ Clinton added the least debt both in absolute terms and as a percentage of start
 
 | President | Deficit Start (% GDP) | Deficit End (% GDP) | Improved? |
 |-----------|----------------------|--------------------|---------------------------------|
-| **Clinton** | **-3.7%** | **+2.3%** | **Yes ΓÇö achieved surplus** |
-| Obama | -9.8% | -3.1% | Yes ΓÇö cut deficit by 2/3 |
-| Trump I | -3.4% | -14.7% | No ΓÇö exploded (COVID) |
-| Biden | -11.7% | -5.8% | Yes ΓÇö cut in half |
-| Bush | +2.3% | -9.8% | No ΓÇö surplus ΓåÆ deep deficit |
+| **Clinton** | **-3.7%** | **+2.3%** | **Yes — achieved surplus** |
+| Obama | -9.8% | -3.1% | Yes — cut deficit by 2/3 |
+| Trump I | -3.4% | -14.7% | No — exploded (COVID) |
+| Biden | -11.7% | -5.8% | Yes — cut in half |
+| Bush | +2.3% | -9.8% | No — surplus → deep deficit |
 
 ### Who Had the Best Stock Market?
 
@@ -514,10 +514,10 @@ Numbers alone don't tell you who "won." A president who inherits a crisis and cl
 
 ### Methodology
 
-Each president is scored on 8 metrics, each worth 0ΓÇô10 points:
+Each president is scored on 8 metrics, each worth 0–10 points:
 
 1. **Job Creation** (annualized, to account for 4 vs 8 year terms)
-2. **Unemployment Change** (start ΓåÆ end)
+2. **Unemployment Change** (start → end)
 3. **GDP Growth** (annualized %)
 4. **Deficit Trajectory** (did they improve or worsen fiscal position?)
 5. **Debt Restraint** (debt added as % of starting debt, lower is better)
@@ -525,48 +525,48 @@ Each president is scored on 8 metrics, each worth 0ΓÇô10 points:
 7. **Stock Market Return** (annualized S&P 500)
 8. **Inflation Control** (lower cumulative CPI = better, penalized for >5% annual average)
 
-**Context modifier** (ΓêÆ3 to +3): Adjusts for the hand they were dealt. Inheriting a crisis gets up to +3 bonus points. Inheriting a booming economy gets 0 (you don't get credit for coasting).
+**Context modifier** (−3 to +3): Adjusts for the hand they were dealt. Inheriting a crisis gets up to +3 bonus points. Inheriting a booming economy gets 0 (you don't get credit for coasting).
 
 ### The Scores
 
-| Category (0ΓÇô10 each) | Clinton | Bush | Obama | Trump I | Biden | Trump IIΓÇá |
+| Category (0–10 each) | Clinton | Bush | Obama | Trump I | Biden | Trump II† |
 |-----------------------|---------|------|-------|---------|-------|----------|
 | **Job Creation** | 10 | 1 | 6 | 3* | 8* | 4 |
-| **Unemployment ╬ö** | 10 | 0 | 10 | 2* | 9 | 5 |
+| **Unemployment Δ** | 10 | 0 | 10 | 2* | 9 | 5 |
 | **GDP Growth** | 10 | 6 | 5 | 5 | 7* | 6 |
 | **Deficit Trajectory** | 10 | 0 | 8 | 0* | 6 | 3 |
 | **Debt Restraint** | 10 | 2 | 1 | 2 | 3 | 2 |
-| **Real Income Growth** | 9 | 1 | 7 | 6 | 4 | 5ΓÇá |
+| **Real Income Growth** | 9 | 1 | 7 | 6 | 4 | 5† |
 | **Stock Market** | 10 | 0 | 9 | 7 | 7 | 8 |
 | **Inflation Control** | 6 | 7 | 8 | 9 | 2 | 7 |
 | **Subtotal** | **75** | **17** | **54** | **34** | **46** | **40** |
-| **Context Modifier** | +1 | +2 | +3 | ΓêÆ1* | +2 | 0 |
-| **FINAL SCORE** | **76/80** | **19/80** | **57/80** | **33/80** | **48/80** | **40/80ΓÇá** |
-| **Letter Grade** | **A** | **F** | **B+** | **D+** | **C+** | **CΓêÆΓÇá** |
+| **Context Modifier** | +1 | +2 | +3 | −1* | +2 | 0 |
+| **FINAL SCORE** | **76/80** | **19/80** | **57/80** | **33/80** | **48/80** | **40/80†** |
+| **Letter Grade** | **A** | **F** | **B+** | **D+** | **C+** | **C−†** |
 
-\* Asterisked scores include COVID adjustment for Trump I (pandemic was exogenous) and reopening adjustment for Biden (jobs/GDP were partly recovery, not creation). Trump I's context modifier is ΓêÆ1 because he inherited a strong economy and the deficit was already deteriorating pre-COVID.
+\* Asterisked scores include COVID adjustment for Trump I (pandemic was exogenous) and reopening adjustment for Biden (jobs/GDP were partly recovery, not creation). Trump I's context modifier is −1 because he inherited a strong economy and the deficit was already deteriorating pre-COVID.
 
-ΓÇá Trump II scores are **provisional** ΓÇö based on only 13 of 48 months. His real income score uses January 2026 CPI data extrapolated (no full-year MEHOINUSA672N yet). Context modifier is 0: he inherited a healthy economy (no crisis bonus) but also hasn't had time to cause or face one. These scores will change dramatically over the remaining 35 months.
+† Trump II scores are **provisional** — based on only 13 of 48 months. His real income score uses January 2026 CPI data extrapolated (no full-year MEHOINUSA672N yet). Context modifier is 0: he inherited a healthy economy (no crisis bonus) but also hasn't had time to cause or face one. These scores will change dramatically over the remaining 35 months.
 
 ### What the Grades Mean
 
-**A ΓÇö Bill Clinton (76/80):** The numbers are almost uniformly excellent. The caveats are real ΓÇö the dot-com bubble inflated everything and the Gramm-Leach-Bliley deregulation he signed contributed to the 2008 crisis. But measured by outcomes during his presidency, no one else is close. He's the only president to achieve a surplus, the only one to see labor force participation rise, the biggest job creator, and the biggest stock market run. The Republican Congress that forced spending discipline on him deserves significant credit ΓÇö this was a shared achievement.
+**A — Bill Clinton (76/80):** The numbers are almost uniformly excellent. The caveats are real — the dot-com bubble inflated everything and the Gramm-Leach-Bliley deregulation he signed contributed to the 2008 crisis. But measured by outcomes during his presidency, no one else is close. He's the only president to achieve a surplus, the only one to see labor force participation rise, the biggest job creator, and the biggest stock market run. The Republican Congress that forced spending discipline on him deserves significant credit — this was a shared achievement.
 
-**B+ ΓÇö Barack Obama (57/80):** Remarkable given what he started with. Inherited the worst economy since the 1930s and left it in genuinely good shape ΓÇö 4.7% unemployment, rising wages, falling deficit. The knock is the massive debt increase (even though most was inherited/unavoidable) and the slow pace of recovery. Wage growth didn't accelerate until late in his term. The near-zero-interest-rate environment inflated assets while Main Street struggled.
+**B+ — Barack Obama (57/80):** Remarkable given what he started with. Inherited the worst economy since the 1930s and left it in genuinely good shape — 4.7% unemployment, rising wages, falling deficit. The knock is the massive debt increase (even though most was inherited/unavoidable) and the slow pace of recovery. Wage growth didn't accelerate until late in his term. The near-zero-interest-rate environment inflated assets while Main Street struggled.
 
-**C+ ΓÇö Joe Biden (48/80):** A tale of two stories. The recovery was real ΓÇö 14.9M jobs, unemployment back to 4.2%, soft landing achieved. But inflation devastated his score. A 21.3% cumulative CPI increase meant that even though GDP and jobs looked great, Americans felt poorer. Real wages didn't outpace inflation until 2023. The infrastructure and CHIPS bills were genuine long-term investments, but their benefits won't be measurable for years.
+**C+ — Joe Biden (48/80):** A tale of two stories. The recovery was real — 14.9M jobs, unemployment back to 4.2%, soft landing achieved. But inflation devastated his score. A 21.3% cumulative CPI increase meant that even though GDP and jobs looked great, Americans felt poorer. Real wages didn't outpace inflation until 2023. The infrastructure and CHIPS bills were genuine long-term investments, but their benefits won't be measurable for years.
 
-**D+ ΓÇö Donald Trump I (33/80):** Impossible to grade fairly. Pre-COVID (Jan 2017ΓÇôFeb 2020), he'd score roughly 50ΓÇô55/80 ΓÇö solid B. The tax cuts boosted corporate earnings and the stock market. Unemployment hit a 50-year low. But the deficit was already rising (from -3.4% to -4.6% of GDP) before COVID hit, the tax cuts added trillions to the debt without generating enough growth to pay for themselves, and then COVID erased everything. The massive bipartisan fiscal response prevented a depression but seeded the inflation that followed.
+**D+ — Donald Trump I (33/80):** Impossible to grade fairly. Pre-COVID (Jan 2017–Feb 2020), he'd score roughly 50–55/80 — solid B. The tax cuts boosted corporate earnings and the stock market. Unemployment hit a 50-year low. But the deficit was already rising (from -3.4% to -4.6% of GDP) before COVID hit, the tax cuts added trillions to the debt without generating enough growth to pay for themselves, and then COVID erased everything. The massive bipartisan fiscal response prevented a depression but seeded the inflation that followed.
 
-**F ΓÇö George W. Bush (19/80):** The numbers are brutal, but context matters enormously. Bush was the only president in this analysis hit by two existential crises ΓÇö 9/11 reshaped national security spending overnight, and the Great Financial Crisis destroyed the economy in his final year. Almost no job creation in 8 years. The stock market lost 36%. The surplus became the biggest deficit in history. But many of the seeds ΓÇö lax financial regulation, the housing bubble, Greenspan's low rates ΓÇö were planted before his presidency or by institutions outside his control. The Iraq War, however, was a choice, and its cost (~$2T) was an enormous fiscal drain with no economic return.
+**F — George W. Bush (19/80):** The numbers are brutal, but context matters enormously. Bush was the only president in this analysis hit by two existential crises — 9/11 reshaped national security spending overnight, and the Great Financial Crisis destroyed the economy in his final year. Almost no job creation in 8 years. The stock market lost 36%. The surplus became the biggest deficit in history. But many of the seeds — lax financial regulation, the housing bubble, Greenspan's low rates — were planted before his presidency or by institutions outside his control. The Iraq War, however, was a choice, and its cost (~$2T) was an enormous fiscal drain with no economic return.
 
-**CΓêÆ (Provisional) ΓÇö Donald Trump II (40/80):** Thirteen months in, the numbers are mixed. The S&P 500 is up 15% ΓÇö the strongest early showing for any category so far, earning an 8. GDP growth is running at roughly 5.6% annualized ΓÇö solid (6). Inflation is contained at ~2.4% (7). But job creation has been modest (~300K), unemployment ticked up slightly from 4.2% to 4.3%, and the national debt grew by $2.55 trillion in 13 months ΓÇö a $2.35T annualized pace that would be the fastest debt accumulation of any president if sustained. The deficit hasn't improved from Biden's exit level. Labor force participation is flat at 62.5%. He inherited a healthy economy with no crisis ΓÇö which means there's no "recovery bounce" inflating the numbers but also no excuse for deterioration. The context modifier is 0 ΓÇö he starts from neutral.
+**C− (Provisional) — Donald Trump II (40/80):** Thirteen months in, the numbers are mixed. The S&P 500 is up 15% — the strongest early showing for any category so far, earning an 8. GDP growth is running at roughly 5.6% annualized — solid (6). Inflation is contained at ~2.4% (7). But job creation has been modest (~300K), unemployment ticked up slightly from 4.2% to 4.3%, and the national debt grew by $2.55 trillion in 13 months — a $2.35T annualized pace that would be the fastest debt accumulation of any president if sustained. The deficit hasn't improved from Biden's exit level. Labor force participation is flat at 62.5%. He inherited a healthy economy with no crisis — which means there's no "recovery bounce" inflating the numbers but also no excuse for deterioration. The context modifier is 0 — he starts from neutral.
 
 **Why this grade could change dramatically:**
-- If the economy stays on this track for 4 years, the stock market gains alone could push him to a BΓêÆ.
+- If the economy stays on this track for 4 years, the stock market gains alone could push him to a B−.
 - If a recession hits (which is always possible), the numbers would deteriorate quickly from this starting position.
-- The tariff policies and government restructuring currently underway are wildcards ΓÇö their economic effects haven't fully materialized in the data yet.
-- The debt trajectory is the biggest risk to his score ΓÇö at $2.35T/year, he'd add $9.4T over a full term, the most of any president.
+- The tariff policies and government restructuring currently underway are wildcards — their economic effects haven't fully materialized in the data yet.
+- The debt trajectory is the biggest risk to his score — at $2.35T/year, he'd add $9.4T over a full term, the most of any president.
 
 ### Important Disclaimers About These Scores
 
@@ -574,13 +574,13 @@ Each president is scored on 8 metrics, each worth 0ΓÇô10 points:
 2. **4-year vs 8-year terms aren't comparable.** Clinton and Bush had 8 years; Trump I and Biden had 4. More time means more opportunity for both recovery and crisis.
 3. **COVID makes Trump I and Biden almost impossible to score against the others.** Both were hit by a 100-year pandemic that no policy could have prevented.
 4. **These scores are based on outcomes, not intentions.** A president who made all the right decisions but got hit by bad luck scores worse than one who made mediocre decisions during a boom.
-5. **Trump II's grade is provisional** ΓÇö 13 months is not enough for a definitive evaluation. The grade will be updated as more data becomes available.
+5. **Trump II's grade is provisional** — 13 months is not enough for a definitive evaluation. The grade will be updated as more data becomes available.
 
 ---
 
 ## Deep Dive: What Congress Actually Did
 
-Presidents get the headlines, but Congress writes the laws, passes the budgets, and controls the purse strings. Many of the most consequential economic decisions of the past 32 years were driven by Congress ΓÇö sometimes in collaboration with the president, sometimes in opposition.
+Presidents get the headlines, but Congress writes the laws, passes the budgets, and controls the purse strings. Many of the most consequential economic decisions of the past 32 years were driven by Congress — sometimes in collaboration with the president, sometimes in opposition.
 
 ### The Landmark Votes That Shaped Each Presidency
 
@@ -605,7 +605,7 @@ Not a single Republican voted for this bill. Vice President Al Gore cast the tie
 
 **What actually happened:** The economy boomed. GDP grew 55.6%, 22.7 million jobs were created, and the budget went from deficit to surplus. Whether the tax increase *caused* the boom or merely coincided with the dot-com revolution is the subject of endless debate. But the predictions of economic catastrophe were definitively wrong.
 
-**The lesson:** The most consequential fiscal bill of the Clinton era passed by the smallest possible margins with zero bipartisan support ΓÇö and the economy thrived.
+**The lesson:** The most consequential fiscal bill of the Clinton era passed by the smallest possible margins with zero bipartisan support — and the economy thrived.
 
 ---
 
@@ -621,9 +621,9 @@ Not a single Republican voted for this bill. Vice President Al Gore cast the tie
 
 Both passed via **budget reconciliation** (only 51 votes needed in the Senate), the same procedural tool later used for the ACA and the 2017 Tax Cuts.
 
-**What actually happened:** Revenue fell sharply (as a % of GDP) while spending increased. The surplus vanished by 2002. The deficit grew every year through 2004. The economy eventually recovered from the 2001 recession, but job creation was the weakest of any modern expansion ΓÇö earning it the nickname "the jobless recovery."
+**What actually happened:** Revenue fell sharply (as a % of GDP) while spending increased. The surplus vanished by 2002. The deficit grew every year through 2004. The economy eventually recovered from the 2001 recession, but job creation was the weakest of any modern expansion — earning it the nickname "the jobless recovery."
 
-**The other shoe:** When combined with two wars and Medicare Part D (all unpaid-for), Bush-era fiscal policy added roughly $5 trillion to the debt. Revenue as a share of GDP fell from 19.8% (2000) to 16.1% (2004) ΓÇö the largest revenue decline in modern history outside of recessions.
+**The other shoe:** When combined with two wars and Medicare Part D (all unpaid-for), Bush-era fiscal policy added roughly $5 trillion to the debt. Revenue as a share of GDP fell from 19.8% (2000) to 16.1% (2004) — the largest revenue decline in modern history outside of recessions.
 
 ---
 
@@ -657,13 +657,13 @@ Again, zero Republican votes in either chamber. The ACA was the most consequenti
 - Multiple government shutdown threats
 - Zero major economic legislation
 
-**The lesson:** Obama's legislative window was exactly 2 years. Everything consequential happened in 2009ΓÇô2010. The remaining 6 years were governance by executive order and Fed policy.
+**The lesson:** Obama's legislative window was exactly 2 years. Everything consequential happened in 2009–2010. The remaining 6 years were governance by executive order and Fed policy.
 
-*Sources: Congress.gov (House Vote #46, 111th-1 ΓÇö ARRA House; Senate Vote #64, 111th-1 ΓÇö ARRA Senate; House Vote #165, 111th-2 ΓÇö ACA House; Senate Vote #396, 111th-1 ΓÇö ACA Senate)*
+*Sources: Congress.gov (House Vote #46, 111th-1 — ARRA House; Senate Vote #64, 111th-1 — ARRA Senate; House Vote #165, 111th-2 — ACA House; Senate Vote #396, 111th-1 — ACA Senate)*
 
 ---
 
-#### Trump I Era: The Tax Cuts ΓÇö Passed Exclusively by Republicans
+#### Trump I Era: The Tax Cuts — Passed Exclusively by Republicans
 
 **The Bill:** Tax Cuts and Jobs Act of 2017 (H.R. 1)
 
@@ -682,32 +682,32 @@ Perfectly party-line in the Senate. A few Republicans in high-tax states (NY, NJ
 
 | Chamber | Yea | Nay | Bipartisan? |
 |---------|-----|-----|-------------|
-| **House** | 363 | 40 | **Yes ΓÇö 223 D, 140 R** |
+| **House** | 363 | 40 | **Yes — 223 D, 140 R** |
 | **Senate** | 96 | 0 | **Unanimous** |
 
 This was the most bipartisan major legislation since 9/11. When the crisis was existential enough, both parties cooperated. The contrast with the tax cut vote (zero crossover) illustrates a pattern: **fiscal expansion for crisis gets bipartisan support, fiscal expansion by choice does not.**
 
-*Sources: Congress.gov (House Vote #699, 115th-1 ΓÇö TCJA House; Senate Vote #323, 115th-1 ΓÇö TCJA Senate; House Vote #102, 116th-2 ΓÇö CARES House; Senate Vote #80, 116th-2 ΓÇö CARES Senate)*
+*Sources: Congress.gov (House Vote #699, 115th-1 — TCJA House; Senate Vote #323, 115th-1 — TCJA Senate; House Vote #102, 116th-2 — CARES House; Senate Vote #80, 116th-2 — CARES Senate)*
 
 ---
 
 #### Biden Era: The Narrowest of Majorities
 
-Biden's Congress was the most narrowly divided in modern history. His entire legislative agenda depended on a 50-50 Senate where VP Harris provided the tiebreaking vote ΓÇö meaning a single Democratic senator (Joe Manchin of West Virginia or Kyrsten Sinema of Arizona) could kill any bill.
+Biden's Congress was the most narrowly divided in modern history. His entire legislative agenda depended on a 50-50 Senate where VP Harris provided the tiebreaking vote — meaning a single Democratic senator (Joe Manchin of West Virginia or Kyrsten Sinema of Arizona) could kill any bill.
 
 **What passed (and how):**
 
 | Law | Year | Senate Vote | House Vote | Bipartisan? |
 |-----|------|------------|------------|-------------|
-| American Rescue Plan ($1.9T) | 2021 | 50-49 | 220-211 | **No** ΓÇö zero R votes |
-| Infrastructure Investment & Jobs Act ($1.2T) | 2021 | 69-30 | 228-206 | **Yes** ΓÇö 19 R senators |
-| CHIPS and Science Act ($280B) | 2022 | 64-33 | 243-187 | **Yes** ΓÇö 17 R senators |
-| Inflation Reduction Act ($400B+) | 2022 | 51-50 (VP) | 220-207 | **No** ΓÇö zero R votes |
-| Respect for Marriage Act | 2022 | 61-36 | 258-169 | **Yes** ΓÇö 12 R senators |
+| American Rescue Plan ($1.9T) | 2021 | 50-49 | 220-211 | **No** — zero R votes |
+| Infrastructure Investment & Jobs Act ($1.2T) | 2021 | 69-30 | 228-206 | **Yes** — 19 R senators |
+| CHIPS and Science Act ($280B) | 2022 | 64-33 | 243-187 | **Yes** — 17 R senators |
+| Inflation Reduction Act ($400B+) | 2022 | 51-50 (VP) | 220-207 | **No** — zero R votes |
+| Respect for Marriage Act | 2022 | 61-36 | 258-169 | **Yes** — 12 R senators |
 
-**The pattern:** Biden's most expensive bills (ARP, IRA) passed on pure party-line votes. His infrastructure and manufacturing bills got genuine Republican support. This mirrors the Clinton/Obama pattern ΓÇö fiscal policy (taxes and spending) is partisan, but physical investment can be bipartisan.
+**The pattern:** Biden's most expensive bills (ARP, IRA) passed on pure party-line votes. His infrastructure and manufacturing bills got genuine Republican support. This mirrors the Clinton/Obama pattern — fiscal policy (taxes and spending) is partisan, but physical investment can be bipartisan.
 
-**The Manchin Factor:** Joe Manchin single-handedly killed Build Back Better ($3.5T ΓåÆ $0), then negotiated it down to the Inflation Reduction Act ($400B) on his own terms. One senator from a state of 1.8 million people shaped the entire fiscal agenda of a presidency. This is the power of narrow majorities.
+**The Manchin Factor:** Joe Manchin single-handedly killed Build Back Better ($3.5T → $0), then negotiated it down to the Inflation Reduction Act ($400B) on his own terms. One senator from a state of 1.8 million people shaped the entire fiscal agenda of a presidency. This is the power of narrow majorities.
 
 ---
 
@@ -726,9 +726,9 @@ Where the government actually spends money changed dramatically across these pre
 | **Energy** | $32B | $81B | **+153%** |
 | **Homeland Security** | $29B | $73B | **+152%** |
 
-HHS and Social Security account for over **$3.6 trillion** of the ~$5.3 trillion in agency-level spending shown here. These programs ΓÇö Medicare, Medicaid, ACA subsidies, Social Security ΓÇö are driven primarily by demographics (aging population) and healthcare costs, not by any single president's policy choices.
+HHS and Social Security account for over **$3.6 trillion** of the ~$5.3 trillion in agency-level spending shown here. These programs — Medicare, Medicaid, ACA subsidies, Social Security — are driven primarily by demographics (aging population) and healthcare costs, not by any single president's policy choices.
 
-Transportation and Energy spending roughly doubled ΓÇö reflecting the bipartisan Infrastructure Act and Biden's clean energy investments through the IRA and CHIPS Act.
+Transportation and Energy spending roughly doubled — reflecting the bipartisan Infrastructure Act and Biden's clean energy investments through the IRA and CHIPS Act.
 
 *Source: USAspending.gov spending by agency, FY 2017 vs FY 2025*
 
@@ -736,20 +736,20 @@ Transportation and Energy spending roughly doubled ΓÇö reflecting the biparti
 
 ### The Productivity Paradox
 
-Worker productivity ΓÇö how much economic output each worker generates per hour ΓÇö is ultimately what determines long-term living standards. It's the one metric that transcends presidential terms.
+Worker productivity — how much economic output each worker generates per hour — is ultimately what determines long-term living standards. It's the one metric that transcends presidential terms.
 
 | Period | Productivity Index (OPHNFB) | Annualized Growth |
 |--------|---------------------------|-------------------|
-| Q1 1993 (Clinton start) | 61.9 | ΓÇö |
+| Q1 1993 (Clinton start) | 61.9 | — |
 | Q1 2001 (Clinton end) | 72.9 | **+2.1%/yr** |
 | Q1 2009 (Bush end) | ~85.0 (est.) | +1.9%/yr |
 | Q1 2017 (Obama end) | ~95.0 (est.) | +1.4%/yr |
 | Q1 2021 (Trump I end) | ~105.0 (est.) | +2.5%/yr |
 | Q3 2025 (latest) | 118.0 | +2.9%/yr |
 
-**Key insight:** Productivity growth was strongest in the late 1990s (Clinton, dot-com revolution), slowed during Obama's recovery (lots of jobs being added, but lower-productivity jobs), and accelerated sharply after COVID. The post-COVID productivity surge is one of the most underreported economic stories of the 2020s ΓÇö driven by remote work efficiencies, AI adoption, and the elimination of low-productivity businesses that didn't survive the pandemic.
+**Key insight:** Productivity growth was strongest in the late 1990s (Clinton, dot-com revolution), slowed during Obama's recovery (lots of jobs being added, but lower-productivity jobs), and accelerated sharply after COVID. The post-COVID productivity surge is one of the most underreported economic stories of the 2020s — driven by remote work efficiencies, AI adoption, and the elimination of low-productivity businesses that didn't survive the pandemic.
 
-If this trend holds, it has the potential to outweigh all the fiscal problems (debt, deficits, aging population) documented above ΓÇö because higher productivity means more output per worker means more tax revenue per worker means the debt becomes more manageable.
+If this trend holds, it has the potential to outweigh all the fiscal problems (debt, deficits, aging population) documented above — because higher productivity means more output per worker means more tax revenue per worker means the debt becomes more manageable.
 
 *Source: FRED OPHNFB (Nonfarm Business Sector: Output Per Hour of All Persons, BLS)*
 
@@ -761,7 +761,7 @@ The headline numbers (GDP, jobs, unemployment) only tell part of the story. Thes
 
 ### Real Median Household Income (Inflation-Adjusted)
 
-This is arguably the most important number ΓÇö it measures what the *typical* American family actually earned, adjusted for inflation.
+This is arguably the most important number — it measures what the *typical* American family actually earned, adjusted for inflation.
 
 | President | Start | End | Change |
 |-----------|-------|-----|--------|
@@ -773,7 +773,7 @@ This is arguably the most important number ΓÇö it measures what the *typical*
 
 \* Biden's figure uses 2024 data (latest available). Note that real income *fell* in 2022 ($79,500) due to inflation before recovering.
 
-**Key insight:** Clinton and Obama delivered the largest real income gains. Bush's 8 years produced essentially zero real income growth. Trump I saw gains, but much was pre-COVID. Biden's term saw real income fall then recover ΓÇö ending slightly above where it started, but the *experience* of losing purchasing power in 2021ΓÇô2022 dominated public perception.
+**Key insight:** Clinton and Obama delivered the largest real income gains. Bush's 8 years produced essentially zero real income growth. Trump I saw gains, but much was pre-COVID. Biden's term saw real income fall then recover — ending slightly above where it started, but the *experience* of losing purchasing power in 2021–2022 dominated public perception.
 
 *Source: FRED MEHOINUSA672N (Real Median Household Income, 2024 CPI-U-RS adjusted dollars)*
 
@@ -791,7 +791,7 @@ This is arguably the most important number ΓÇö it measures what the *typical*
 
 \* Bush-era prices peaked at $329,200 (Q2 2007) before the bubble burst. The $220,900 figure reflects the post-crash price.
 
-**Key insight:** Home prices have risen under every president, but the acceleration under Obama and Biden was particularly steep. When combined with rising mortgage rates (from ~3% in 2021 to ~7% in 2023ΓÇô2025), housing affordability deteriorated dramatically under Biden even though the price increase was comparable to Trump I's in percentage terms.
+**Key insight:** Home prices have risen under every president, but the acceleration under Obama and Biden was particularly steep. When combined with rising mortgage rates (from ~3% in 2021 to ~7% in 2023–2025), housing affordability deteriorated dramatically under Biden even though the price increase was comparable to Trump I's in percentage terms.
 
 *Source: FRED MSPUS (Median Sales Price of Houses Sold, Census Bureau/HUD)*
 
@@ -799,7 +799,7 @@ This is arguably the most important number ΓÇö it measures what the *typical*
 
 ### Labor Force Participation Rate
 
-This measures what percentage of working-age Americans are either employed or actively looking for work. A declining rate means people are *leaving* the workforce ΓÇö retiring, going on disability, becoming discouraged, or choosing not to work.
+This measures what percentage of working-age Americans are either employed or actively looking for work. A declining rate means people are *leaving* the workforce — retiring, going on disability, becoming discouraged, or choosing not to work.
 
 | President | Start | End | Change |
 |-----------|-------|-----|--------|
@@ -810,7 +810,7 @@ This measures what percentage of working-age Americans are either employed or ac
 | Biden | 61.4% | 62.5% | +1.1pp |
 | Trump II* | 62.5% | 62.5% | 0.0pp |
 
-**Key insight:** Clinton was the only president to see participation *rise*. It has declined nearly 5 percentage points since its peak (67.3% in 2000). This is the hidden story behind low unemployment numbers ΓÇö if those people were still looking for jobs, the unemployment rate would be significantly higher. Obama's large decline partially reflects baby boomer retirements beginning in earnest. Biden partially reversed the COVID-era decline but not fully.
+**Key insight:** Clinton was the only president to see participation *rise*. It has declined nearly 5 percentage points since its peak (67.3% in 2000). This is the hidden story behind low unemployment numbers — if those people were still looking for jobs, the unemployment rate would be significantly higher. Obama's large decline partially reflects baby boomer retirements beginning in earnest. Biden partially reversed the COVID-era decline but not fully.
 
 *Source: FRED CIVPART (Civilian Labor Force Participation Rate, BLS)*
 
@@ -818,15 +818,15 @@ This measures what percentage of working-age Americans are either employed or ac
 
 ### Federal Debt Interest Costs
 
-How much taxpayers pay just to service the national debt ΓÇö money that buys no services, builds no roads, and funds no programs.
+How much taxpayers pay just to service the national debt — money that buys no services, builds no roads, and funds no programs.
 
 | Period | Quarterly Interest (Billions) | Annual Rate |
 |--------|-------------------------------|-------------|
-| Q1 1993 (Clinton start) | $310.8B annualized | ΓÇö |
-| Q1 2001 (Bush start) | $345.5B annualized | ΓÇö |
-| Q1 2009 (Obama start) | $326.8B annualized | ΓÇö |
-| Q1 2017 (Trump I start) | $362.2B annualized | ΓÇö |
-| Q1 2021 (Biden start) | ~$350B annualized | ΓÇö |
+| Q1 1993 (Clinton start) | $310.8B annualized | — |
+| Q1 2001 (Bush start) | $345.5B annualized | — |
+| Q1 2009 (Obama start) | $326.8B annualized | — |
+| Q1 2017 (Trump I start) | $362.2B annualized | — |
+| Q1 2021 (Biden start) | ~$350B annualized | — |
 | **2025** | **~$1.1T+ annualized** | **3.35%** |
 
 **Key insight:** Interest costs on the debt have *tripled* since 2021, driven by the combination of (1) much higher debt levels ($36T+ vs $28T) and (2) much higher interest rates (4.33% fed funds vs 0.08%). The average interest rate on marketable Treasury debt is now 3.35%. At $38.8T in total debt, interest costs now exceed defense spending. This is the fiscal time bomb that every future president inherits.
@@ -837,7 +837,7 @@ How much taxpayers pay just to service the national debt ΓÇö money that buys 
 
 ### Deficit Trajectory Year by Year (% of GDP)
 
-This is the most comprehensive single measure of fiscal responsibility ΓÇö it shows whether the government is living within its means relative to the size of the economy.
+This is the most comprehensive single measure of fiscal responsibility — it shows whether the government is living within its means relative to the size of the economy.
 
 | Year | Deficit/GDP | President | Context |
 |------|-----------|-----------|--------|
@@ -857,7 +857,7 @@ This is the most comprehensive single measure of fiscal responsibility ΓÇö it
 | 2017 | -3.39% | Trump I | Inherited deficit |
 | 2018 | -3.77% | Trump I | Tax cuts reduce revenue |
 | 2019 | -4.57% | Trump I | Deficit rising pre-COVID |
-| **2020** | **-14.65%** | **Trump I** | **COVID ΓÇö largest peacetime deficit ever** |
+| **2020** | **-14.65%** | **Trump I** | **COVID — largest peacetime deficit ever** |
 | 2021 | -11.70% | Biden | COVID aftermath |
 | 2022 | -5.28% | Biden | Rapid improvement |
 | 2023 | -6.10% | Biden | Partially reversed |
@@ -874,19 +874,19 @@ This is the most comprehensive single measure of fiscal responsibility ΓÇö it
 
 When you look across all the data sources together, several patterns emerge that no single metric captures:
 
-### 1. The "Inheritance Tax" ΓÇö Starting Position Predicts Outcomes
+### 1. The "Inheritance Tax" — Starting Position Predicts Outcomes
 
-Presidents who inherited crises (Obama, Biden) showed the largest *improvements* in unemployment and jobs ΓÇö because they started from catastrophic baselines. Presidents who inherited healthy economies (Bush, Trump I) showed the largest *deteriorations* ΓÇö because crises struck during their terms. **Starting position explains more variance in outcomes than policy does.**
+Presidents who inherited crises (Obama, Biden) showed the largest *improvements* in unemployment and jobs — because they started from catastrophic baselines. Presidents who inherited healthy economies (Bush, Trump I) showed the largest *deteriorations* — because crises struck during their terms. **Starting position explains more variance in outcomes than policy does.**
 
 ### 2. The Fed Matters More Than the President
 
 | President | Fed Chair(s) | Rate Direction | What Happened |
 |-----------|-------------|---------------|---------------|
-| Clinton | Greenspan | Accommodative ΓåÆ tightening | Longest expansion ever |
-| Bush | Greenspan ΓåÆ Bernanke | Slashed to near-zero | Bubble ΓåÆ bust |
-| Obama | Bernanke ΓåÆ Yellen | Held near zero (QE1-3) | Slow recovery, asset inflation |
-| Trump I | Yellen ΓåÆ Powell | Raised then slashed (COVID) | Strong then collapse then recovery |
-| Biden | Powell | 0% ΓåÆ 5.33% (fastest hike since 1980s) | Inflation killed then soft landing |
+| Clinton | Greenspan | Accommodative → tightening | Longest expansion ever |
+| Bush | Greenspan → Bernanke | Slashed to near-zero | Bubble → bust |
+| Obama | Bernanke → Yellen | Held near zero (QE1-3) | Slow recovery, asset inflation |
+| Trump I | Yellen → Powell | Raised then slashed (COVID) | Strong then collapse then recovery |
+| Biden | Powell | 0% → 5.33% (fastest hike since 1980s) | Inflation killed then soft landing |
 
 The correlation between Fed policy and economic outcomes is stronger than the correlation between presidential policy and outcomes.
 
@@ -894,12 +894,12 @@ The correlation between Fed policy and economic outcomes is stronger than the co
 
 | Government Type | Average Deficit Change |
 |----------------|----------------------|
-| **Divided** (Clinton 1995ΓÇô2001, Obama 2011ΓÇô2017) | Deficit *improved* |
-| **Unified** (Bush 2001ΓÇô2007, Trump 2017ΓÇô2019, Biden 2021ΓÇô2023) | Deficit *worsened* |
+| **Divided** (Clinton 1995–2001, Obama 2011–2017) | Deficit *improved* |
+| **Unified** (Bush 2001–2007, Trump 2017–2019, Biden 2021–2023) | Deficit *worsened* |
 
 When one party controls everything, they spend (or cut taxes) without restraint. When compromise is forced, fiscal outcomes improve. This is the strongest pattern in the data.
 
-### 4. Real Income Growth Γëá GDP Growth
+### 4. Real Income Growth ≠ GDP Growth
 
 | President | GDP Growth | Real Median Income Growth |
 |-----------|-----------|-------------------------|
@@ -909,9 +909,9 @@ When one party controls everything, they spend (or cut taxes) without restraint.
 | Trump I | +15.7% | +5.9% |
 | Biden | +35.0% | +3.0% |
 
-Bush grew GDP by 37.8% but the median household *lost* purchasing power. Biden grew GDP by 35% but median households gained only 3%. GDP growth does not automatically translate to prosperity for typical families. The gap between GDP and real income is a measure of *who captured the gains* ΓÇö corporations, investors, and the wealthy vs. median wage earners.
+Bush grew GDP by 37.8% but the median household *lost* purchasing power. Biden grew GDP by 35% but median households gained only 3%. GDP growth does not automatically translate to prosperity for typical families. The gap between GDP and real income is a measure of *who captured the gains* — corporations, investors, and the wealthy vs. median wage earners.
 
-### 5. Housing Prices vs. Income ΓÇö The Affordability Squeeze
+### 5. Housing Prices vs. Income — The Affordability Squeeze
 
 | President | Home Price Growth | Real Income Growth | Gap |
 |-----------|------------------|-------------------|-----|
@@ -944,9 +944,9 @@ A critical pattern emerges when you map economic outcomes to Congressional contr
 
 **The balanced budgets of the 1990s** happened under Clinton (D) + Gingrich (R) divided government.
 
-**The largest deficits** happened under unified party control responding to crises ΓÇö Bush's wars (unified R), Obama's financial crisis (unified D), Trump's COVID (unified R then divided), Biden's COVID aftermath (barely unified D).
+**The largest deficits** happened under unified party control responding to crises — Bush's wars (unified R), Obama's financial crisis (unified D), Trump's COVID (unified R then divided), Biden's COVID aftermath (barely unified D).
 
-**The periods of fiscal discipline** (deficit reduction) have historically occurred during **divided government** ΓÇö when neither party can get everything it wants and compromise is forced.
+**The periods of fiscal discipline** (deficit reduction) have historically occurred during **divided government** — when neither party can get everything it wants and compromise is forced.
 
 ---
 
@@ -955,10 +955,10 @@ A critical pattern emerges when you map economic outcomes to Congressional contr
 **There is no clear "party of the economy."** The data over 32 years shows:
 
 - The best job creation, GDP growth, stock market, and fiscal discipline: **Clinton** (D)
-- The worst job creation and stock market: **Bush** (R) ΓÇö but he faced 9/11 and the Great Financial Crisis
-- The largest debt increases: **Obama** (D) and **Trump** (R) ΓÇö both facing crises they didn't cause
-- The best post-crisis recovery: **Obama/Biden** ΓÇö but that's partly inheriting low baselines
-- The strongest pre-crisis economy: **Trump** (R) through Feb 2020 ΓÇö but it was partly fueled by deficit spending
+- The worst job creation and stock market: **Bush** (R) — but he faced 9/11 and the Great Financial Crisis
+- The largest debt increases: **Obama** (D) and **Trump** (R) — both facing crises they didn't cause
+- The best post-crisis recovery: **Obama/Biden** — but that's partly inheriting low baselines
+- The strongest pre-crisis economy: **Trump** (R) through Feb 2020 — but it was partly fueled by deficit spending
 
 **Every president benefited or suffered from forces beyond their control:**
 
