@@ -174,6 +174,10 @@ export async function getObservations(seriesId: string, opts: {
   limit?: number;
   sort?: "asc" | "desc";
   frequency?: string;
+  /** Transformation: lin (levels, default), chg, ch1, pch, pc1, pca, cch, cca, log. */
+  units?: string;
+  /** With a lower frequency: avg (default), sum, or eop (end of period). */
+  aggregationMethod?: string;
 } = {}): Promise<FredObservations> {
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
@@ -185,6 +189,42 @@ export async function getObservations(seriesId: string, opts: {
     limit: opts.limit ?? 1000,
     sort_order: opts.sort ?? "desc",
     frequency: opts.frequency,
+    units: opts.units,
+    aggregation_method: opts.aggregationMethod,
+  });
+}
+
+/** A scheduled or past release date. */
+export interface FredReleaseDate {
+  release_id: number;
+  release_name?: string;
+  date: string;
+}
+
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * Release calendar: when FRED's sources publish, including scheduled future
+ * dates. For one release, lists its next dates (from `start`, default today);
+ * across all releases, lists dates between `start` and `end` (default the
+ * next 14 days).
+ */
+export async function getReleaseDates(opts: {
+  releaseId?: number;
+  start?: string;
+  end?: string;
+  limit?: number;
+} = {}): Promise<{ count: number; release_dates: FredReleaseDate[] }> {
+  const today = new Date();
+  const start = opts.start ?? isoDay(today);
+  const end = opts.end ?? (opts.releaseId ? "9999-12-31" : isoDay(new Date(today.getTime() + 14 * 86_400_000)));
+  return api.get(opts.releaseId ? "/fred/release/dates" : "/fred/releases/dates", {
+    release_id: opts.releaseId,
+    realtime_start: start,
+    realtime_end: end,
+    include_release_dates_with_no_data: "true",
+    sort_order: "asc",
+    limit: opts.limit ?? 100,
   });
 }
 
