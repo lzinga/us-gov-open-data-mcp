@@ -16,6 +16,7 @@
  * Usage:
  *   node dist/server.js                                   # stdio (default)
  *   node dist/server.js --transport httpStream --port 8080 # HTTP on port 8080
+ *   MCP_HOST=0.0.0.0 MCP_AUTH_TOKEN=<token> node dist/server.js --transport httpStream # remote access (bearer token)
  *   MODULES=fred,bls,treasury node dist/server.js         # load only 3 modules
  *   node dist/server.js --modules fred,bls,treasury       # same via CLI flag
  *   node dist/server.js --list-modules                    # list all modules grouped by domain and exit
@@ -31,6 +32,7 @@ import { fileURLToPath } from "url";
 import { FastMCP, UserError } from "fastmcp";
 import { z } from "zod";
 import { buildInstructions } from "./server/instructions.js";
+import { bearerAuthenticator, planHttpAuth, type HttpAuthPlan } from "./server/http-auth.js";
 import { createServerLogger } from "./server/logger.js";
 import { buildAnalysisPrompts } from "./server/prompts.js";
 import { buildToolRegistry } from "./server/tool-registry.js";
@@ -78,13 +80,15 @@ function parseArgs() {
 
   const transport = (get("--transport") ?? process.env.MCP_TRANSPORT ?? "stdio") as "stdio" | "httpStream";
   const port = Number(get("--port") ?? process.env.MCP_PORT ?? 8080);
+  // Loopback by default; set MCP_HOST=0.0.0.0 for external access (requires MCP_AUTH_TOKEN, see http-auth.ts).
+  const host = process.env.MCP_HOST ?? "127.0.0.1";
   const modulesFilter = get("--modules") ?? process.env.MODULES;
   const listModules = args.includes("--list-modules") || args.includes("--list");
 
-  return { transport, port, modulesFilter, listModules };
+  return { transport, port, host, modulesFilter, listModules };
 }
 
-const { transport, port, modulesFilter, listModules } = parseArgs();
+const { transport, port, host, modulesFilter, listModules } = parseArgs();
 
 if (listModules) {
   const asJson = process.argv.includes("--json");
@@ -171,6 +175,21 @@ for (const mod of activeModules) {
   }
 }
 
+// ─── HTTP access control ─────────────────────────────────────────────
+
+let httpAuth: HttpAuthPlan | undefined;
+if (transport === "httpStream") {
+  try {
+    httpAuth = planHttpAuth(host);
+  } catch (err) {
+    console.error((err as Error).message);
+    process.exit(1);
+  }
+  if (httpAuth.mode === "none" && httpAuth.reason === "insecure-override") {
+    console.error(`\u26A0 MCP_ALLOW_INSECURE_HTTP=1: serving HTTP on ${host} without authentication.`);
+  }
+}
+
 // ─── Server ──────────────────────────────────────────────────────────
 
 const server = new FastMCP({
@@ -178,6 +197,7 @@ const server = new FastMCP({
   version: PACKAGE_VERSION as `${number}.${number}.${number}`,
   logger,
   instructions: buildInstructions(activeModules),
+  ...(httpAuth?.mode === "token" ? { authenticate: bearerAuthenticator(httpAuth.token) } : {}),
 });
 
 // ─── Register all module tools + prompts ─────────────────────────────
@@ -434,15 +454,10 @@ server.addResource({
 if (transport === "httpStream") {
   server.start({
     transportType: "httpStream",
-    httpStream: {
-      port,
-      // Bind to localhost only — prevents network exposure.
-      // Set MCP_HOST=0.0.0.0 to allow external access (e.g. behind a reverse proxy).
-      host: process.env.MCP_HOST ?? "127.0.0.1",
-    },
+    httpStream: { port, host },
   });
-  const host = process.env.MCP_HOST ?? "127.0.0.1";
-  console.error(`MCP server listening on http://${host}:${port}/mcp (HTTP Stream)`);
+  const access = httpAuth?.mode === "token" ? "bearer token required" : "no authentication";
+  console.error(`MCP server listening on http://${host}:${port}/mcp (HTTP Stream, ${access})`);
   console.error(`${activeModules.length} modules, ${activeModules.reduce((n, m) => n + m.tools.length, 0)} tools`);
 } else {
   server.start({ transportType: "stdio" });
