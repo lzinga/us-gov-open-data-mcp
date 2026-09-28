@@ -13,6 +13,7 @@ export default {
   name: "epa-aqs",
   displayName: "EPA Air Quality System (AQS)",
   category: "Environment",
+  toolPrefix: "epa_",
   description:
     "Ambient air sample data from EPA's Air Quality System (AQS) — thousands of monitors nationwide. " +
     "Criteria pollutants (ozone, PM2.5, PM10, SO2, CO, NO2, lead), annual/daily/quarterly summaries, " +

@@ -8,6 +8,7 @@ export default {
   name: "epa",
   displayName: "EPA (Environmental Protection Agency)",
   category: "Environment",
+  toolPrefix: "epa_",
   description:
     "EPA environmental data: facility compliance and violations via ECHO, enforcement cases (civil/criminal), " +
     "Superfund (CERCLA) contaminated sites, RCRA hazardous waste facilities, UV index forecasts, " +

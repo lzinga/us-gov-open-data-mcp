@@ -9,6 +9,7 @@ export default {
   displayName: "USDA NASS QuickStats",
   category: "Agriculture",
   description: "Agricultural production, crop prices, farm income, livestock, Census of Agriculture data",
+  toolPrefix: "usda_",
   auth: { envVar: "USDA_NASS_API_KEY", signup: "https://quickstats.nass.usda.gov/api" },
   workflow: "usda_crop_data or usda_livestock for specific commodities, usda_prices for price trends, usda_ag_query for custom queries",
   tips: "Commodities: CORN, SOYBEANS, WHEAT, COTTON, CATTLE, HOGS, MILK. States: IA, IL, TX, CA, NE",

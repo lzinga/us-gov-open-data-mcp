@@ -8,6 +8,7 @@ export default {
   name: "fda",
   displayName: "FDA (OpenFDA)",
   category: "Health",
+  toolPrefix: "fda_",
   description:
     "Comprehensive FDA data: drug adverse events, labels, NDC directory, shortages, approvals; " +
     "device events, 510(k) clearances, classification, PMA, UDI, recalls; " +

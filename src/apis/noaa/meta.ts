@@ -9,6 +9,7 @@ export default {
   displayName: "NOAA Climate Data Online",
   category: "Environment",
   description: "Weather observations, temperature, precipitation, climate normals from NOAA stations across the U.S.",
+  toolPrefix: "noaa_",
   auth: { envVar: "NOAA_API_KEY", signup: "https://www.ncei.noaa.gov/cdo-web/token" },
   workflow: "noaa_stations to find a station → noaa_climate_data to get observations",
   tips: "Datasets: GHCND (daily), GSOM (monthly summary), GSOY (annual summary). Location IDs: FIPS:36 (NY), FIPS:06 (CA). Without NOAA_API_KEY, noaa_climate_data still works for a station_id (NCEI Access Data Service); the other tools need the key.",

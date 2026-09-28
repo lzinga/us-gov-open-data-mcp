@@ -11,6 +11,7 @@ export default {
   category: "Demographics",
   description:
     "Federal Emergency Management Agency — disaster declarations, emergency/major disaster assistance, NFIP flood insurance claims, housing assistance, public assistance grants. Data since 1953.",
+  toolPrefix: "fema_",
   workflow:
     "Use fema_disaster_declarations to find disasters by state/year/type → fema_housing_assistance for individual assistance details → fema_public_assistance for PA grants → fema_query for NFIP claims or any other dataset.",
   tips:

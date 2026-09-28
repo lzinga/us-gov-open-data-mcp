@@ -9,6 +9,7 @@ export default {
   displayName: "Census Bureau",
   category: "Demographics",
   description: "Population, demographics, income, housing, business data from ACS, Decennial Census",
+  toolPrefix: "census_",
   auth: { envVar: "CENSUS_API_KEY", signup: "https://api.census.gov/data/key_signup.html" },
   workflow: "census_search_variables to find variable codes → census_query with dataset, variables, geography",
   tips: "Common variables: NAME, B01001_001E (population), B19013_001E (median income), B25077_001E (home value). Datasets: 2023/acs/acs1 (1yr), 2023/acs/acs5 (5yr), 2020/dec/pl (Decennial).",

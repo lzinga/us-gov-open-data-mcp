@@ -11,6 +11,7 @@ export default {
   category: "Economic",
   description:
     "U.S. economic statistics: GDP (national/state/industry), personal income, international transactions, fixed assets, multinational enterprises, input-output tables, and more. Covers NIPA, Regional, GDPbyIndustry, ITA, IIP, MNE, FixedAssets, IntlServTrade, InputOutput datasets.",
+  toolPrefix: "bea_",
   auth: { envVar: "BEA_API_KEY", signup: "https://apps.bea.gov/API/signup/" },
   workflow:
     "Use bea_dataset_info to discover datasets/parameters/valid values → then call the appropriate dataset tool (bea_gdp_national, bea_gdp_by_state, etc.)",

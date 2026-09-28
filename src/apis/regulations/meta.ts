@@ -9,6 +9,7 @@ export default {
   displayName: "Regulations.gov",
   category: "Legislative",
   description: "Federal rulemaking: proposed rules, final rules, public comments, and regulatory dockets from all federal agencies",
+  toolPrefix: "regulations_",
   auth: { envVar: "DATA_GOV_API_KEY", signup: "https://api.data.gov/signup/" },
   workflow: "regulations_search_documents to find rules → regulations_document_detail for full info → regulations_search_comments for public feedback",
   tips: "Document types: 'Proposed Rule', 'Rule', 'Supporting & Related Material', 'Other'. Sort by '-postedDate' for newest first. Agency IDs: EPA, FDA, DOL, HHS, DOT, etc.",

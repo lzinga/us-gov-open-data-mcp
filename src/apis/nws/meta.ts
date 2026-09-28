@@ -9,6 +9,7 @@ export default {
   displayName: "NWS (National Weather Service)",
   category: "Environment",
   description: "Real-time U.S. weather forecasts (7-day and hourly), active weather alerts, and station observations from the National Weather Service. Complements the historical-only noaa module.",
+  toolPrefix: "nws_",
   workflow: "nws_forecast or nws_forecast_hourly for a lat/lon (resolves the gridpoint automatically). For alerts use nws_alerts_active by state, zone, or point. For station observations use nws_stations_near → nws_observation_latest.",
   tips: "Lat/lon are decimal degrees. Forecasts use US units (°F, mph). Observations use SI units (°C, m/s, Pa). No API key required — a polite User-Agent is sent automatically; override with NWS_USER_AGENT env var.",
   domains: ["environment"],

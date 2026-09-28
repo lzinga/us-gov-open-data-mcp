@@ -12,7 +12,7 @@ When the MCP server connects to a client (VS Code, Claude Desktop, Cursor), it s
 The routing table tells the LLM which specific tools + parameters to combine for each question type. For example, when you ask about the deficit, the model reads:
 
 ```
-DEBT/DEFICIT → FRED(fred_series_data with GDP, FYFSGDA188S) + Treasury(query_fiscal_data with debt_to_penny, avg_interest_rates) + World Bank(wb_indicator with GC.DOD.TOTL.GD.ZS)
+DEBT/DEFICIT → FRED(fred_series_data with GDP, FYFSGDA188S) + Treasury(treasury_query_fiscal_data with debt_to_penny, avg_interest_rates) + World Bank(wb_indicator with GC.DOD.TOTL.GD.ZS)
 ```
 
 ...and knows to call those 3 tools with those specific parameters, then cross-reference the results.

@@ -10,6 +10,7 @@ export default {
   displayName: "Energy Information Administration",
   category: "Economic",
   description: "Petroleum, electricity, natural gas prices; state energy profiles; total energy overview",
+  toolPrefix: "eia_",
   auth: { envVar: "EIA_API_KEY", signup: "https://www.eia.gov/opendata/register.php" },
   workflow: "Pick energy type (petroleum/electricity/gas/state/total) → query with optional state/sector filters",
   tips: "Energy prices drive inflation (BLS CPI energy component), affect policy (Federal Register EOs), and vary hugely by state. Key advantage: granular energy data by fuel, sector, and state.",

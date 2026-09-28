@@ -8,6 +8,7 @@ export default {
   name: "hud",
   displayName: "HUD",
   category: "Demographics",
+  toolPrefix: "hud_",
   description:
     "Department of Housing and Urban Development — Fair Market Rents (FMR) by bedroom count, " +
     "Income Limits by household size for counties and metro areas. Essential for affordable housing, " +

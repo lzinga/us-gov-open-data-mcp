@@ -9,6 +9,7 @@ export default {
   displayName: "Bureau of Labor Statistics",
   category: "Economic",
   description: "Employment, wages, CPI components, PPI, JOLTS, labor productivity",
+  toolPrefix: "bls_",
   auth: { envVar: "BLS_API_KEY", signup: "https://www.bls.gov/developers/home.htm", optional: true },
   workflow: "bls_search_series to find series IDs → bls_series_data to fetch values",
   tips: "Key advantage over FRED: granular breakdowns (CPI by food/shelter/gas/medical, employment by industry, wages by sector). API key optional but recommended (25 req/day without, 500 with).",

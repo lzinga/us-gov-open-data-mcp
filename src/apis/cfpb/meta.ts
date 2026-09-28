@@ -11,6 +11,7 @@ export default {
   category: "Financial",
   description:
     "Consumer complaint database with 13M+ complaints against financial companies. Search by company, product, state, issue, date. Track complaint trends and company response patterns.",
+  toolPrefix: "cfpb_",
   workflow:
     "cfpb_suggest_company to find exact name → cfpb_search_complaints for individual complaints → cfpb_complaint_aggregations for counts by field → cfpb_complaint_trends (with lens: overview/product/issue/tags) for time series → cfpb_state_complaints for geographic breakdown → cfpb_complaint_detail for a specific complaint by ID",
   tips:

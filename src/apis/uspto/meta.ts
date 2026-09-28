@@ -10,6 +10,7 @@ export default {
   category: "Research",
   description:
     "U.S. Patent & Trademark Office Open Data Portal (ODP) -- search patent applications, get prosecution history, assignments, continuity, documents, PTAB trial proceedings/decisions, petition decisions, and bulk datasets. Covers all U.S. patent application data via api.uspto.gov.",
+  toolPrefix: "uspto_",
   auth: { envVar: "USPTO_API_KEY", signup: "https://data.uspto.gov/apis/getting-started" },
   workflow:
     "Use uspto_search_applications to find applications by keyword, type, or date -> uspto_application_details for full data on a specific application -> uspto_application_continuity for parent/child chains -> uspto_application_transactions for prosecution history -> uspto_ptab_proceedings for PTAB trials -> uspto_ptab_decisions for trial decisions.",

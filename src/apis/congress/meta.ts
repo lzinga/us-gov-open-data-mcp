@@ -9,6 +9,7 @@ export default {
   name: "congress",
   displayName: "Congress.gov",
   category: "Legislative",
+  toolPrefix: "congress_",
   description: "Bills, votes, members, laws, amendments, committee data, hearings, reports, prints, meetings, " +
     "nominations, treaties, CRS reports, Congressional Record (daily & bound), and House/Senate communications from Congress.gov. " +
     "House votes use Congress.gov API (118th+) with clerk.house.gov fallback (1990+). Senate votes from senate.gov (101st/1989+).",

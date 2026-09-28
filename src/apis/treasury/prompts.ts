@@ -74,7 +74,7 @@ export const prompts: InputPrompt<any, any>[] = [
     description: "Compare current interest rates across all Treasury security types.",
     load: async () =>
       "Compare current average interest rates across all Treasury security types.\n\n" +
-      "1. First use get_endpoint_fields on /v2/accounting/od/avg_interest_rates to see available fields\n" +
+      "1. First use treasury_get_endpoint_fields on /v2/accounting/od/avg_interest_rates to see available fields\n" +
       "2. Query /v2/accounting/od/avg_interest_rates with sort=-record_date, page_size=50, fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt\n" +
       "3. Group the latest rates by security type\n" +
       "4. Show which security types have the highest and lowest rates\n\n" +
