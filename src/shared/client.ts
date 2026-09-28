@@ -12,10 +12,10 @@
  *   - Auth via query param, header, or request body
  */
 
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { homedir, tmpdir } from "node:os";
+import { homedir } from "node:os";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -190,22 +190,29 @@ export class TokenBucket {
 // first cache miss. LRU eviction per module keeps memory bounded.
 // Async writes don't block the event loop. Global write coalescing
 // batches all module updates into one disk write.
+//
+// The directory and file are private to the current user (0700/0600 on
+// POSIX). Cache keys never contain credentials. If a private directory
+// can't be created, the cache stays in memory only rather than falling
+// back to a shared location such as /tmp.
 
-function getCacheDir(): string {
+const IS_POSIX = process.platform !== "win32";
+
+function getCacheDir(): string | null {
   const base = process.env.XDG_CACHE_HOME || join(homedir(), ".cache");
   const dir = join(base, "us-gov-open-data-mcp");
   try {
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    if (IS_POSIX) chmodSync(dir, 0o700);
     return dir;
   } catch {
-    const fallback = join(tmpdir(), "us-gov-open-data-mcp");
-    if (!existsSync(fallback)) mkdirSync(fallback, { recursive: true });
-    return fallback;
+    return null;
   }
 }
 
 const CACHE_DIR = getCacheDir();
-const CACHE_FILE = join(CACHE_DIR, "cache.json");
+/** v2: keys no longer include credentials. Older files may, so they are deleted. */
+const CACHE_FILE = CACHE_DIR ? join(CACHE_DIR, "cache.v2.json") : null;
 const MAX_ENTRIES_PER_MODULE = 200;
 
 interface CacheEntry { data: unknown; expires: number; lastAccess: number; }
@@ -219,15 +226,31 @@ let _globalWriteTimer: ReturnType<typeof setTimeout> | undefined;
 /** namespace → key → entry */
 const _globalStore = new Map<string, Map<string, CacheEntry>>();
 
+/**
+ * Delete cache files written by earlier versions (cache.json and the older
+ * per-module *.json files). Their keys can contain API keys in plaintext.
+ */
+function removeLegacyCacheFiles(): void {
+  if (!CACHE_DIR || !CACHE_FILE) return;
+  try {
+    for (const file of readdirSync(CACHE_DIR)) {
+      if (file.endsWith(".json") && join(CACHE_DIR, file) !== CACHE_FILE) {
+        try { unlinkSync(join(CACHE_DIR, file)); } catch { /* best effort */ }
+      }
+    }
+  } catch {
+    // Directory unreadable — nothing to clean up.
+  }
+}
+
 function loadGlobal(): void {
   if (_globalLoaded) return;
   _globalLoaded = true;
+  if (!CACHE_FILE) return;
+  removeLegacyCacheFiles();
   try {
-    if (!existsSync(CACHE_FILE)) {
-      // Migrate: try loading legacy per-module files
-      migrateLegacyFiles();
-      return;
-    }
+    if (!existsSync(CACHE_FILE)) return;
+    if (IS_POSIX) chmodSync(CACHE_FILE, 0o600);
     const raw = JSON.parse(readFileSync(CACHE_FILE, "utf-8")) as Record<string, Record<string, CacheEntry>>;
     const now = Date.now();
     let totalLoaded = 0;
@@ -249,43 +272,23 @@ function loadGlobal(): void {
   }
 }
 
-/** One-time migration from the old per-module *.json files to the consolidated cache.json */
-function migrateLegacyFiles(): void {
+/** Serialize the unexpired store and write it (private file mode). */
+async function writeGlobal(): Promise<void> {
+  if (!CACHE_FILE || !_globalDirty) return;
+  _globalDirty = false;
+  const now = Date.now();
+  const obj: Record<string, Record<string, CacheEntry>> = {};
+  for (const [ns, map] of _globalStore) {
+    const entries: Record<string, CacheEntry> = {};
+    for (const [key, entry] of map) {
+      if (entry.expires > now) entries[key] = entry;
+    }
+    if (Object.keys(entries).length > 0) obj[ns] = entries;
+  }
   try {
-    const { readdirSync, unlinkSync } = require("node:fs") as typeof import("node:fs");
-    const files = readdirSync(CACHE_DIR).filter((f: string) => f.endsWith(".json") && f !== "cache.json");
-    if (files.length === 0) return;
-
-    const now = Date.now();
-    let migrated = 0;
-    for (const file of files) {
-      try {
-        const ns = file.replace(/\.json$/, "");
-        const raw = JSON.parse(readFileSync(join(CACHE_DIR, file), "utf-8")) as Record<string, CacheEntry>;
-        const map = new Map<string, CacheEntry>();
-        for (const [key, entry] of Object.entries(raw)) {
-          if (entry.expires > now) {
-            // Add lastAccess if missing (legacy entries don't have it)
-            if (!entry.lastAccess) entry.lastAccess = now;
-            map.set(key, entry);
-            migrated++;
-          }
-        }
-        if (map.size > 0) _globalStore.set(ns, map);
-        unlinkSync(join(CACHE_DIR, file)); // Remove legacy file
-      } catch {
-        // Skip corrupt file
-      }
-    }
-    if (migrated > 0) {
-      _globalDirty = true;
-      scheduleGlobalWrite();
-      if (process.env.DEBUG_CACHE) {
-        console.error(`Cache: migrated ${migrated} entries from ${files.length} legacy files`);
-      }
-    }
+    await writeFile(CACHE_FILE, JSON.stringify(obj), { encoding: "utf-8", mode: 0o600 });
   } catch {
-    // Migration is best-effort
+    // Disk cache is best-effort.
   }
 }
 
@@ -293,23 +296,25 @@ function scheduleGlobalWrite(): void {
   if (_globalWriteTimer) return;
   _globalWriteTimer = setTimeout(() => {
     _globalWriteTimer = undefined;
-    if (!_globalDirty) return;
-    _globalDirty = false;
-    const now = Date.now();
-    const obj: Record<string, Record<string, CacheEntry>> = {};
-    for (const [ns, map] of _globalStore) {
-      const entries: Record<string, CacheEntry> = {};
-      for (const [key, entry] of map) {
-        if (entry.expires > now) entries[key] = entry;
-      }
-      if (Object.keys(entries).length > 0) obj[ns] = entries;
-    }
-    // Async write — non-blocking
-    writeFile(CACHE_FILE, JSON.stringify(obj), "utf-8").catch(() => {});
+    void writeGlobal();
   }, 2000);
   if (typeof _globalWriteTimer === "object" && "unref" in _globalWriteTimer) {
     _globalWriteTimer.unref();
   }
+}
+
+/** Write pending cache changes to disk now instead of waiting for the debounce. */
+export async function flushDiskCache(): Promise<void> {
+  if (_globalWriteTimer) {
+    clearTimeout(_globalWriteTimer);
+    _globalWriteTimer = undefined;
+  }
+  await writeGlobal();
+}
+
+/** Absolute path of the cache file, or null when the disk cache is disabled. */
+export function diskCachePath(): string | null {
+  return CACHE_FILE;
 }
 
 // ─── Per-module cache interface ──────────────────────────────────────
@@ -513,13 +518,21 @@ export function createClient(config: ClientConfig): ApiClient {
     return Object.values(auth.envParams).every((ev) => !!process.env[ev]);
   }
 
-  function buildUrl(path: string, params?: Params): string {
+  /**
+   * Build the request URL. With `withSecrets: false` the env-backed auth
+   * params are left out — that form is used for cache keys so credentials
+   * are never written to disk.
+   */
+  function buildUrl(path: string, params?: Params, opts: { withSecrets?: boolean } = {}): string {
+    const withSecrets = opts.withSecrets ?? true;
     const parts: string[] = [];
 
     // Auth via query param
     if (auth?.type === "query") {
-      for (const [k, v] of Object.entries(resolveAuthParams())) {
-        parts.push(`${k}=${encodeURIComponent(v)}`);
+      if (withSecrets) {
+        for (const [k, v] of Object.entries(resolveAuthParams())) {
+          parts.push(`${k}=${encodeURIComponent(v)}`);
+        }
       }
       if (auth.extraParams) {
         for (const [k, v] of Object.entries(auth.extraParams)) parts.push(`${k}=${encodeURIComponent(v)}`);
@@ -551,12 +564,21 @@ export function createClient(config: ClientConfig): ApiClient {
     return h;
   }
 
-  async function request<T>(url: string, init?: RequestInit, responseType: "json" | "text" = "json"): Promise<T> {
+  /**
+   * @param cacheIdentity - URL and body WITHOUT credentials; identifies the
+   *   response in the cache. Public data doesn't vary by API key.
+   */
+  async function request<T>(
+    url: string,
+    cacheIdentity: string,
+    init?: RequestInit,
+    responseType: "json" | "text" = "json",
+  ): Promise<T> {
     // Keep response formats and JSON empty-body policies in separate cache entries.
     const cacheResponseType = responseType === "json"
       ? `json:${emptyBodyAsNull ? "empty-as-null" : "strict"}`
       : responseType;
-    const cacheKey = `${url}|${init?.body ?? ""}|${cacheResponseType}`;
+    const cacheKey = `${cacheIdentity}|${cacheResponseType}`;
     const cached = cache.get(cacheKey);
     if (cached !== undefined) return cached as T;
 
@@ -606,14 +628,16 @@ export function createClient(config: ClientConfig): ApiClient {
   return {
     async get<T = unknown>(path: string, params?: Params): Promise<T> {
       const url = buildUrl(path, params);
+      const identity = `${buildUrl(path, params, { withSecrets: false })}|`;
       const headers = buildHeaders();
-      return request<T>(url, Object.keys(headers).length ? { headers } : undefined);
+      return request<T>(url, identity, Object.keys(headers).length ? { headers } : undefined);
     },
 
     async getText(path: string, params?: Params): Promise<string> {
       const url = buildUrl(path, params);
+      const identity = `${buildUrl(path, params, { withSecrets: false })}|`;
       const headers = buildHeaders();
-      return request<string>(url, Object.keys(headers).length ? { headers } : undefined, "text");
+      return request<string>(url, identity, Object.keys(headers).length ? { headers } : undefined, "text");
     },
 
     async post<T = unknown>(
@@ -624,17 +648,20 @@ export function createClient(config: ClientConfig): ApiClient {
       const url = buildUrl(path, params);
       const headers = buildHeaders({ "Content-Type": "application/json" });
 
-      // Auth via body (e.g. BLS)
-      const finalBody = { ...body };
+      // Auth via body (e.g. BLS). extraParams change the response shape, so
+      // they stay in the cache identity; the credentials themselves don't.
+      const publicBody: Record<string, unknown> = { ...body };
+      let finalBody = publicBody;
       if (auth?.type === "body") {
         const resolved = resolveAuthParams();
         if (Object.keys(resolved).length) {
-          Object.assign(finalBody, resolved);
-          if (auth.extraParams) Object.assign(finalBody, auth.extraParams);
+          if (auth.extraParams) Object.assign(publicBody, auth.extraParams);
+          finalBody = { ...publicBody, ...resolved };
         }
       }
 
-      return request<T>(url, {
+      const identity = `${buildUrl(path, params, { withSecrets: false })}|${JSON.stringify(publicBody)}`;
+      return request<T>(url, identity, {
         method: "POST",
         headers,
         body: JSON.stringify(finalBody),
