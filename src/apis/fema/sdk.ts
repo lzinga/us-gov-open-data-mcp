@@ -10,6 +10,7 @@
  */
 
 import { createClient } from "../../shared/client.js";
+import { integerValue, odataString } from "../../shared/query-escape.js";
 
 // ─── Client ──────────────────────────────────────────────────────────
 
@@ -206,13 +207,14 @@ export async function getDisasterDeclarations(opts?: {
   if (opts?.skip) params.$skip = String(opts.skip);
 
   const filters: string[] = [];
-  if (opts?.state) filters.push(`state eq '${opts.state.toUpperCase()}'`);
+  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
   if (opts?.year) {
-    filters.push(`declarationDate ge '${opts.year}-01-01T00:00:00.000z'`);
-    filters.push(`declarationDate le '${opts.year}-12-31T23:59:59.999z'`);
+    const year = integerValue(opts.year, "year");
+    filters.push(`declarationDate ge '${year}-01-01T00:00:00.000z'`);
+    filters.push(`declarationDate le '${year}-12-31T23:59:59.999z'`);
   }
-  if (opts?.incidentType) filters.push(`incidentType eq '${opts.incidentType}'`);
-  if (opts?.declarationType) filters.push(`declarationType eq '${opts.declarationType}'`);
+  if (opts?.incidentType) filters.push(`incidentType eq ${odataString(opts.incidentType)}`);
+  if (opts?.declarationType) filters.push(`declarationType eq ${odataString(opts.declarationType)}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
   const res = await api.get("/DisasterDeclarationsSummaries", params);
@@ -237,9 +239,9 @@ export async function getHousingAssistance(opts?: {
   if (opts?.skip) params.$skip = String(opts.skip);
 
   const filters: string[] = [];
-  if (opts?.disasterNumber) filters.push(`disasterNumber eq '${opts.disasterNumber}'`);
-  if (opts?.state) filters.push(`state eq '${opts.state.toUpperCase()}'`);
-  if (opts?.county) filters.push(`county eq '${opts.county}'`);
+  if (opts?.disasterNumber) filters.push(`disasterNumber eq ${odataString(integerValue(opts.disasterNumber, "disaster_number"))}`);
+  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
+  if (opts?.county) filters.push(`county eq ${odataString(opts.county)}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
   const res = await api.get("/HousingAssistanceOwners", params);
@@ -263,8 +265,8 @@ export async function getPublicAssistance(opts?: {
   if (opts?.skip) params.$skip = String(opts.skip);
 
   const filters: string[] = [];
-  if (opts?.disasterNumber) filters.push(`disasterNumber eq '${opts.disasterNumber}'`);
-  if (opts?.state) filters.push(`state eq '${opts.state.toUpperCase()}'`);
+  if (opts?.disasterNumber) filters.push(`disasterNumber eq ${odataString(integerValue(opts.disasterNumber, "disaster_number"))}`);
+  if (opts?.state) filters.push(`state eq ${odataString(opts.state.toUpperCase())}`);
   if (filters.length) params.$filter = filters.join(" and ");
 
   const res = await api.get("/PublicAssistanceGrantAwardActivities", params);
