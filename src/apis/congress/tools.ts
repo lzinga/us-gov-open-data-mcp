@@ -78,6 +78,8 @@ import {
   getCommitteeFullProfile,
   getBillVotes,
   currentCongress,
+  congressYears,
+  recentCongressesLabel,
   billTypeToUrlSegment,
   BILL_TYPES,
   CHAMBERS,
@@ -202,12 +204,12 @@ export const tools: Tool<any, any>[] = [
       "and AND/OR (e.g., '\"artificial intelligence\" AND privacy'). Returns up to 20 distinct bills per call; " +
       "use offset for more. fromDateTime/toDateTime/sort apply only when listing without a query.\n" +
       "Without `query`: lists bills by most recent update.\n\n" +
-      "Congress numbers: 118th (2023-2024), 119th (2025-2026), 117th (2021-2022).\n" +
+      "Congress numbers: " + recentCongressesLabel(3) + ".\n" +
       "Bill types: hr (House), s (Senate), hjres, sjres, hconres, sconres, hres, sres",
     annotations: { title: "Congress: Search Bills", readOnlyHint: true },
     parameters: z.object({
       query: z.string().optional().describe("Full-text keyword search of bill text (e.g., 'infrastructure', '\"tax credit\" AND solar'). Omit to list recent bills"),
-      congress: z.number().int().optional().describe("Congress number (e.g., 119 for 2025-2026, 118 for 2023-2024). Omit to search/list across all congresses"),
+      congress: z.number().int().optional().describe(`Congress number (e.g., ${currentCongress()} for ${congressYears(currentCongress())}). Omit to search/list across all congresses`),
       bill_type: z.enum(keysEnum(BILL_TYPES)).optional().describe("Bill type"),
       limit: z.number().int().positive().max(250).default(20).describe("Max results (default: 20; keyword searches return at most 20)"),
       offset: z.number().int().min(0).optional().describe("Results offset for pagination (default: 0)"),
@@ -323,7 +325,7 @@ export const tools: Tool<any, any>[] = [
     name: "congress_house_votes",
     description:
       "Get House of Representatives roll call vote results with member-level party breakdown. " +
-      "Primary source: Congress.gov API (118th-119th Congress); falls back to clerk.house.gov XML for older congresses. " +
+      "Primary source: Congress.gov API (118th Congress onward); falls back to clerk.house.gov XML for older congresses. " +
       "Coverage: 1990 to present. Use year param for historical votes. " +
       "Cross-reference with: congress_senate_votes (same bill's Senate vote), FEC (members' donors via fec_candidate_financials), " +
       "lobbying_search (who lobbied on the bill), FRED (economic impact 1-3 years after passage). " +
