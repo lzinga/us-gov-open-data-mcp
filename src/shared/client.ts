@@ -373,12 +373,16 @@ class DiskCache {
   }
 
   clear(): void {
+    // Load first: flushing an unloaded store would overwrite every other
+    // module's entries on disk with an empty store.
+    loadGlobal();
     _globalStore.delete(this.ns);
     _globalDirty = true;
     scheduleGlobalWrite();
   }
 
   get size(): number {
+    loadGlobal();
     const map = _globalStore.get(this.ns);
     if (!map) return 0;
     const now = Date.now();
