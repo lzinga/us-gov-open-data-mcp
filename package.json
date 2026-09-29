@@ -132,7 +132,7 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/he": "^1.2.3",
     "@types/node": "^22.20.4",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
   "readme": "./README.md"
