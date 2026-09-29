@@ -62,7 +62,7 @@ describe("searchBillsByKeyword", () => {
 
     const res = await searchBillsByKeyword({ query: "artificial intelligence", congress: 119, bill_type: "hr" });
 
-    const searchCall = fetchFn.mock.calls.find(([u]) => String(u).includes("api.govinfo.gov"))!;
+    const searchCall = fetchFn.mock.calls.find(([u]) => new URL(String(u)).hostname === "api.govinfo.gov")!;
     const body = JSON.parse(String((searchCall as unknown as [string, RequestInit])[1].body));
     expect(body.query).toBe("collection:BILLS AND congress:119 AND billtype:hr AND (artificial intelligence)");
 
