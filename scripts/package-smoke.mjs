@@ -26,9 +26,11 @@ const isWindows = process.platform === "win32";
 let failures = 0;
 
 function run(cmd, args, opts = {}) {
-  // npm/npx are .cmd shims on Windows and need a shell; quote arguments for it.
+  // npm/npx are .cmd shims on Windows and need a shell; quote arguments with spaces for it.
+  // cmd.exe has no reliable escape for a double quote, so refuse arguments containing one.
   const shell = isWindows && (cmd === "npm" || cmd === "npx");
-  const quoted = shell ? args.map(a => (/[\s"]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a)) : args;
+  if (shell && args.some(a => a.includes('"'))) throw new Error(`package-smoke: cannot pass a double quote to ${cmd} on Windows`);
+  const quoted = shell ? args.map(a => (/\s/.test(a) ? `"${a}"` : a)) : args;
   const res = spawnSync(shell ? [cmd, ...quoted].join(" ") : cmd, shell ? [] : quoted, {
     cwd: opts.cwd ?? repo,
     env: { ...process.env, ...opts.env },
