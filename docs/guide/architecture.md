@@ -35,6 +35,8 @@ src/
     request-context.ts      # Records which upstream requests produced a result
     types.ts                # Domain, QuestionType, RouteHint, ModuleMeta, ApiModule
     response.ts             # Standardized JSON response helpers
+    html.ts                 # htmlToText(): HTML → plain text, tags stripped and entities decoded once
+    url.ts                  # isHostOrSubdomain(): exact host matching for URLs taken from API data
     geo.ts                  # State names, USPS codes and FIPS codes
     query-escape.ts         # Escaping for SoQL/OData filters built from parameters
     env.ts                  # Optional settings; ignores .env.example placeholders
