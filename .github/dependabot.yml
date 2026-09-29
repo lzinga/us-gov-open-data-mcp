@@ -5,6 +5,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Let new releases age a week before proposing them.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       runtime:
@@ -22,6 +25,8 @@ updates:
     directory: /docs
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     groups:
       docs:
@@ -33,6 +38,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ["*"]
