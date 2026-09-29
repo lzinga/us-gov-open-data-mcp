@@ -30,7 +30,7 @@
     "vite": "^6.4.2"
   },
   "devDependencies": {
-    "mermaid": "^11.16.1",
+    "mermaid": "^12.0.0",
     "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.10.0",
     "typedoc-vitepress-theme": "^1.1.2",
