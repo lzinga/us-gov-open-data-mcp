@@ -25,6 +25,12 @@ describe("renderReference", () => {
     expect(md).toContain("## Documentation\n\n- [API Docs](https://example.gov/docs)");
   });
 
+  it("escapes backslashes so a trailing one can't swallow the cell separator", () => {
+    const md = renderReference(mod({ paths: { win: "C:\\temp\\", pipe: "a\\|b" } }));
+    expect(md).toContain("| `win` | C:\\\\temp\\\\ |");
+    expect(md).toContain("| `pipe` | a\\\\\\|b |");
+  });
+
   it("skips modules without reference data", () => {
     expect(modulesWithReference([mod(), mod({}), mod({ docs: { a: "b" } })])).toHaveLength(1);
     expect(referenceUri("epa-aqs")).toBe("govdata://epa-aqs/reference");
