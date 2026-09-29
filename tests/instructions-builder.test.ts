@@ -8,6 +8,7 @@ import { buildAnalysisPrompts } from "../src/server/prompts.js";
 import { filterPrompts } from "../src/server/prompt-filter.js";
 import { QUESTION_TYPES, DOMAINS } from "../src/shared/types.js";
 import type { ApiModule } from "../src/shared/types.js";
+import { getModule, moduleDirs } from "./helpers.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
@@ -273,5 +274,18 @@ describe("Edge cases", () => {
     expect(result).toContain("CODE MODE");
     expect(result).toContain("=== RULES");
     expect(result).toContain("=== ROUTING TABLE ===");
+  });
+});
+
+// ─── Prompt names ─────────────────────────────────────────────────────
+
+describe("prompt names", () => {
+  it("are unique across modules and the cross-cutting prompts", () => {
+    // FastMCP keeps only the last prompt registered under a name, so a duplicate silently hides the other.
+    const modules = moduleDirs.map(d => getModule(d) as unknown as ApiModule);
+    const owners = new Map<string, string[]>();
+    for (const p of buildAnalysisPrompts()) owners.set(p.name, ["(cross-cutting)"]);
+    for (const m of modules) for (const p of m.prompts ?? []) owners.set(p.name, [...(owners.get(p.name) ?? []), m.name]);
+    expect([...owners].filter(([, o]) => o.length > 1)).toEqual([]);
   });
 });
