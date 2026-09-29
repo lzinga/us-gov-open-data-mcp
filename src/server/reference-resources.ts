@@ -23,7 +23,7 @@ function heading(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-const cell = (v: unknown) => String(v).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+const cell = (v: unknown) => String(v).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 
 function renderValue(key: string, value: unknown): string {
   const title = key === "docs" ? "Documentation" : heading(key);
