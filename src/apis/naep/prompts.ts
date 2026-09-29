@@ -6,7 +6,7 @@ import type { InputPrompt } from "fastmcp";
 
 export const prompts: InputPrompt<any, any>[] = [
   {
-    name: "education_report_card",
+    name: "nations_report_card",
     description: "Comprehensive U.S. education snapshot: NAEP scores, achievement levels, trends, and demographic gaps.",
     load: async () =>
       "Build a comprehensive education report card:\n\n" +

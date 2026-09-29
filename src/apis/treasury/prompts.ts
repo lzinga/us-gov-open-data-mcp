@@ -6,7 +6,7 @@ import type { InputPrompt } from "fastmcp";
 
 export const prompts: InputPrompt<any, any>[] = [
   {
-    name: "fiscal_snapshot",
+    name: "quick_fiscal_snapshot",
     description: "Get a comprehensive snapshot of current U.S. fiscal data including national debt, interest rates, and recent revenue/spending.",
     load: async () =>
       "Please give me a comprehensive fiscal snapshot of the United States using the Treasury Fiscal Data API. Include:\n\n" +

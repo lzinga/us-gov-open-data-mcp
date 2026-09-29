@@ -52,5 +52,7 @@ This file lists what upgrading requires.
   `aggregation_method`; `bls_series_data` builds LAUS and OEWS series IDs from states, counties and occupations;
   `sec_*` tools accept tickers and company names; `lobbying_search` has lda.gov's filing filters.
 - `noaa_climate_data` works without `NOAA_API_KEY` for station queries.
+- Two module prompts that cross-cutting prompts of the same name had hidden are now listed, as
+  `quick_fiscal_snapshot` (Treasury only) and `nations_report_card` (NAEP only).
 - Releases are listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as
   `io.github.lzinga/us-gov-open-data-mcp`.
