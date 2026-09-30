@@ -862,8 +862,12 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     ],
     load: async ({ location }) =>
       `Earthquake and seismic risk assessment: ${location}\n\n` +
+      "PIN THE PLACE FIRST:\n" +
+      `- Get the coordinate every radius search below centers on: geo_zip for a ZIP, geo_locate for a street ` +
+      `address, or geo_counties for a bare city name (a city on its own does not geocode — name its county). ` +
+      "Skip only for a whole state or multi-state region, where a hand-picked center is fine.\n\n" +
       "RECENT ACTIVITY:\n" +
-      `- usgs_earthquakes with location-appropriate lat/lon and maxradiuskm — last 30 days of seismic activity\n` +
+      `- usgs_earthquakes latitude/longitude from above, maxradiuskm=200 — last 30 days of seismic activity\n` +
       `- usgs_significant — notable recent earthquakes worldwide for context\n` +
       `- usgs_earthquake_count for ${location} region over past 1 year, 5 years, 10 years — frequency trends\n\n` +
       "FEDERAL RESPONSE:\n" +
@@ -939,7 +943,7 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       "ENERGY & ENVIRONMENT:\n" +
       "- eia_petroleum — fuel price impact on transportation\n" +
       "- nrel_fuel_stations — EV charging and alt-fuel infrastructure\n" +
-      "- epa_air_quality — transportation emissions\n\n" +
+      "- epa_air_quality — transportation emissions (needs a state; if focus is a city, geo_counties gives you its state and county FIPS first)\n\n" +
       "SAFETY:\n" +
       "- nhtsa_recalls — vehicle safety recalls\n" +
       "- nhtsa_complaints — consumer safety complaints\n\n" +
@@ -997,15 +1001,20 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       const isState = location.length === 2;
       const stateCode = isState ? location.toUpperCase() : undefined;
       return `Environmental justice investigation: ${location}\n\n` +
+        (isState ? "" :
+          "PIN THE PLACE FIRST:\n" +
+          `- For a ZIP: geo_zip. For a street address: geo_locate. For a bare city name: ` +
+          "geo_counties with the state and the county the city sits in — a city on its own does not geocode.\n" +
+          "- Carry forward the 5-digit county FIPS, the 2-digit state FIPS and the 3-digit countyCode. Don't guess these.\n\n") +
         "EPA FACILITIES & COMPLIANCE:\n" +
         `- epa_facilities for ${location} — regulated facilities, compliance status, violations\n` +
         "- epa_enforcement — enforcement cases, penalties, outcomes\n" +
         `- epa_toxic_releases for${stateCode ? ` state=${stateCode}` : ` ${location}`} — Toxics Release Inventory: which chemicals, how much, which facilities\n` +
         `- epa_superfund for${stateCode ? ` state=${stateCode}` : ` ${location}`} — contaminated sites on the National Priorities List\n\n` +
         "AIR & WATER QUALITY:\n" +
-        `- epa_air_quality for${stateCode ? ` state FIPS code` : ` ${location}`} — ambient air monitoring data (PM2.5, ozone, lead)\n` +
+        `- epa_air_quality for${stateCode ? ` state=${stateCode}` : " the state FIPS and countyCode from above"} — ambient air monitoring data (PM2.5, ozone, lead)\n` +
         `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — drinking water system violations\n` +
-        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — water monitoring stations\n\n` +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : " the county FIPS from above"} — water monitoring stations\n\n` +
         "COMMUNITY HEALTH:\n" +
         `- cdc_places_health for ${location} — county/city health indicators (asthma, cancer, COPD)\n` +
         `- cdc_mortality_rates — death rates for respiratory and cancer causes\n` +
@@ -1071,10 +1080,15 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       const isState = location.length === 2;
       const stateCode = isState ? location.toUpperCase() : undefined;
       return `Water quality investigation: ${location}\n\n` +
+        (isState ? "" :
+          "PIN THE PLACE FIRST:\n" +
+          `- For a ZIP: geo_zip. For a street address: geo_locate. For a bare city name: ` +
+          "geo_counties with the state and the county it sits in — a city on its own does not geocode. " +
+          "Carry the 5-digit county FIPS forward as usgs_water_sites' county_cd.\n\n") +
         "DRINKING WATER:\n" +
         `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — public water system violations (Safe Drinking Water Act)\n\n` +
         "WATER MONITORING:\n" +
-        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — USGS monitoring stations\n` +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : " county_cd=<county FIPS from above>"} — USGS monitoring stations\n` +
         "- usgs_water_data — real-time streamflow and water quality readings\n" +
         "- usgs_daily_water_data — historical daily values for trend analysis\n\n" +
         "CONTAMINATION SOURCES:\n" +

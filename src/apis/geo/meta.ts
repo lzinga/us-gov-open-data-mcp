@@ -20,7 +20,8 @@ export default {
   tips:
     "county fips is the 5-digit code fema_nfip_claims, bls_series_data and bea_gdp_by_state want; " +
     "epa_air_quality and usgs_water_sites take the 2-digit state plus the 3-digit countyCode instead. " +
-    "geo_locate needs a street number and name; for a bare ZIP use geo_zip. " +
+    "geo_locate needs a street number and name; for a bare ZIP use geo_zip, and for a bare city " +
+    "name use geo_counties with the county it sits in — a city on its own does not geocode. " +
     "A ZIP can span counties: geo_zip returns the county at its center plus nearbyCounties.",
   // Every domain below has modules that take a state or county code, so geo has
   // to come along whenever one of them is selected. "international" is left out
@@ -33,6 +34,7 @@ export default {
     { question: "state-level", route: "geo_counties (county FIPS for a state), geo_locate (address → state and county FIPS)" },
     { question: "housing", route: "geo_zip, geo_locate (ZIP or address → county FIPS for hud_fair_market_rents)" },
     { question: "disasters", route: "geo_locate, geo_zip (address or ZIP → county FIPS for fema_nfip_claims)" },
+    { question: "earthquakes/water", route: "geo_locate, geo_zip (coordinate for a usgs_earthquakes radius search, county FIPS for usgs_water_sites)" },
   ],
   reference: {
     docs: {
