@@ -1095,6 +1095,72 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     },
   },
 
+  // ─── Hometown Report ──────────────────────────────────────────────
+
+  {
+    name: "hometown_report",
+    description: "Everything the federal government knows about one address or ZIP code — who represents it, what's in the air and water, what disasters hit it, and what it costs to live there.",
+    arguments: [
+      { name: "location", description: "Street address or 5-digit ZIP (e.g. '400 Broad St, Seattle WA' or '77429')", required: true },
+    ],
+    load: async ({ location: _location }) => {
+      const location = _location ?? "";
+      const isZip = /^\d{5}$/.test(location.trim());
+      const resolve = isZip
+        ? `- geo_zip zip='${location}' — center coordinate, the county at that center, and nearbyCounties\n`
+        : `- geo_locate address='${location}' — coordinate plus state, county, tract, place and congressional district\n` +
+          "- If no match, fall back to geo_zip with the ZIP from the address\n";
+
+      return `Hometown report: ${location}\n\n` +
+        "STEP 1 — PIN THE PLACE (do this first, everything below depends on it):\n" +
+        resolve +
+        "Carry forward from the result: the 5-digit county FIPS, the 2-digit state FIPS, " +
+        "the 3-digit countyCode, the state USPS code, and latitude/longitude. " +
+        "Do not guess any of these — every later step reuses them.\n\n" +
+
+        "WHO REPRESENTS IT:\n" +
+        "- congress_search_members with the state and the congressional district number from step 1\n" +
+        "- congress_member_bills for each — what they actually sponsor\n\n" +
+
+        "WHO LIVES THERE:\n" +
+        (isZip
+          ? `- census_place_profile zcta='${location}' — population, income, poverty, housing\n`
+          : "- census_place_profile with the county FIPS from step 1 — population, income, poverty, housing\n") +
+        "- cdc_places_health with the state — local rates for obesity, diabetes, smoking, depression\n\n" +
+
+        "THE AIR AND THE GROUND:\n" +
+        "- epa_air_quality state=<2-digit FIPS> county=<3-digit countyCode> param='88101' — PM2.5\n" +
+        `- epa_uv_index ${isZip ? `zip='${location}'` : "zip=<ZIP from step 1>"} — today's UV forecast\n` +
+        "- epa_facilities with the state USPS code — permitted polluters nearby\n" +
+        "- epa_superfund with the state — contaminated sites\n" +
+        "- usgs_water_sites county_cd=<5-digit county FIPS> — water monitoring stations\n\n" +
+
+        "WHAT GOES WRONG THERE:\n" +
+        "- fema_disaster_declarations with the state — every federal disaster on record\n" +
+        `- fema_nfip_claims ${isZip ? `zip='${location}'` : "county=<5-digit county FIPS>"} — flood insurance claims actually paid\n` +
+        "- usgs_earthquakes latitude/longitude from step 1, maxradiuskm=100 — recent quakes nearby\n\n" +
+
+        "WHAT IT COSTS:\n" +
+        "- hud_fair_market_rents entity_id=<5-digit county FIPS> — HUD rent standard by bedroom count\n" +
+        "- hud_income_limits with the same county — what counts as low income there\n\n" +
+
+        "ODDS AND ENDS WORTH KNOWING:\n" +
+        "- nrel_solar lat/lon from step 1 — how much sun a rooftop panel would actually get\n" +
+        `- nrel_fuel_stations ${isZip ? `zip='${location}'` : "zip=<ZIP from step 1>"} radius=25 — EV charging and alternative fuel\n` +
+        `- nhtsa_car_seat_stations ${isZip ? `zip='${location}'` : "lat/long from step 1"} — free car-seat inspection sites\n` +
+        "- clinical_trials_by_location latitude/longitude from step 1, distance='50mi' — trials recruiting nearby\n\n" +
+
+        "HOW TO PRESENT IT:\n" +
+        "Write it as a place profile someone would actually want to read, not a data dump. " +
+        "Lead with the two or three genuinely surprising numbers. " +
+        "Compare to national figures wherever you have them, so a number like a $1,900 rent standard " +
+        "or a 14% asthma rate means something.\n\n" +
+        "Call out the caveats honestly: a ZIP is not a county, so say which county the figures are for " +
+        "and mention the others in nearbyCounties. County-level health and air data describe an area far " +
+        "larger than one street. Disaster and flood claim history covers the whole county too.";
+    },
+  },
+
   // ─── Pharma Pricing ───────────────────────────────────────────────
 
   {
