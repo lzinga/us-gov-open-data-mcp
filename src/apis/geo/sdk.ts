@@ -170,7 +170,8 @@ function area(source: Layer | undefined): Area | undefined {
 /** Normalize the geocoder's geography layers into the codes tools ask for. */
 export function toAreas(geographies: Geographies): GeoAreas {
   const state = area(layer(geographies, /^States$/));
-  const district = area(layer(geographies, /Congressional Districts$/));
+  const districtLayer = layer(geographies, /Congressional Districts$/);
+  const district = area(districtLayer);
 
   const areas: GeoAreas = {
     state: state ? { ...state, usps: findState(state.fips)?.usps } : undefined,
@@ -180,7 +181,7 @@ export function toAreas(geographies: Geographies): GeoAreas {
     place: area(layer(geographies, /^Incorporated Places$/)),
     countySubdivision: area(layer(geographies, /^County Subdivisions$/)),
     congressionalDistrict: district
-      ? { ...district, session: str(layer(geographies, /Congressional Districts$/), "CDSESSN") }
+      ? { ...district, session: str(districtLayer, "CDSESSN") }
       : undefined,
     stateLegislativeUpper: area(layer(geographies, /State Legislative Districts - Upper$/)),
     stateLegislativeLower: area(layer(geographies, /State Legislative Districts - Lower$/)),
@@ -195,7 +196,10 @@ export function toAreas(geographies: Geographies): GeoAreas {
   return areas;
 }
 
-/** TIGERweb writes coordinates as zero-padded, signed strings ("+47.61", "-095.66"). */
+/**
+ * Parse a coordinate. TIGERweb writes them as zero-padded, signed strings
+ * ("+47.61", "-095.66"); the geocoder returns plain numbers.
+ */
 function coord(value: unknown): number | undefined {
   const text = String(value ?? "").trim();
   if (!text) return undefined;
@@ -235,16 +239,27 @@ export async function geocodeAddress(
   );
 
   const matches = res?.result?.addressMatches ?? [];
-  return matches.slice(0, Math.max(1, opts.limit ?? 5)).map(match => {
+  const limit = Math.max(1, opts.limit ?? 5);
+  const results: GeocodedAddress[] = [];
+
+  for (const match of matches) {
+    if (results.length === limit) break;
+    // A match without a coordinate can't be handed to a mapping or point tool,
+    // so skip it rather than emit NaN.
+    const latitude = coord(match.coordinates?.y);
+    const longitude = coord(match.coordinates?.x);
+    if (latitude === undefined || longitude === undefined) continue;
+
     const zip = match.addressComponents?.zip;
-    return {
+    results.push({
       matchedAddress: match.matchedAddress ?? query,
-      latitude: match.coordinates?.y ?? Number.NaN,
-      longitude: match.coordinates?.x ?? Number.NaN,
+      latitude,
+      longitude,
       ...(zip ? { zip } : {}),
       areas: toAreas(match.geographies ?? {}),
-    };
-  });
+    });
+  }
+  return results;
 }
 
 // ─── Coordinate → geographies ────────────────────────────────────────

@@ -113,6 +113,26 @@ describe("geo_locate", () => {
     expect(out.data.items).toHaveLength(2);
   });
 
+  it("skips a match the Census returned without a coordinate", async () => {
+    stubRoutes([{
+      match: /onelineaddress/,
+      body: {
+        result: {
+          addressMatches: [
+            { ...ADDRESS_MATCH, coordinates: undefined },
+            ADDRESS_MATCH,
+          ],
+        },
+      },
+    }]);
+
+    const out = await call("geo_locate", { address: "400 Broad St, Seattle, WA" });
+
+    // The surviving match is the one with coordinates, not a NaN placeholder.
+    expect(out.dataType).toBe("record");
+    expect(out.record.latitude).toBe(47.6205);
+  });
+
   it("points at the other tools when nothing matches", async () => {
     stubRoutes([{ match: /onelineaddress/, body: { result: { addressMatches: [] } } }]);
     const out = await call("geo_locate", { address: "98101" });
