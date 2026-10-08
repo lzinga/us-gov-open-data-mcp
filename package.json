@@ -121,11 +121,11 @@
   "type": "module",
   "dependencies": {
     "dotenv": "^17.3.1",
-    "fast-xml-parser": "^5.5.11",
+    "fast-xml-parser": "^5.11.2",
     "fastmcp": "^3.35.0",
     "he": "^1.2.0",
     "quickjs-emscripten": "^0.32.0",
-    "zod": "^4.3.6"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
