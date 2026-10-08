@@ -122,7 +122,7 @@
   "dependencies": {
     "dotenv": "^17.3.1",
     "fast-xml-parser": "^5.5.11",
-    "fastmcp": "^3.35.0",
+    "fastmcp": "^4.22.1",
     "he": "^1.2.0",
     "quickjs-emscripten": "^0.32.0",
     "zod": "^4.3.6"
