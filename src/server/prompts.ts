@@ -862,8 +862,12 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     ],
     load: async ({ location }) =>
       `Earthquake and seismic risk assessment: ${location}\n\n` +
+      "PIN THE PLACE FIRST:\n" +
+      `- Get the coordinate every radius search below centers on: geo_zip for a ZIP, geo_locate for a street ` +
+      `address, or geo_counties for a bare city name (a city on its own does not geocode — name its county). ` +
+      "Skip only for a whole state or multi-state region, where a hand-picked center is fine.\n\n" +
       "RECENT ACTIVITY:\n" +
-      `- usgs_earthquakes with location-appropriate lat/lon and maxradiuskm — last 30 days of seismic activity\n` +
+      `- usgs_earthquakes latitude/longitude from above, maxradiuskm=200 — last 30 days of seismic activity\n` +
       `- usgs_significant — notable recent earthquakes worldwide for context\n` +
       `- usgs_earthquake_count for ${location} region over past 1 year, 5 years, 10 years — frequency trends\n\n` +
       "FEDERAL RESPONSE:\n" +
@@ -939,7 +943,7 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       "ENERGY & ENVIRONMENT:\n" +
       "- eia_petroleum — fuel price impact on transportation\n" +
       "- nrel_fuel_stations — EV charging and alt-fuel infrastructure\n" +
-      "- epa_air_quality — transportation emissions\n\n" +
+      "- epa_air_quality — transportation emissions (needs a state; if focus is a city, geo_counties gives you its state and county FIPS first)\n\n" +
       "SAFETY:\n" +
       "- nhtsa_recalls — vehicle safety recalls\n" +
       "- nhtsa_complaints — consumer safety complaints\n\n" +
@@ -997,15 +1001,20 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       const isState = location.length === 2;
       const stateCode = isState ? location.toUpperCase() : undefined;
       return `Environmental justice investigation: ${location}\n\n` +
+        (isState ? "" :
+          "PIN THE PLACE FIRST:\n" +
+          `- For a ZIP: geo_zip. For a street address: geo_locate. For a bare city name: ` +
+          "geo_counties with the state and the county the city sits in — a city on its own does not geocode.\n" +
+          "- Carry forward the 5-digit county FIPS, the 2-digit state FIPS and the 3-digit countyCode. Don't guess these.\n\n") +
         "EPA FACILITIES & COMPLIANCE:\n" +
         `- epa_facilities for ${location} — regulated facilities, compliance status, violations\n` +
         "- epa_enforcement — enforcement cases, penalties, outcomes\n" +
         `- epa_toxic_releases for${stateCode ? ` state=${stateCode}` : ` ${location}`} — Toxics Release Inventory: which chemicals, how much, which facilities\n` +
         `- epa_superfund for${stateCode ? ` state=${stateCode}` : ` ${location}`} — contaminated sites on the National Priorities List\n\n` +
         "AIR & WATER QUALITY:\n" +
-        `- epa_air_quality for${stateCode ? ` state FIPS code` : ` ${location}`} — ambient air monitoring data (PM2.5, ozone, lead)\n` +
+        `- epa_air_quality for${stateCode ? ` state=${stateCode}` : " the state FIPS and countyCode from above"} — ambient air monitoring data (PM2.5, ozone, lead)\n` +
         `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — drinking water system violations\n` +
-        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — water monitoring stations\n\n` +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : " the county FIPS from above"} — water monitoring stations\n\n` +
         "COMMUNITY HEALTH:\n" +
         `- cdc_places_health for ${location} — county/city health indicators (asthma, cancer, COPD)\n` +
         `- cdc_mortality_rates — death rates for respiratory and cancer causes\n` +
@@ -1071,10 +1080,15 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
       const isState = location.length === 2;
       const stateCode = isState ? location.toUpperCase() : undefined;
       return `Water quality investigation: ${location}\n\n` +
+        (isState ? "" :
+          "PIN THE PLACE FIRST:\n" +
+          `- For a ZIP: geo_zip. For a street address: geo_locate. For a bare city name: ` +
+          "geo_counties with the state and the county it sits in — a city on its own does not geocode. " +
+          "Carry the 5-digit county FIPS forward as usgs_water_sites' county_cd.\n\n") +
         "DRINKING WATER:\n" +
         `- epa_drinking_water for${stateCode ? ` state=${stateCode}` : ` ${location}`} — public water system violations (Safe Drinking Water Act)\n\n` +
         "WATER MONITORING:\n" +
-        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : ` ${location}`} — USGS monitoring stations\n` +
+        `- usgs_water_sites for${stateCode ? ` state=${stateCode}` : " county_cd=<county FIPS from above>"} — USGS monitoring stations\n` +
         "- usgs_water_data — real-time streamflow and water quality readings\n" +
         "- usgs_daily_water_data — historical daily values for trend analysis\n\n" +
         "CONTAMINATION SOURCES:\n" +
@@ -1092,6 +1106,72 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
         `- doj_press_releases title='water' — DOJ water-related enforcement\n\n` +
         "Key metrics: Number of water system violations, types (health-based vs monitoring), " +
         "affected population, contaminants detected, enforcement actions taken.";
+    },
+  },
+
+  // ─── Hometown Report ──────────────────────────────────────────────
+
+  {
+    name: "hometown_report",
+    description: "Everything the federal government knows about one address or ZIP code — who represents it, what's in the air and water, what disasters hit it, and what it costs to live there.",
+    arguments: [
+      { name: "location", description: "Street address or 5-digit ZIP (e.g. '400 Broad St, Seattle WA' or '77429')", required: true },
+    ],
+    load: async ({ location: _location }) => {
+      const location = _location ?? "";
+      const isZip = /^\d{5}$/.test(location.trim());
+      const resolve = isZip
+        ? `- geo_zip zip='${location}' — center coordinate, the county at that center, and nearbyCounties\n`
+        : `- geo_locate address='${location}' — coordinate plus state, county, tract, place and congressional district\n` +
+          "- If no match, fall back to geo_zip with the ZIP from the address\n";
+
+      return `Hometown report: ${location}\n\n` +
+        "STEP 1 — PIN THE PLACE (do this first, everything below depends on it):\n" +
+        resolve +
+        "Carry forward from the result: the 5-digit county FIPS, the 2-digit state FIPS, " +
+        "the 3-digit countyCode, the state USPS code, and latitude/longitude. " +
+        "Do not guess any of these — every later step reuses them.\n\n" +
+
+        "WHO REPRESENTS IT:\n" +
+        "- congress_search_members with the state and the congressional district number from step 1\n" +
+        "- congress_member_bills for each — what they actually sponsor\n\n" +
+
+        "WHO LIVES THERE:\n" +
+        (isZip
+          ? `- census_place_profile zcta='${location}' — population, income, poverty, housing\n`
+          : "- census_place_profile with the county FIPS from step 1 — population, income, poverty, housing\n") +
+        "- cdc_places_health with the state — local rates for obesity, diabetes, smoking, depression\n\n" +
+
+        "THE AIR AND THE GROUND:\n" +
+        "- epa_air_quality state=<2-digit FIPS> county=<3-digit countyCode> param='88101' — PM2.5\n" +
+        `- epa_uv_index ${isZip ? `zip='${location}'` : "zip=<ZIP from step 1>"} — today's UV forecast\n` +
+        "- epa_facilities with the state USPS code — permitted polluters nearby\n" +
+        "- epa_superfund with the state — contaminated sites\n" +
+        "- usgs_water_sites county_cd=<5-digit county FIPS> — water monitoring stations\n\n" +
+
+        "WHAT GOES WRONG THERE:\n" +
+        "- fema_disaster_declarations with the state — every federal disaster on record\n" +
+        `- fema_nfip_claims ${isZip ? `zip='${location}'` : "county=<5-digit county FIPS>"} — flood insurance claims actually paid\n` +
+        "- usgs_earthquakes latitude/longitude from step 1, maxradiuskm=100 — recent quakes nearby\n\n" +
+
+        "WHAT IT COSTS:\n" +
+        "- hud_fair_market_rents entity_id=<5-digit county FIPS> — HUD rent standard by bedroom count\n" +
+        "- hud_income_limits with the same county — what counts as low income there\n\n" +
+
+        "ODDS AND ENDS WORTH KNOWING:\n" +
+        "- nrel_solar lat/lon from step 1 — how much sun a rooftop panel would actually get\n" +
+        `- nrel_fuel_stations ${isZip ? `zip='${location}'` : "zip=<ZIP from step 1>"} radius=25 — EV charging and alternative fuel\n` +
+        `- nhtsa_car_seat_stations ${isZip ? `zip='${location}'` : "lat/long from step 1"} — free car-seat inspection sites\n` +
+        "- clinical_trials_by_location latitude/longitude from step 1, distance='50mi' — trials recruiting nearby\n\n" +
+
+        "HOW TO PRESENT IT:\n" +
+        "Write it as a place profile someone would actually want to read, not a data dump. " +
+        "Lead with the two or three genuinely surprising numbers. " +
+        "Compare to national figures wherever you have them, so a number like a $1,900 rent standard " +
+        "or a 14% asthma rate means something.\n\n" +
+        "Call out the caveats honestly: a ZIP is not a county, so say which county the figures are for " +
+        "and mention the others in nearbyCounties. County-level health and air data describe an area far " +
+        "larger than one street. Disaster and flood claim history covers the whole county too.";
     },
   },
 
