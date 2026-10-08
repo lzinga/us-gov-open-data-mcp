@@ -114,7 +114,7 @@ jobs:
           path: package
 
       - name: Publish to npm
-        run: npm publish package/*.tgz --provenance --access public
+        run: npm publish ./package/*.tgz --provenance --access public
 
   publish-github:
     needs: publish-npm
@@ -137,7 +137,7 @@ jobs:
 
       - name: Publish to GitHub Packages
         # GitHub Packages has no OIDC publishing; the job-scoped GITHUB_TOKEN is used.
-        run: npm publish package/*.tgz # zizmor: ignore[use-trusted-publishing]
+        run: npm publish ./package/*.tgz # zizmor: ignore[use-trusted-publishing]
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
