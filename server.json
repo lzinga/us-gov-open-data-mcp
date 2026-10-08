@@ -8,13 +8,13 @@
     "source": "github"
   },
   "websiteUrl": "https://lzinga.github.io/us-gov-open-data-mcp/",
-  "version": "2026.9.14",
+  "version": "2026.10.8",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "us-gov-open-data-mcp",
-      "version": "2026.9.14",
+      "version": "2026.10.8",
       "transport": {
         "type": "stdio"
       },
