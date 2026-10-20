@@ -15,7 +15,7 @@
  *   console.log(rates.outputs.residential, rates.outputs.utility_name);
  *
  * Requires DATA_GOV_API_KEY env var. Get one at https://api.data.gov/signup/
- * Docs: https://developer.nrel.gov/docs/
+ * Docs: https://developer.nlr.gov/docs/
  */
 
 import { createClient } from "../../shared/client.js";
@@ -23,7 +23,7 @@ import { createClient } from "../../shared/client.js";
 // ─── Client ──────────────────────────────────────────────────────────
 
 const api = createClient({
-  baseUrl: "https://developer.nrel.gov/api",
+  baseUrl: "https://developer.nlr.gov/api",
   name: "nrel",
   auth: { type: "query", envParams: { api_key: "DATA_GOV_API_KEY" } },
   rateLimit: { perSecond: 5, burst: 15 },
