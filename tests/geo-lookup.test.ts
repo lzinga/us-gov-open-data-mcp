@@ -154,6 +154,7 @@ describe("geo_point", () => {
 
     expect(urls[0].searchParams.get("x")).toBe("-122.3493");
     expect(urls[0].searchParams.get("y")).toBe("47.6205");
+    expect(urls[0].searchParams.get("vintage")).toBe("Current_Current");
     expect(out.summary).toContain("King County");
     expect(out.record.areas.county.fips).toBe("53033");
   });
@@ -191,6 +192,8 @@ describe("geo_zip", () => {
 
     const zcta = urls.find(u => u.pathname.includes("PUMA_TAD_TAZ_UGA_ZCTA"))!;
     expect(zcta.searchParams.get("where")).toBe("GEOID='98101'");
+    expect(urls.find(u => u.pathname.includes("geographies/coordinates"))?.searchParams.get("vintage"))
+      .toBe("Current_Current");
 
     const counties = urls.find(u => u.pathname.includes("State_County"))!;
     expect(counties.searchParams.get("geometry")).toBe("-122.35,47.6,-122.32,47.62");
@@ -261,6 +264,25 @@ const TX_COUNTIES = {
 };
 
 describe("geo_counties", () => {
+  it("returns the county internal point without presenting it as a city location", async () => {
+    stubRoutes([{
+      match: /State_County/,
+      body: { features: [{ attributes: {
+        GEOID: "06071", NAME: "San Bernardino County", COUNTY: "071",
+        INTPTLAT: "+34.8566615", INTPTLON: "-116.1815707",
+      } }] },
+    }]);
+
+    const out = await call("geo_counties", { state: "CA", name: "San Bernardino" });
+
+    expect(out.data.items[0]).toMatchObject({
+      fips: "06071", name: "San Bernardino County", latitude: 34.8566615, longitude: -116.1815707,
+    });
+    const { tools } = await import("../src/apis/geo/tools.js");
+    expect(tools.find(t => t.name === "geo_counties")?.description)
+      .toContain("do not use them for city-centered radius searches");
+  });
+
   it.each(["Texas", "tx", "48"])("accepts the state as %s and queries by FIPS", async state => {
     const urls = stubRoutes([{ match: /State_County/, body: TX_COUNTIES }]);
 
@@ -276,6 +298,90 @@ describe("geo_counties", () => {
       countyCode: "201",
       latitude: 29.8574,
       longitude: -95.3925,
+    });
+  });
+
+  describe("geography vintage selection", () => {
+    const point = { latitude: 30.27644199222, longitude: -97.739754035328 };
+    const address = "1100 Congress Ave, Austin, TX";
+    const baseAreas = {
+      States: [{ GEOID: "48", NAME: "Texas" }],
+      Counties: [{ GEOID: "48453", NAME: "Travis County" }],
+    };
+    const latestAreas = {
+      ...baseAreas,
+      "120th Congressional Districts": [{ GEOID: "4810", NAME: "Congressional District 10", CDSESSN: "120" }],
+    };
+    const servingAreas = {
+      ...baseAreas,
+      "119th Congressional Districts": [{ GEOID: "4837", NAME: "Congressional District 37", CDSESSN: "119" }],
+    };
+    const match = { matchedAddress: address, coordinates: { x: point.longitude, y: point.latitude } };
+
+    it.each([
+      { name: "geo_locate", args: { address } },
+      { name: "geo_point", args: point },
+      { name: "geo_zip", args: { zip: "78701" } },
+    ])("$name distinguishes the Austin district vintages and caches them separately", async ({ name, args }) => {
+      const urls = stubRoutes([
+        {
+          match: /onelineaddress.*vintage=ACS2025_Current/,
+          body: { result: { addressMatches: [{ ...match, geographies: servingAreas }] } },
+        },
+        {
+          match: /geographies\/coordinates.*vintage=ACS2025_Current/,
+          body: { result: { geographies: servingAreas } },
+        },
+        {
+          match: /onelineaddress/,
+          body: { result: { addressMatches: [{ ...match, geographies: latestAreas }] } },
+        },
+        { match: /geographies\/coordinates/, body: { result: { geographies: latestAreas } } },
+        { match: /returnExtentOnly=true/, body: ZCTA_EXTENT },
+        { match: /PUMA_TAD_TAZ_UGA_ZCTA/, body: { features: [{ attributes: {
+          GEOID: "78701", INTPTLAT: String(point.latitude), INTPTLON: String(point.longitude),
+        } }] } },
+        { match: /State_County/, body: { features: [{ attributes: baseAreas.Counties[0] }] } },
+      ]);
+
+      const latest = await call(name, args);
+      const serving = await call(name, { ...args, vintage: "ACS2025_Current" });
+      const cached = await call(name, { ...args, vintage: "ACS2025_Current" });
+
+      expect(latest.record.areas.congressionalDistrict).toMatchObject({ fips: "4810", session: "120" });
+      expect(serving.record.areas.congressionalDistrict).toMatchObject({ fips: "4837", session: "119" });
+      expect(cached).toEqual(serving);
+      const geocodes = urls.filter(u => u.pathname.includes("/geographies/"));
+      expect(geocodes.map(u => u.searchParams.get("vintage"))).toEqual(["Current_Current", "ACS2025_Current"]);
+      expect(geocodes.every(u => u.searchParams.get("benchmark") === "Public_AR_Current")).toBe(true);
+      for (const url of urls.filter(u => u.pathname.includes("MapServer"))) {
+        expect(url.searchParams.has("vintage")).toBe(false);
+      }
+    });
+
+    it.each([
+      { name: "geo_locate", args: { address } },
+      { name: "geo_point", args: point },
+      { name: "geo_zip", args: { zip: "78701" } },
+    ])("$name rejects an empty vintage", async ({ name, args }) => {
+      const { tools } = await import("../src/apis/geo/tools.js");
+      const tool = tools.find(t => t.name === name)!;
+      expect(tool.parameters.safeParse({ ...args, vintage: "   " }).success).toBe(false);
+    });
+
+    it("rejects empty SDK vintages before any request", async () => {
+      const urls = stubRoutes([]);
+      const { geocodeAddress, locatePoint, lookupZip } = await import("../src/apis/geo/sdk.js");
+      await expect(geocodeAddress(address, { vintage: "" })).rejects.toThrow(/vintage/);
+      await expect(locatePoint(point.latitude, point.longitude, { vintage: " " })).rejects.toThrow(/vintage/);
+      await expect(lookupZip("78701", { vintage: "" })).rejects.toThrow(/vintage/);
+      expect(urls).toHaveLength(0);
+    });
+
+    it("surfaces an unavailable vintage instead of falling back to the latest boundaries", async () => {
+      const urls = stubRoutes([{ match: /onelineaddress/, body: { errors: ["Invalid vintage"] } }]);
+      await expect(call("geo_locate", { address, vintage: "ACS1900_Current" })).rejects.toThrow(/Invalid vintage/);
+      expect(urls).toHaveLength(1);
     });
   });
 

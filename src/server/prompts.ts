@@ -858,14 +858,15 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
     name: "earthquake_risk",
     description: "Assess earthquake risk and recent seismic activity for a location or region.",
     arguments: [
-      { name: "location", description: "State, city, or region (e.g. 'California', 'Pacific Northwest', 'Oklahoma')", required: true },
+      { name: "location", description: "ZIP, street address, city, state or region; a city needs a ZIP/address or verified city coordinate for a radius search", required: true },
     ],
     load: async ({ location }) =>
       `Earthquake and seismic risk assessment: ${location}\n\n` +
       "PIN THE PLACE FIRST:\n" +
-      `- Get the coordinate every radius search below centers on: geo_zip for a ZIP, geo_locate for a street ` +
-      `address, or geo_counties for a bare city name (a city on its own does not geocode — name its county). ` +
-      "Skip only for a whole state or multi-state region, where a hand-picked center is fine.\n\n" +
+      "- Get the coordinate every radius search below centers on: geo_zip for a ZIP or geo_locate for a street address.\n" +
+      "- For a bare city name, use a verified city coordinate or ask the user for a ZIP or street address before running a radius search. Do not guess a coordinate.\n" +
+      "- Never substitute geo_counties coordinates for a city: they are county internal points, not city centers.\n" +
+      "- For a whole state or multi-state region, explicitly label any chosen center and radius as a regional sample, not statewide coverage.\n\n" +
       "RECENT ACTIVITY:\n" +
       `- usgs_earthquakes latitude/longitude from above, maxradiuskm=200 — last 30 days of seismic activity\n` +
       `- usgs_significant — notable recent earthquakes worldwide for context\n` +
@@ -1133,8 +1134,12 @@ const RAW_PROMPTS: InputPrompt<any, any>[] = [
         "Do not guess any of these — every later step reuses them.\n\n" +
 
         "WHO REPRESENTS IT:\n" +
-        "- congress_search_members with the state and the congressional district number from step 1\n" +
-        "- congress_member_bills for each — what they actually sponsor\n\n" +
+        "- Determine the serving Congress for the report date; its term begins January 3, not when Census publishes new boundaries.\n" +
+        "- Require areas.congressionalDistrict.session to match the serving Congress before using its district. Current_Current can contain an upcoming Congress's boundaries.\n" +
+        "- If the session is missing or mismatched, use geo_point at the saved latitude/longitude with an explicit vintage for the serving Congress: try ACS<Congress start year>_Current, then ACS<preceding year>_Current if unavailable or still mismatched (e.g. ACS2025_Current for the 119th Congress). Recheck the returned session after each lookup.\n" +
+        "- If no matching district can be obtained, report current House representation as unresolved and skip the district-based member and bill lookups; never substitute a future or historical district.\n" +
+        "- Only after the session matches, call congress_search_members with congress=<serving Congress>, state=<USPS code>, district=<last two digits of the district GEOID as an integer>, currentMember=true.\n" +
+        "- congress_member_bills only for those verified current representatives — what they actually sponsor\n\n" +
 
         "WHO LIVES THERE:\n" +
         (isZip

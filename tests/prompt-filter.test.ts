@@ -102,3 +102,50 @@ describe("real prompts with only FRED loaded", () => {
     expect(text).toMatch(/^3\. usa_spending_by_agency/m);
   });
 });
+
+describe("geography-dependent prompts", () => {
+  async function render(name: string, location: string): Promise<string> {
+    const prompt = buildAnalysisPrompts().find(p => p.name === name)!;
+    return String(await prompt.load({ location }));
+  }
+
+  it.each(["1100 Congress Ave, Austin, TX", "78701"])(
+    "requires serving-Congress boundaries for hometown representation at %s",
+    async location => {
+      const text = await render("hometown_report", location);
+      expect(text).toContain("Require areas.congressionalDistrict.session to match the serving Congress");
+      expect(text).toContain("Current_Current can contain an upcoming Congress's boundaries");
+      expect(text).toContain("geo_point at the saved latitude/longitude with an explicit vintage");
+      expect(text).toContain("ACS<Congress start year>_Current");
+      expect(text).toContain("Recheck the returned session after each lookup");
+      expect(text).toContain("report current House representation as unresolved");
+      expect(text).toContain("skip the district-based member and bill lookups");
+      expect(text).toContain("Only after the session matches, call congress_search_members");
+      expect(text).toContain("congress=<serving Congress>");
+      expect(text).toContain("currentMember=true");
+      expect(text).toContain("congress_member_bills only for those verified current representatives");
+    },
+  );
+
+  it("requires a city-specific coordinate instead of San Bernardino County's internal point", async () => {
+    const text = await render("earthquake_risk", "San Bernardino, CA");
+    expect(text).toContain("use a verified city coordinate or ask the user for a ZIP or street address before running a radius search");
+    expect(text).toContain("Never substitute geo_counties coordinates for a city");
+    expect(text).not.toContain("geo_counties for a bare city name");
+    expect(text).toContain("maxradiuskm=200");
+  });
+
+  it.each(["92401", "290 N D St, San Bernardino, CA"])(
+    "keeps ZIP and address resolution available for earthquake searches at %s",
+    async location => {
+      const text = await render("earthquake_risk", location);
+      expect(text).toContain(`Earthquake and seismic risk assessment: ${location}`);
+      expect(text).toContain("geo_zip for a ZIP or geo_locate for a street address");
+    },
+  );
+
+  it("labels a chosen statewide search center as a regional sample", async () => {
+    const text = await render("earthquake_risk", "California");
+    expect(text).toContain("regional sample, not statewide coverage");
+  });
+});

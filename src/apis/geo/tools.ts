@@ -14,6 +14,13 @@ const HANDOFF =
   "Pass county.fips (5 digits) to tools that ask for a county FIPS, " +
   "or state.fips plus the 3-digit county code to epa_air_quality and usgs_water_sites.";
 
+const vintageParameter = z.string().trim().min(1).optional().describe(
+  "Census geography vintage (default 'Current_Current', the latest published boundaries). " +
+  "Use e.g. 'ACS2025_Current' for an earlier vintage; verify areas.congressionalDistrict.session " +
+  "matches the serving Congress before looking up current representatives. " +
+  "For geo_zip this changes the point's geographies, not the ZCTA boundary.",
+);
+
 export const tools: Tool<any, any>[] = [
   // ── Address ──────────────────────────────────────────────────────
   {
@@ -29,9 +36,10 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       address: z.string().describe("One-line US address: '1600 Pennsylvania Ave NW, Washington, DC'"),
       limit: z.number().int().min(1).max(10).optional().describe("Most matches to return (default 5)"),
+      vintage: vintageParameter,
     }),
-    execute: async ({ address, limit }) => {
-      const matches = await geocodeAddress(address, { limit });
+    execute: async ({ address, limit, vintage }) => {
+      const matches = await geocodeAddress(address, { limit, vintage });
       if (!matches.length) {
         return emptyResponse(
           `No Census match for "${address}". Check the street number and spelling, ` +
@@ -62,9 +70,10 @@ export const tools: Tool<any, any>[] = [
     parameters: z.object({
       latitude: z.number().min(-90).max(90).describe("Degrees north: 47.61"),
       longitude: z.number().min(-180).max(180).describe("Degrees east; negative in the US: -122.33"),
+      vintage: vintageParameter,
     }),
-    execute: async ({ latitude, longitude }) => {
-      const point = await locatePoint(latitude, longitude);
+    execute: async ({ latitude, longitude, vintage }) => {
+      const point = await locatePoint(latitude, longitude, { vintage });
       if (!point.areas.state) {
         return emptyResponse(
           `No US Census geography covers ${latitude}, ${longitude}. ` +
@@ -90,9 +99,10 @@ export const tools: Tool<any, any>[] = [
     annotations: { title: "Geo: ZIP Code to FIPS Codes", readOnlyHint: true },
     parameters: z.object({
       zip: z.string().regex(/^\d{5}$/, "zip must be 5 digits").describe("5-digit ZIP code: '98101'"),
+      vintage: vintageParameter,
     }),
-    execute: async ({ zip }) => {
-      const location = await lookupZip(zip);
+    execute: async ({ zip, vintage }) => {
+      const location = await lookupZip(zip, { vintage });
       if (!location) {
         return emptyResponse(
           `No Census ZIP area (ZCTA) for ${zip}. PO-box-only and newly assigned ZIPs have none; ` +
@@ -110,6 +120,7 @@ export const tools: Tool<any, any>[] = [
     description:
       "List the counties in a state with their FIPS codes, or find one by name.\n" +
       "Use when a question names a county ('Harris County') but the tool needs a code.\n" +
+      "Coordinates are county internal points, not city centers; do not use them for city-centered radius searches.\n" +
       `${HANDOFF}\n\n` +
       "Example: state='TX', name='Harris' → 48201",
     annotations: { title: "Geo: Counties and FIPS Codes by State", readOnlyHint: true },

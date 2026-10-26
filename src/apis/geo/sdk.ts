@@ -52,6 +52,12 @@ const VINTAGE = "Current_Current";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
+/** Geography vintage selection; the latest published boundaries may be for an upcoming Congress. */
+export interface GeographyOptions {
+  /** Census vintage name, e.g. "ACS2025_Current". Defaults to "Current_Current". */
+  vintage?: string;
+}
+
 /** A named geography with its FIPS/GEOID code. */
 export interface Area {
   /** GEOID: 2 digits for a state, 5 for a county, 11 for a tract, 15 for a block. */
@@ -132,6 +138,7 @@ export interface County extends Area {
   stateUsps?: string;
   /** 3-digit county code within the state, as EPA AQS and USGS use. */
   countyCode: string;
+  /** County internal point, not the location of a city with the same name. */
   latitude?: number;
   longitude?: number;
 }
@@ -207,6 +214,12 @@ function coord(value: unknown): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function resolveVintage(vintage = VINTAGE): string {
+  const value = vintage.trim();
+  if (!value) throw new Error("vintage must be a Census vintage name, e.g. \"ACS2025_Current\".");
+  return value;
+}
+
 // ─── Address → geographies ───────────────────────────────────────────
 
 interface GeocoderMatch {
@@ -225,17 +238,19 @@ interface GeocoderMatch {
  *
  * @param address - one-line address, e.g. "1600 Pennsylvania Ave NW, Washington, DC"
  * @param opts.limit - most matches to return (default 5)
+ * @param opts.vintage - Census geography vintage (default "Current_Current").
+ *   Check congressionalDistrict.session before using a district to find current representatives.
  */
 export async function geocodeAddress(
   address: string,
-  opts: { limit?: number } = {},
+  opts: GeographyOptions & { limit?: number } = {},
 ): Promise<GeocodedAddress[]> {
   const query = address.trim();
   if (!query) throw new Error("address is required, e.g. \"1600 Pennsylvania Ave NW, Washington, DC\".");
 
   const res = await geocoder.get<{ result?: { addressMatches?: GeocoderMatch[] } }>(
     "/geographies/onelineaddress",
-    qp({ address: query, benchmark: BENCHMARK, vintage: VINTAGE, format: "json" }),
+    qp({ address: query, benchmark: BENCHMARK, vintage: resolveVintage(opts.vintage), format: "json" }),
   );
 
   const matches = res?.result?.addressMatches ?? [];
@@ -269,8 +284,14 @@ export async function geocodeAddress(
  *
  * @param latitude - degrees north, -90 to 90
  * @param longitude - degrees east, -180 to 180 (negative in the US)
+ * @param opts.vintage - Census geography vintage (default "Current_Current").
+ *   Check congressionalDistrict.session before using a district to find current representatives.
  */
-export async function locatePoint(latitude: number, longitude: number): Promise<LocatedPoint> {
+export async function locatePoint(
+  latitude: number,
+  longitude: number,
+  opts: GeographyOptions = {},
+): Promise<LocatedPoint> {
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
     throw new Error(`latitude must be between -90 and 90 (got ${latitude}).`);
   }
@@ -280,7 +301,7 @@ export async function locatePoint(latitude: number, longitude: number): Promise<
 
   const res = await geocoder.get<{ result?: { geographies?: Geographies } }>(
     "/geographies/coordinates",
-    qp({ x: longitude, y: latitude, benchmark: BENCHMARK, vintage: VINTAGE, format: "json" }),
+    qp({ x: longitude, y: latitude, benchmark: BENCHMARK, vintage: resolveVintage(opts.vintage), format: "json" }),
   );
   return { latitude, longitude, areas: toAreas(res?.result?.geographies ?? {}) };
 }
@@ -305,11 +326,14 @@ const COUNTY_LAYER = "/State_County/MapServer/1/query";
  * codes. PO-box-only ZIPs have no ZCTA and return null.
  *
  * @param zip - 5-digit ZIP code, e.g. "98101"
+ * @param opts.vintage - Geography vintage for the internal point's geographies, not the ZCTA boundary.
+ *   Defaults to "Current_Current"; check congressionalDistrict.session for current representation.
  * @returns the location, or null when no ZCTA matches
  */
-export async function lookupZip(zip: string): Promise<ZipLocation | null> {
+export async function lookupZip(zip: string, opts: GeographyOptions = {}): Promise<ZipLocation | null> {
   const code = String(zip).trim();
   if (!/^\d{5}$/.test(code)) throw new Error(`zip must be 5 digits (got ${JSON.stringify(zip)}).`);
+  const vintage = resolveVintage(opts.vintage);
 
   // Safe to interpolate: `code` is already known to be exactly five digits.
   const where = `GEOID='${code}'`;
@@ -326,7 +350,7 @@ export async function lookupZip(zip: string): Promise<ZipLocation | null> {
   if (latitude === undefined || longitude === undefined) return null;
 
   const [point, nearbyCounties] = await Promise.all([
-    locatePoint(latitude, longitude),
+    locatePoint(latitude, longitude, { vintage }),
     countiesNearZip(where),
   ]);
 
