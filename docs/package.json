@@ -32,7 +32,7 @@
   "devDependencies": {
     "mermaid": "^11.16.1",
     "typedoc": "^0.28.17",
-    "typedoc-plugin-markdown": "^4.10.0",
+    "typedoc-plugin-markdown": "^4.14.0",
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
