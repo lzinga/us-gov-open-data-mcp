@@ -309,7 +309,8 @@ export async function searchFacilities(opts: {
     p_st: opts.state.toUpperCase(),
     responseset: opts.responseset ?? 20,
   };
-  if (opts.majorOnly) params.p_pc = "MAJOR";
+  // ECHO ignores p_pc=MAJOR; p_maj=Y is the major-facility filter.
+  if (opts.majorOnly) params.p_maj = "Y";
   if (opts.activeOnly) params.p_act = "Y";
   if (opts.zip) params.p_zip = opts.zip;
   if (opts.penaltyRange) params.p_penalty = opts.penaltyRange;
@@ -446,12 +447,14 @@ export async function searchEnforcementCases(opts: {
   law?: string;
   responseset?: number;
 }): Promise<EnforcementCaseResult> {
+  // NOTE: the case service filters by state with p_state; it silently ignores
+  // p_st (used by the facility services) and returns every state's cases.
   const params: Record<string, string | number | undefined> = {
     output: "JSON",
-    p_st: opts.state.toUpperCase(),
+    p_state: opts.state.toUpperCase(),
     responseset: opts.responseset ?? 20,
   };
-  if (opts.law) params.p_law = opts.law;
+  if (opts.law) params.p_law = opts.law.toUpperCase();
 
   const summary = await echo.get<EnforcementCaseResult>(
     "/case_rest_services.get_case_info",
@@ -463,7 +466,15 @@ export async function searchEnforcementCases(opts: {
 
   const detail = await echo.get<EnforcementCaseResult>(
     "/case_rest_services.get_qid",
-    { output: "JSON", qid, responseset: opts.responseset ?? 20 },
+    {
+      output: "JSON",
+      qid,
+      responseset: opts.responseset ?? 20,
+      // Newest first. Column 12 is SettlementDate; DateFiled (11) is empty for
+      // most state-led cases, so sorting on it buries recent state actions.
+      newsort: 12,
+      descending: "Y",
+    },
   );
 
   if (detail?.Results) {
