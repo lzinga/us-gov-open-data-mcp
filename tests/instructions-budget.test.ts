@@ -9,8 +9,13 @@ import { buildInstructions } from "../src/server/instructions.js";
 import type { ApiModule } from "../src/shared/types.js";
 import { moduleDirs, getModule } from "./helpers.js";
 
-/** All 42 modules measured 64,401 characters (~16K tokens) when this budget was set. */
-const TOTAL_BUDGET_CHARS = 66_000;
+/**
+ * All 43 modules measured 65,897 characters (~16K tokens) when this budget was
+ * last raised. The previous 66,000 cap left only 103 characters, so any wording
+ * change at all would have broken the build; this leaves room for about one
+ * more module.
+ */
+const TOTAL_BUDGET_CHARS = 68_000;
 /** The largest module block (congress) measured 1,493 characters. */
 const MODULE_BLOCK_BUDGET_CHARS = 1_600;
 

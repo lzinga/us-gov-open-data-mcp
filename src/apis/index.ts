@@ -35,6 +35,7 @@ export * as fec from "./fec/sdk.js";
 export * as federalRegister from "./federal-register/sdk.js";
 export * as fema from "./fema/sdk.js";
 export * as fred from "./fred/sdk.js";
+export * as geo from "./geo/sdk.js";
 export * as govinfo from "./govinfo/sdk.js";
 export * as gsaCalc from "./gsa-calc/sdk.js";
 export * as hud from "./hud/sdk.js";
