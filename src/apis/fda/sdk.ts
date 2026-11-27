@@ -64,13 +64,18 @@ const api = createClient({
 interface SearchOpts { search?: string; limit?: number; skip?: number }
 
 /**
- * Normalize FDA search syntax: convert `+AND+`, `+OR+`, `+NOT+` to spaces
- * so the shared client's encodeURIComponent doesn't break them.
+ * Normalize FDA search syntax: convert `+AND+`, `+OR+`, `+NOT+` and the
+ * `+TO+` of date ranges to spaces so the shared client's encodeURIComponent
+ * doesn't break them.
  * The FDA API accepts `%20` (space) in place of `+` for query operators.
  */
 function normSearch(search?: string): string | undefined {
   if (!search) return search;
-  return search.replace(/\+AND\+/g, " AND ").replace(/\+OR\+/g, " OR ").replace(/\+NOT\+/g, " NOT ");
+  return search
+    .replace(/\+AND\+/g, " AND ")
+    .replace(/\+OR\+/g, " OR ")
+    .replace(/\+NOT\+/g, " NOT ")
+    .replace(/\+TO\+/g, " TO ");
 }
 
 /** Generic search for any OpenFDA endpoint. */
